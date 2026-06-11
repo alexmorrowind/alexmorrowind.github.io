@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B1 — Kirish</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #ffffff;
+      --bg-deep: #f5f7fb;
+      --bg-glass: rgba(59, 130, 246, 0.05);
+      --bg-card: rgba(255, 255, 255, 0.95);
+      --border: rgba(59, 130, 246, 0.15);
+      --border-glow: rgba(59, 130, 246, 0.4);
+      --blue-core: #3b82f6;
+      --blue-neon: #2563eb;
+      --purple-core: #7c3aed;
+      --purple-neon: #6d28d9;
+      --green-neon: #059669;
+      --rose-neon: #e11d48;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --grad-primary: linear-gradient(135deg, #3b82f6, #7c3aed);
+      --font-display: 'Inter', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-void);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 70% 60% at 20% 30%, rgba(59, 130, 246, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(124, 58, 237, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .login-wrap {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* LEFT */
+    .login-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 48px;
+      background: linear-gradient(135deg, #f0f6ff 0%, #f3f0ff 100%);
+      border-right: 1px solid var(--border);
+    }
+
+    .left-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      background: var(--grad-primary);
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+    }
+
+    /* LANG TOP-RIGHT */
+    .left-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .lang-switcher {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .lang-btn.active {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .left-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 0;
+    }
+
+    .left-tagline {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue-neon);
+      margin-bottom: 16px;
+    }
+
+    .left-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 3.5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.08;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+    }
+
+    .left-title .grad {
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .left-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 380px;
+      margin-bottom: 40px;
+    }
+
+    .left-features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .left-feat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .left-feat-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .left-bottom {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* RIGHT */
+    .login-right {
+      width: 460px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 48px;
+      background: #fff;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .form-header {
+      margin-bottom: 32px;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* TABS */
+    .form-tabs {
+      display: flex;
+      background: rgba(59, 130, 246, 0.06);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+    }
+
+    /* FIELDS */
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.03em;
+    }
+
+    .field-input {
+      width: 100%;
+      background: #f8faff;
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-input:focus {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: #fff;
+    }
+
+    .field-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .field-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .field-row .field {
+      flex: 1;
+    }
+
+    .field-pw {
+      position: relative;
+    }
+
+    .field-pw .field-input {
+      padding-right: 42px;
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 0;
+      display: flex;
+      transition: color 0.2s;
+    }
+
+    .pw-toggle:hover {
+      color: var(--text-secondary);
+    }
+
+    .form-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .checkbox-wrap input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--blue-core);
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: var(--blue-neon);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .forgot-link:hover {
+      opacity: 0.75;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--grad-primary);
+      border: none;
+      color: #fff;
+      padding: 13px;
+      border-radius: 11px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
+      margin-bottom: 18px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(59, 130, 246, 0.35);
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .or-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    .or-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .btn-demo {
+      width: 100%;
+      background: rgba(59, 130, 246, 0.05);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+      padding: 11px;
+      border-radius: 11px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+
+    .btn-demo:hover {
+      border-color: var(--border-glow);
+      color: var(--text-primary);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .switch-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .switch-link a {
+      color: var(--blue-neon);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .switch-link a:hover {
+      opacity: 0.8;
+    }
+
+    #registerForm {
+      display: none;
+    }
+
+    .field-error {
+      font-size: 12px;
+      color: var(--rose-neon);
+      margin-top: 5px;
+      display: none;
+    }
+
+    .success-box {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success-circle {
+      width: 64px;
+      height: 64px;
+      background: rgba(5, 150, 105, 0.1);
+      border: 2px solid var(--green-neon);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: var(--green-neon);
+      margin: 0 auto 20px;
+      box-shadow: 0 0 20px rgba(5, 150, 105, 0.2);
+    }
+
+    .success-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--green-neon);
+      margin-bottom: 8px;
+    }
+
+    .success-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 860px) {
+      .login-left {
+        display: none;
+      }
+
+      .login-right {
+        width: 100%;
+        padding: 40px 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-wrap">
+
+    <!-- LEFT -->
+    <div class="login-left">
+      <div class="left-top">
+        <a href="landing.html" class="left-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+          <span class="logo-text">Doim birinchi bo'ling</span>
+        </a>
+        <div class="lang-switcher">
+          <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+          <button class="lang-btn" onclick="setLang('ru')">RU</button>
+        </div>
+      </div>
+
+      <div class="left-content">
+        <div class="left-tagline" data-uz="Moliyaviy Platform" data-ru="Финансовая Платформа">Moliyaviy Platform</div>
+        <h1 class="left-title">
+          <span data-uz="Barcha moliyaviy" data-ru="Все финансовые">Barcha moliyaviy</span><br>
+          <span data-uz="xizmatlar " data-ru="услуги ">xizmatlar </span><span class="grad" data-uz="bir joyda"
+            data-ru="в одном месте">bir joyda</span>
+        </h1>
+        <p class="left-desc"
+          data-uz="Banklar, kreditlar, kartalar va investitsiyalarni solishtiring. Eng qulay shartni toping va to'g'ridan-to'g'ri ariza topshiring."
+          data-ru="Сравнивайте банки, кредиты, карты и инвестиции. Найдите лучшие условия и подайте заявку напрямую.">
+          Banklar, kreditlar, kartalar va investitsiyalarni solishtiring. Eng qulay shartni toping va to'g'ridan-to'g'ri
+          ariza topshiring.</p>
+
+        <div class="left-features">
+          <div class="left-feat">
+            <div class="left-feat-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                <path d="M3 21h18M3 10h18M5 6l7-3 7 3" />
+              </svg>
+            </div>
+            <span data-uz="7+ bank ma'lumotlari real vaqtda yangilanadi"
+              data-ru="Данные 7+ банков обновляются в реальном времени">7+ bank ma'lumotlari real vaqtda
+              yangilanadi</span>
+          </div>
+          <div class="left-feat">
+            <div class="left-feat-icon" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20" />
+              </svg>
+            </div>
+            <span data-uz="Premium kartalar va cashback takliflar"
+              data-ru="Премиум карты и предложения с кешбэком">Premium kartalar va cashback takliflar</span>
+          </div>
+          <div class="left-feat">
+            <div class="left-feat-icon" style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.2)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            <span data-uz="Kredit kalkulyator va onlayn ariza" data-ru="Кредитный калькулятор и онлайн-заявка">Kredit
+              kalkulyator va onlayn ariza</span>
+          </div>
+          <div class="left-feat">
+            <div class="left-feat-icon" style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                <path d="M3 3v18h18" />
+                <path d="M18 9l-5 5-4-4-3 3" />
+              </svg>
+            </div>
+            <span data-uz="Investitsiya portfeli va tahlil" data-ru="Инвестиционный портфель и аналитика">Investitsiya
+              portfeli va tahlil</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-bottom">
+        B1 &copy; 2026 &nbsp;&middot;&nbsp; <span data-uz="Barcha huquqlar himoyalangan"
+          data-ru="Все права защищены">Barcha huquqlar himoyalangan</span>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="login-right">
+      <div class="form-box">
+
+        <div class="form-header">
+          <div class="form-title" id="formTitle">Xush kelibsiz</div>
+          <div class="form-subtitle" id="formSubtitle">Hisobingizga kiring</div>
+        </div>
+
+        <div class="form-tabs">
+          <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')" data-uz="Kirish"
+            data-ru="Войти">Kirish</button>
+          <button class="tab-btn" id="tabRegister" onclick="switchTab('register')" data-uz="Ro'yxatdan o'tish"
+            data-ru="Регистрация">Ro'yxatdan o'tish</button>
+        </div>
+
+        <!-- SUCCESS -->
+        <div class="success-box" id="successBox">
+          <div class="success-circle">&#10003;</div>
+          <div class="success-title" id="successTitle">Muvaffaqiyatli!</div>
+          <div class="success-desc" id="successDesc">Platformaga o'tmoqdasiz...</div>
+          <button class="btn-submit" onclick="goToDashboard()" data-uz="Davom etish" data-ru="Продолжить">Davom
+            etish</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+          <div class="field">
+            <label class="field-label" data-uz="Elektron pochta" data-ru="Электронная почта">Elektron pochta</label>
+            <input type="email" class="field-input" id="loginEmail" placeholder="example@mail.com">
+            <div class="field-error" id="loginEmailErr" data-uz="To'g'ri elektron pochta kiriting"
+              data-ru="Введите корректный email">To'g'ri elektron pochta kiriting</div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-uz="Parol" data-ru="Пароль">Parol</label>
+            <div class="field-pw">
+              <input type="password" class="field-input" id="loginPassword" placeholder="••••••••">
+              <button class="pw-toggle" onclick="togglePw('loginPassword', this)" tabindex="-1">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <div class="field-error" id="loginPassErr" data-uz="Parol kamida 6 ta belgidan iborat bo'lishi kerak"
+              data-ru="Пароль должен содержать минимум 6 символов">Parol kamida 6 ta belgidan iborat bo'lishi kerak
+            </div>
+          </div>
+          <div class="form-meta">
+            <label class="checkbox-wrap">
+              <input type="checkbox" id="rememberMe"> <span data-uz="Eslab qolish" data-ru="Запомнить меня">Eslab
+                qolish</span>
+            </label>
+            <a href="#" class="forgot-link" data-uz="Parolni unutdingizmi?" data-ru="Забыли пароль?">Parolni
+              unutdingizmi?</a>
+          </div>
+          <button class="btn-submit" onclick="handleLogin(event)" data-uz="Kirish" data-ru="Войти">Kirish</button>
+          <div class="or-divider">
+            <div class="or-line"></div>
+            <span class="or-text" data-uz="yoki demo versiya" data-ru="или демо-версия">yoki demo versiya</span>
+            <div class="or-line"></div>
+          </div>
+          <button class="btn-demo" onclick="demoLogin(event)" data-uz="Demo rejimida ko'rish"
+            data-ru="Просмотреть в демо-режиме">Demo rejimida ko'rish</button>
+          <div class="switch-link">
+            <span data-uz="Hisob yo'qmi?" data-ru="Нет аккаунта?">Hisob yo'qmi?</span> <a href="#"
+              onclick="switchTab('register')" data-uz="Ro'yxatdan o'ting" data-ru="Зарегистрируйтесь">Ro'yxatdan
+              o'ting</a>
+          </div>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerForm">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" data-uz="Ism" data-ru="Имя">Ism</label>
+              <input type="text" class="field-input" id="regFirst" placeholder="Anvar">
+            </div>
+            <div class="field">
+              <label class="field-label" data-uz="Familiya" data-ru="Фамилия">Familiya</label>
+              <input type="text" class="field-input" id="regLast" placeholder="Karimov">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-uz="Elektron pochta" data-ru="Электронная почта">Elektron pochta</label>
+            <input type="email" class="field-input" id="regEmail" placeholder="example@mail.com">
+            <div class="field-error" id="regEmailErr" data-uz="To'g'ri elektron pochta kiriting"
+              data-ru="Введите корректный email">To'g'ri elektron pochta kiriting</div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-uz="Telefon raqami" data-ru="Номер телефона">Telefon raqami</label>
+            <input type="tel" class="field-input" id="regPhone" placeholder="+998 90 123 45 67">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" data-uz="Pasport seriyasi" data-ru="Серия паспорта">Pasport seriyasi</label>
+              <input type="text" class="field-input" id="regPassport" placeholder="AA1234567" style="text-transform:uppercase">
+            </div>
+            <div class="field">
+              <label class="field-label" data-uz="Tug'ilgan sana" data-ru="Дата рождения">Tug'ilgan sana</label>
+              <input type="date" class="field-input" id="regBirthDate">
+            </div>
+          </div>
+          <label class="checkbox-wrap" style="align-items:flex-start;margin:-4px 0 14px;color:var(--text-muted);font-size:12px">
+            <input type="checkbox" id="regMyIDTerms">
+            <span data-uz="MyID orqali shaxsni tekshirish va shaxsiy ma'lumotlarni qayta ishlashga roziman."
+              data-ru="Я согласен на проверку личности через MyID и обработку персональных данных.">
+              MyID orqali shaxsni tekshirish va shaxsiy ma'lumotlarni qayta ishlashga roziman.
+            </span>
+          </label>
+          <div style="border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:12px;margin-bottom:14px;background:rgba(15,23,42,.28)">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px">
+              <div>
+                <div style="font-size:12px;font-weight:700">MyID Face Check</div>
+                <div id="myidStatusText" style="font-size:11px;color:var(--text-muted)">Demo rejim: kamera majburiy emas. Real MyID uchun face photo kerak.</div>
+              </div>
+              <button type="button" class="btn-demo" style="padding:8px 10px;margin:0;width:auto" onclick="openMyIDFrame()">
+                MyID
+              </button>
+            </div>
+            <div id="myidFrameWrap" style="display:none;border-radius:12px;overflow:hidden;border:1px solid rgba(148,163,184,.24);height:280px;background:#0f172a">
+              <iframe id="myidFrame" src="about:blank" allow="camera;fullscreen" allowfullscreen border="0" style="width:100%;height:100%;border:0"></iframe>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-uz="Parol" data-ru="Пароль">Parol</label>
+            <div class="field-pw">
+              <input type="password" class="field-input" id="regPassword" placeholder="••••••••">
+              <button class="pw-toggle" onclick="togglePw('regPassword', this)" tabindex="-1">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <div class="field-error" id="regPassErr" data-uz="Parol kamida 6 ta belgidan iborat bo'lishi kerak"
+              data-ru="Пароль должен содержать минимум 6 символов">Parol kamida 6 ta belgidan iborat bo'lishi kerak
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" data-uz="Parolni tasdiqlang" data-ru="Подтвердите пароль">Parolni
+              tasdiqlang</label>
+            <div class="field-pw">
+              <input type="password" class="field-input" id="regConfirm" placeholder="••••••••">
+              <button class="pw-toggle" onclick="togglePw('regConfirm', this)" tabindex="-1">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <div class="field-error" id="regConfirmErr" data-uz="Parollar mos kelmaydi" data-ru="Пароли не совпадают">
+              Parollar mos kelmaydi</div>
+          </div>
+          <button class="btn-submit" style="margin-top:4px" onclick="handleRegister(event)" data-uz="Ro'yxatdan o'tish"
+            data-ru="Зарегистрироваться">Ro'yxatdan o'tish</button>
+          <div class="switch-link">
+            <span data-uz="Hisob bor?" data-ru="Уже есть аккаунт?">Hisob bor?</span> <a href="#"
+              onclick="switchTab('login')" data-uz="Kirish" data-ru="Войти">Kirish</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentLang = 'uz';
+
+    const translations = {
+      uz: {
+        formTitle_login: 'Xush kelibsiz',
+        formSubtitle_login: 'Hisobingizga kiring',
+        formTitle_register: 'Hisob yaratish',
+        formSubtitle_register: "Ma'lumotlaringizni kiriting",
+        successTitle_login: 'Xush kelibsiz!',
+        successDesc_login: 'Tizimga muvaffaqiyatli kirdingiz. Platformaga o\'tmoqdasiz...',
+        successTitle_register: 'Hisob yaratildi!',
+        successDesc_register: 'Ro\'yxatdan o\'tish muvaffaqiyatli. Platformaga o\'tmoqdasiz...',
+      },
+      ru: {
+        formTitle_login: 'Добро пожаловать',
+        formSubtitle_login: 'Войдите в актацию',
+        formTitle_register: 'Создать аккаунт',
+        formSubtitle_register: 'Введите ваши данные',
+        successTitle_login: 'Добро пожаловать!',
+        successDesc_login: 'Вы успешно вошли. Переход на платформу...',
+        successTitle_register: 'Аккаунт создан!',
+        successDesc_register: 'Регистрация прошла успешно. Переход на платформу...',
+      }
+    };
+
+    let currentTab = 'login';
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+      });
+      document.querySelectorAll('[data-uz]').forEach(el => {
+        const val = el.getAttribute('data-' + lang);
+        if (val) {
+          if (el.tagName === 'INPUT') el.placeholder = val;
+          else el.textContent = val;
+        }
+      });
+      const t = translations[lang];
+      document.getElementById('formTitle').textContent = t['formTitle_' + currentTab];
+      document.getElementById('formSubtitle').textContent = t['formSubtitle_' + currentTab];
+      document.documentElement.lang = lang;
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const isLogin = tab === 'login';
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+      document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+      const t = translations[currentLang];
+      document.getElementById('formTitle').textContent = t['formTitle_' + tab];
+      document.getElementById('formSubtitle').textContent = t['formSubtitle_' + tab];
+      document.getElementById('successBox').style.display = 'none';
+      clearErrors();
+    }
+
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      btn.innerHTML = isText
+        ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    }
+
+    function showError(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
+
+    function clearErrors() {
+      ['loginEmailErr', 'loginPassErr', 'regEmailErr', 'regPassErr', 'regConfirmErr'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+      });
+    }
+
+    // НАСТРОЙКА СОЕДИНЕНИЯ С БЭКЕНДОМ
+    const API_URL = 'http://127.0.0.1:8000/api';
+    let myidPhotoFromCamera = '';
+    let myidFrameReady = false;
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    window.addEventListener('message', function (e) {
+      const data = e.data || {};
+      const statusText = document.getElementById('myidStatusText');
+      if (data.cmd === -1) {
+        myidFrameReady = true;
+        if (statusText) statusText.textContent = currentLang === 'uz' ? 'MyID kamera tayyor.' : 'Камера MyID готова.';
+      } else if (data.cmd === 0 && statusText) {
+        statusText.textContent = data.status_message || (currentLang === 'uz' ? 'Yuz tekshirilmoqda...' : 'Проверка лица...');
+      } else if (data.cmd === 1 && statusText) {
+        statusText.textContent = currentLang === 'uz' ? 'Kamerani ishga tushirib bo\'lmadi.' : 'Не удалось запустить камеру.';
+      } else if (data.cmd === 2 && data.photo_from_camera) {
+        myidPhotoFromCamera = data.photo_from_camera;
+        if (statusText) statusText.textContent = currentLang === 'uz' ? 'Face photo olindi. Endi ro\'yxatdan o\'ting.' : 'Фото лица получено. Теперь можно регистрироваться.';
+      }
+    });
+
+    function openMyIDFrame() {
+      const wrap = document.getElementById('myidFrameWrap');
+      const frame = document.getElementById('myidFrame');
+      if (!wrap || !frame) return;
+      wrap.style.display = 'block';
+      if (frame.src === 'about:blank') {
+        frame.src = 'https://docs.myid.uz/iframe';
+      }
+      setTimeout(() => {
+        try {
+          frame.contentWindow.postMessage({ cmd: 'open', config: { locale: currentLang || 'ru' } }, '*');
+        } catch (error) {
+          console.warn('MyID iframe open:', error);
+        }
+      }, myidFrameReady ? 100 : 900);
+    }
+
+    async function runRegistrationMyID(payload) {
+      const startResponse = await fetch(`${API_URL}/auth/myid/start/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const startData = await startResponse.json();
+      if (!startResponse.ok) {
+        throw new Error(startData.error || startData.detail || 'MyID start failed');
+      }
+      if (['verified', 'demo_verified'].includes(startData.status)) {
+        return startData.session_id;
+      }
+
+      for (let i = 0; i < 8; i++) {
+        await delay(700);
+        const statusResponse = await fetch(`${API_URL}/auth/myid/status/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: startData.session_id })
+        });
+        const statusData = await statusResponse.json();
+        if (['verified', 'demo_verified'].includes(statusData.status)) {
+          return startData.session_id;
+        }
+        if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'MyID verification failed');
+        }
+      }
+      throw new Error('MyID verification timeout');
+    }
+
+    async function handleLogin(e) {
+      if (e) e.preventDefault(); // Останавливаем перезагрузку браузера
+      clearErrors();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+
+      let valid = true;
+      if (!email || !email.includes('@')) { showError('loginEmailErr', true); valid = false; }
+      if (pass.length < 6) { showError('loginPassErr', true); valid = false; }
+      if (!valid) return;
+
+      try {
+        // ИСПРАВЛЕНО: теперь отправляем запрос именно на LOGIN
+        const response = await fetch(`${API_URL}/auth/login/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: email,
+            password: pass
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('accessToken', data.access);
+          localStorage.setItem('refreshToken', data.refresh);
+          showSuccess('login');
+        } else {
+          alert(currentLang === 'uz' ? 'Email yoki parol noto‘g‘ri!' : 'Неверный email или пароль!');
+        }
+      } catch (error) {
+        console.error('Xatolik:', error);
+        alert(currentLang === 'uz' ? 'Server bilan bog‘lanishda xatolik!' : 'Ошибка соединения с сервером!');
+      }
+    }
+
+    async function handleRegister(e) {
+      if (e) e.preventDefault(); // Останавливаем перезагрузку браузера
+      clearErrors();
+
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirm').value;
+      const firstName = document.getElementById('regFirst').value.trim();
+      const lastName = document.getElementById('regLast').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const passport = document.getElementById('regPassport').value.trim().toUpperCase();
+      const birthDate = document.getElementById('regBirthDate').value;
+      const myidTerms = document.getElementById('regMyIDTerms').checked;
+      const submitBtn = e ? e.target : null;
+
+      let valid = true;
+      if (!email || !email.includes('@')) { showError('regEmailErr', true); valid = false; }
+      if (pass.length < 6) { showError('regPassErr', true); valid = false; }
+      if (pass !== confirm) { showError('regConfirmErr', true); valid = false; }
+      if (!passport || !birthDate || !myidTerms) {
+        alert(currentLang === 'uz' ? 'MyID uchun pasport, tug\'ilgan sana va rozilik kerak.' : 'Для MyID нужны паспорт, дата рождения и согласие.');
+        valid = false;
+      }
+      if (!valid) return;
+
+      try {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = currentLang === 'uz' ? 'MyID tekshirilmoqda...' : 'Проверка MyID...';
+        }
+        const myidSessionId = await runRegistrationMyID({
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          passport,
+          birth_date: birthDate,
+          agreed_on_terms: myidTerms,
+          photo_from_camera: myidPhotoFromCamera ? { front: myidPhotoFromCamera } : undefined,
+          is_resident: true
+        });
+        if (submitBtn) {
+          submitBtn.textContent = currentLang === 'uz' ? 'Akkaunt yaratilmoqda...' : 'Создаём аккаунт...';
+        }
+        // Отправляем запрос на регистрацию с именем, фамилией и телефоном
+        const response = await fetch(`${API_URL}/auth/register/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            password: pass,
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
+            myid_session_id: myidSessionId
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Автоматический вход после успешного создания аккаунта
+          const loginResponse = await fetch(`${API_URL}/auth/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: email, password: pass })
+          });
+          const loginData = await loginResponse.json();
+
+          if (loginResponse.ok) {
+            localStorage.setItem('accessToken', loginData.access);
+            localStorage.setItem('refreshToken', loginData.refresh);
+            localStorage.setItem('userPhone', phone);
+            localStorage.setItem('userFirstName', firstName);
+            localStorage.setItem('userLastName', lastName);
+            localStorage.setItem('userEmail', email);
+          }
+
+          showSuccess('register');
+        } else {
+          if (data.email) {
+            alert(data.email[0]);
+          } else {
+            alert(currentLang === 'uz' ? 'Ro‘yxatdan o‘tishda xatolik!' : 'Ошибка при регистрации!');
+          }
+        }
+      } catch (error) {
+        console.error('Xatolik:', error);
+        alert(error.message || (currentLang === 'uz' ? 'Server bilan bog‘lanishda xatolik!' : 'Ошибка соединения с сервером!'));
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = currentLang === 'uz' ? "Ro'yxatdan o'tish" : 'Зарегистрироваться';
+        }
+      }
+    }
+
+    function demoLogin(e) {
+      if (e) e.preventDefault();
+      document.getElementById('loginEmail').value = 'demo@b1.uz';
+      document.getElementById('loginPassword').value = 'demo123456';
+      setTimeout(() => handleLogin(), 300);
+    }
+
+    function showSuccess(type) {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'none';
+      const box = document.getElementById('successBox');
+      box.style.display = 'block';
+      const t = translations[currentLang];
+      document.getElementById('successTitle').textContent = t['successTitle_' + type];
+      document.getElementById('successDesc').textContent = t['successDesc_' + type];
+      setTimeout(goToDashboard, 2000);
+    }
+
+    function goToDashboard() { window.location.href = 'index.html'; }
+  </script>
+  <script src="login.js"></script>
+</body>
+
+
+
+</html>

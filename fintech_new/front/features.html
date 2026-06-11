@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imkoniyatlar — B1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding: 0 48px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 18px;
+      padding: 28px;
+      transition: all 0.28s;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.06);
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px rgba(59, 130, 246, 0.12);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    @media(max-width:900px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+        padding: 0 24px 60px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link active">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link">Xizmatlar</a>
+      <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="help.html" class="nav-link">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta">Boshlash</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-label">Imkoniyatlar</div>
+    <h1 class="page-hero-title" data-uz="Nima uchun B1?" data-ru="Почему B1?">Nima uchun B1?</h1>
+    <p class="page-hero-desc" data-uz="Moliyaviy qarorlar uchun barcha vositalar bitta platformada."
+      data-ru="Все инструменты для финансовых решений на одной платформе.">Moliyaviy qarorlar uchun barcha vositalar
+      bitta platformada.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+          <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
+        </svg></div>
+      <div class="feature-title" data-uz="Bank taqqoslash" data-ru="Сравнение банков">Bank taqqoslash</div>
+      <div class="feature-text"
+        data-uz="O'zbekistondagi barcha yirik banklarning depozit foizlari va shartlarini bir joyda solishtiring."
+        data-ru="Сравнивайте депозитные ставки и условия всех крупных банков в одном месте.">O'zbekistondagi barcha
+        yirik banklarning depozit foizlari va shartlarini bir joyda solishtiring.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <path d="M2 10h20" />
+        </svg></div>
+      <div class="feature-title" data-uz="Premium kartalar" data-ru="Премиум карты">Premium kartalar</div>
+      <div class="feature-text" data-uz="Cashback, travel miles va boshqa imtiyozlarga ega kartalarni solishtiring."
+        data-ru="Сравните карты с кэшбэком, travel miles и другими льготами.">Cashback, travel miles va boshqa
+        imtiyozlarga ega kartalarni solishtiring.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg></div>
+      <div class="feature-title" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</div>
+      <div class="feature-text" data-uz="Oylik to'lovni hisoblang va eng qulay kredit variantni tanlang."
+        data-ru="Рассчитайте ежемесячный платёж и выберите лучший кредит.">Oylik to'lovni hisoblang va eng qulay kredit
+        variantni tanlang.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg></div>
+      <div class="feature-title" data-uz="Investor platformasi" data-ru="Инвестиционная платформа">Investor platformasi
+      </div>
+      <div class="feature-text" data-uz="Texnologiya, ko'chmas mulk va startap loyihalariga investitsiya qiling."
+        data-ru="Инвестируйте в технологии, недвижимость и стартапы.">Texnologiya, ko'chmas mulk va startap loyihalariga
+        investitsiya qiling.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(8,145,178,0.1);border:1px solid rgba(8,145,178,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2">
+          <path d="M3 3v18h18" />
+          <path d="M18 9l-5 5-4-4-3 3" />
+        </svg></div>
+      <div class="feature-title" data-uz="Moliyaviy tahlil" data-ru="Финансовый анализ">Moliyaviy tahlil</div>
+      <div class="feature-text"
+        data-uz="Daromad va xarajatlaringizni kuzating, sof boyligingizni grafik ko'rinishda koring."
+        data-ru="Отслеживайте доходы и расходы в графическом виде.">Daromad va xarajatlaringizni kuzating, grafik
+        ko'rinishda koring.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(225,29,72,0.1);border:1px solid rgba(225,29,72,0.2)"><svg
+          width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg></div>
+      <div class="feature-title" data-uz="Xavfsiz va tez" data-ru="Безопасно и быстро">Xavfsiz va tez</div>
+      <div class="feature-text"
+        data-uz="Barcha ma'lumotlar 256-bit AES shifrlash bilan himoyalangan. Ikki bosqichli autentifikatsiya."
+        data-ru="Все данные защищены 256-битным AES шифрованием и двухфакторной аутентификацией.">Barcha ma'lumotlar
+        256-bit AES shifrlash bilan himoyalangan.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma" data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
+        <div class="footer-phones">
+          <div class="footer-phone-label" data-uz="Qo'llab-quvvatlash xizmati:" data-ru="Служба поддержки:">Qo'llab-quvvatlash xizmati:</div>          <a href="tel:+998509097297" class="footer-phone">+998 50 909 72 97</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="KOMPANIYA" data-ru="КОМПАНИЯ">KOMPANIYA</div>
+        <a href="about.html" class="footer-link" data-uz="Biz haqimizda" data-ru="О нас">Biz haqimizda</a>
+        <a href="blog.html" class="footer-link" data-uz="Blog" data-ru="Блог">Blog</a>
+        <a href="careers.html" class="footer-link" data-uz="Vakansiyalar" data-ru="Вакансии">Vakansiyalar</a>
+        <a href="developers.html" class="footer-link" data-uz="Dasturchilar uchun" data-ru="Разработчикам">Dasturchilar uchun</a>
+        <a href="sitemap.html" class="footer-link" data-uz="Sayt xaritasi" data-ru="Карта сайта">Sayt xaritasi</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="XIZMATLAR" data-ru="УСЛУГИ">XIZMATLAR</div>
+        <a href="services.html#kredit" class="footer-link" data-uz="Kredit" data-ru="Кредит">Kredit</a>
+        <a href="services.html#mikrozaym" class="footer-link" data-uz="Mikrozaym" data-ru="Микрозайм">Mikrozaym</a>
+        <a href="services.html#tranzaksiyalar" class="footer-link" data-uz="Tranzaksiyalar" data-ru="Транзакции">Tranzaksiyalar</a>
+        <a href="services.html#sugurta" class="footer-link" data-uz="Sug'urta" data-ru="Страховка">Sug'urta</a>
+        <a href="services.html#investitsiyalar" class="footer-link" data-uz="Investitsiyalar" data-ru="Инвестиции">Investitsiyalar</a>
+        <a href="services.html#hamyon" class="footer-link" data-uz="Hamyon" data-ru="Кошелёк">Hamyon</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="HUQUQIY" data-ru="ПРАВОВАЯ">HUQUQIY</div>
+        <a href="privacy.html" class="footer-link" data-uz="Maxfiylik siyosati" data-ru="Политика конфиденциальности">Maxfiylik siyosati</a>
+        <a href="oferta.html" class="footer-link" data-uz="Ommaviy oferta" data-ru="Публичная оферта">Ommaviy oferta</a>
+        <a href="terms.html" class="footer-link" data-uz="Foydalanish shartlari" data-ru="Условия использования">Foydalanish shartlari</a>
+        <a href="license.html" class="footer-link" data-uz="Litsenziya" data-ru="Лицензия">Litsenziya</a>
+        <a href="ecology.html" class="footer-link" data-uz="Ekologiya siyosati" data-ru="Экологическая политика">Ekologiya siyosati</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025–2026. B1-Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+  <script src="shared.js"></script>
+</body>
+
+</html>

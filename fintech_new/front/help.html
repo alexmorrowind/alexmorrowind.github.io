@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B1 — Yordam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .page-hero {
+      padding: 120px 48px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+
+    .page-hero p {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 32px;
+      padding: 0 48px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .help-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .help-contact-card {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.12);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.06);
+      margin-bottom: 8px;
+    }
+
+    .help-contact-card h3 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .contact-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .contact-phone {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 6px;
+      transition: color 0.2s;
+    }
+
+    .contact-phone:hover {
+      color: var(--blue-neon);
+    }
+
+    .contact-phone-sub {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 16px;
+      transition: color 0.2s;
+    }
+
+    .contact-phone-sub:hover {
+      color: var(--blue-neon);
+    }
+
+    .contact-divider {
+      border: none;
+      border-top: 1px solid rgba(59, 130, 246, 0.08);
+      margin: 16px 0;
+    }
+
+    .contact-address-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .contact-address {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .help-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: 0 1px 6px rgba(59, 130, 246, 0.05);
+    }
+
+    .help-nav-item:hover {
+      border-color: var(--border-glow);
+      transform: translateX(3px);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+    }
+
+    .help-nav-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .help-nav-arrow {
+      margin-left: auto;
+      color: var(--text-muted);
+    }
+
+    /* FAQ */
+    .help-main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .help-section-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    .faq-item {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
+      transition: all 0.2s;
+    }
+
+    .faq-item:hover {
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      user-select: none;
+      gap: 16px;
+    }
+
+    .faq-question svg {
+      flex-shrink: 0;
+      transition: transform 0.25s;
+      color: var(--text-muted);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.25s;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .faq-answer-inner {
+      padding: 0 24px 20px;
+    }
+
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+    }
+
+    .faq-item.open .faq-question svg {
+      transform: rotate(180deg);
+    }
+
+    .faq-item.open {
+      border-color: var(--border-glow);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Search */
+    .help-search {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      border-radius: 14px;
+      padding: 14px 20px;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.06);
+      margin-bottom: 8px;
+    }
+
+    .help-search svg {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .help-search input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .help-search input::placeholder {
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 900px) {
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-hero {
+        padding: 100px 20px 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="landing.html#features" class="nav-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="landing.html#services" class="nav-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="landing.html#banks" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="help.html" class="nav-link" style="color:var(--blue-neon);" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="section-label" data-uz="Yordam markazi" data-ru="Центр помощи">Yordam markazi</div>
+    <h1 data-uz="Qanday yordam bera olamiz?" data-ru="Чем можем помочь?">Qanday yordam bera olamiz?</h1>
+    <p data-uz="Eng ko'p so'raladigan savollarga javob toping yoki biz bilan bog'laning."
+      data-ru="Найдите ответы на часто задаваемые вопросы или свяжитесь с нами.">Eng ko'p so'raladigan savollarga javob
+      toping yoki biz bilan bog'laning.</p>
+  </div>
+
+  <div class="help-grid">
+    <!-- SIDEBAR -->
+    <div class="help-sidebar">
+      <div class="help-contact-card">
+        <h3 data-uz="Biz bilan bog'lanish" data-ru="Контакты">Biz bilan bog'lanish</h3>
+        <div class="contact-label" data-uz="Qo'llab-quvvatlash xizmati:" data-ru="Телефон службы поддержки:">
+          Qo'llab-quvvatlash xizmati:</div>
+        <a href="tel:+998509097297" class="contact-phone">+998 50 909 72 97</a>
+        <hr class="contact-divider">
+        <div class="contact-address-label" data-uz="Jismoniy va yuridik shaxslar uchun:"
+          data-ru="Для физических и юридических лиц:">Jismoniy va yuridik shaxslar uchun:</div>
+        <div class="contact-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+      </div>
+      <a href="#" class="help-nav-item">
+        <div class="help-nav-icon" style="background:rgba(59,130,246,0.1);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <span data-uz="Murojaat qoldirish" data-ru="Оставить обращение">Murojaat qoldirish</span>
+        <svg class="help-nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </a>
+      <a href="#" class="help-nav-item">
+        <div class="help-nav-icon" style="background:rgba(5,150,105,0.1);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <span data-uz="Ma'lumotlar xavfsizligi" data-ru="Безопасность данных">Ma'lumotlar xavfsizligi</span>
+        <svg class="help-nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </a>
+      <a href="#" class="help-nav-item">
+        <div class="help-nav-icon" style="background:rgba(225,29,72,0.1);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <span data-uz="Firibgarlik haqida xabar berish" data-ru="Сообщить о мошенничестве">Firibgarlik haqida xabar
+          berish</span>
+        <svg class="help-nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </a>
+      <a href="#" class="help-nav-item">
+        <div class="help-nav-icon" style="background:rgba(217,119,6,0.1);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg>
+        </div>
+        <span data-uz="Yordam va qo'llab-quvvatlash markazi" data-ru="Центр справки и поддержки">Yordam markazi</span>
+        <svg class="help-nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="help-main">
+      <div class="help-search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input type="text" placeholder="Savol yoki kalit so'z kiriting..."
+          data-placeholder-ru="Введите вопрос или ключевое слово...">
+      </div>
+
+      <div class="help-section-title" data-uz="Umumiy savollar" data-ru="Общие вопросы">Umumiy savollar</div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="B1 nima?" data-ru="Что такое B1?">B1 nima?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="B1 — O'zbekistondagi barcha yirik banklarning moliyaviy xizmatlarini bir joyda taqqoslash va ularga murojaat qilish imkonini beruvchi platforma."
+            data-ru="B1 — платформа для сравнения и подачи заявок на финансовые услуги всех крупных банков Узбекистана в одном месте.">
+            B1 — O'zbekistondagi barcha yirik banklarning moliyaviy xizmatlarini bir joyda taqqoslash va ularga
+            murojaat qilish imkonini beruvchi platforma.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="B1 dan foydalanish pullikmi?" data-ru="B1 платный?">B1 dan foydalanish pullikmi?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="Yo'q, B1 foydalanuvchilar uchun mutlaqo bepul. Ro'yxatdan o'tish va barcha xizmatlardan foydalanish hech qanday to'lovsiz amalga oshiriladi."
+            data-ru="Нет, B1 полностью бесплатен для пользователей. Регистрация и использование всех сервисов осуществляется без какой-либо оплаты.">
+            Yo'q, B1 foydalanuvchilar uchun mutlaqo bepul.</div>
+        </div>
+      </div>
+
+      <div class="help-section-title" data-uz="Kredit va qarzlar" data-ru="Кредиты и займы">Kredit va qarzlar</div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="B1 orqali kredit olish mumkinmi?" data-ru="Можно ли получить кредит через B1?">B1 orqali
+            kredit olish mumkinmi?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="Ha, B1 orqali turli banklarning kredit takliflarini taqqoslab, to'g'ridan-to'g'ri onlayn ariza topshirishingiz mumkin. Menejer 24 soat ichida siz bilan bog'lanadi."
+            data-ru="Да, через B1 вы можете сравнить кредитные предложения различных банков и напрямую подать онлайн-заявку. Менеджер свяжется с вами в течение 24 часов.">
+            Ha, B1 orqali turli banklarning kredit takliflarini taqqoslab, onlayn ariza topshirishingiz mumkin.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="Mikrozaym nima va qanday olish mumkin?"
+            data-ru="Что такое микрозайм и как его получить?">Mikrozaym nima?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="Mikrozaym — qisqa muddatli va kichik summali qarz. B1 orqali bir nechta mikromoliya tashkilotlarining shartlarini solishtiring va minimal hujjatlar bilan ariza bering."
+            data-ru="Микрозайм — краткосрочный займ на небольшую сумму. Через B1 сравните условия нескольких микрофинансовых организаций и подайте заявку с минимальным пакетом документов.">
+            Mikrozaym — qisqa muddatli va kichik summali qarz.</div>
+        </div>
+      </div>
+
+      <div class="help-section-title" data-uz="Xavfsizlik" data-ru="Безопасность">Xavfsizlik</div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="Mening ma'lumotlarim xavfsizmi?" data-ru="Мои данные в безопасности?">Mening ma'lumotlarim
+            xavfsizmi?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="Ha, B1 256-bit AES shifrlash va ikki bosqichli autentifikatsiya tizimidan foydalanadi. Sizning shaxsiy ma'lumotlaringiz uchinchi shaxslarga berilmaydi."
+            data-ru="Да, B1 использует 256-битное AES шифрование и двухфакторную аутентификацию. Ваши личные данные не передаются третьим лицам.">
+            Ha, B1 256-bit AES shifrlash va ikki bosqichli autentifikatsiyadan foydalanadi.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span data-uz="Firibgarlikdan qanday himoyalanaman?" data-ru="Как защититься от мошенничества?">Firibgarlikdan
+            qanday himoyalanaman?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div class="faq-answer">
+          <div class="faq-answer-inner"
+            data-uz="B1 hech qachon SMS yoki telefon orqali parol va karta ma'lumotlarini so'ramaydi. Shubhali holat yuzaga kelsa, bizning qo'llab-quvvatlash xizmatiga murojaat qiling."
+            data-ru="B1 никогда не запрашивает пароли и данные карты по SMS или телефону. При возникновении подозрительной ситуации обратитесь в нашу службу поддержки.">
+            B1 hech qachon SMS orqali parol va karta ma'lumotlarini so'ramaydi.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma"
+          data-ru="Самая удобная финансовая платформа Узбекистана">O'zbekistondagi eng qulay moliyaviy platforma</p>
+        <div class="footer-phones">
+          <div class="footer-phone-label" data-uz="Qo'llab-quvvatlash:" data-ru="Поддержка:">Qo'llab-quvvatlash:</div>          <a href="tel:+998509097297" class="footer-phone">+998 50 909 72 97</a>
+        </div>
+        <div class="footer-socials">
+          <a href="#" class="footer-social" aria-label="Telegram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" />
+            </svg>
+          </a>
+          <a href="#" class="footer-social" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+          </a>
+          <a href="#" class="footer-social" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Kompaniya" data-ru="Компания">Kompaniya</div>
+        <a href="#" class="footer-link" data-uz="Biz haqimizda" data-ru="О нас">Biz haqimizda</a>
+        <a href="#" class="footer-link" data-uz="Blog" data-ru="Блог">Blog</a>
+        <a href="#" class="footer-link" data-uz="Vakansiyalar" data-ru="Вакансии">Vakansiyalar</a>
+        <a href="#" class="footer-link" data-uz="Dasturchilar uchun" data-ru="Разработчикам">Dasturchilar uchun</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</div>
+        <a href="#" class="footer-link" data-uz="Kredit" data-ru="Кредит">Kredit</a>
+        <a href="#" class="footer-link" data-uz="Mikrozaym" data-ru="Микрозайм">Mikrozaym</a>
+        <a href="#" class="footer-link" data-uz="Sug'urta" data-ru="Страховка">Sug'urta</a>
+        <a href="#" class="footer-link" data-uz="Investitsiyalar" data-ru="Инвестиции">Investitsiyalar</a>
+        <a href="#" class="footer-link" data-uz="Hamyon" data-ru="Кошелёк">Hamyon</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Huquqiy" data-ru="Правовая информация">Huquqiy</div>
+        <a href="#" class="footer-link" data-uz="Maxfiylik siyosati" data-ru="Политика конфиденциальности">Maxfiylik
+          siyosati</a>
+        <a href="#" class="footer-link" data-uz="Ommaviy oferta" data-ru="Публичная оферта">Ommaviy oferta</a>
+        <a href="#" class="footer-link" data-uz="Foydalanish shartlari" data-ru="Условия использования">Foydalanish
+          shartlari</a>
+        <a href="#" class="footer-link" data-uz="Litsenziya" data-ru="Лицензия">Litsenziya</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-uz="© 2025–2026. B1-Doim birinchi bo'ling" data-ru="© 2025–2026. B1 — Финансовая Платформа">©
+        2025–2026. B1-Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script>
+    function toggleFaq(el) {
+      const item = el.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    }
+  </script>
+</body>
+
+</html>

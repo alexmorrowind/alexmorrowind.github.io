@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1 — B1-Doim birinchi bo'ling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Quick card order tiles in profile */
+        .quick-card-opt {
+            border-radius: 14px;
+            padding: 14px 12px;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.18s, box-shadow 0.18s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+        .quick-card-opt:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+        }
+        /* Payme Connect mini modal (inside applicationModal) */
+        .payme-steps-mini {
+            display: flex;
+            gap: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1.5px solid rgba(59,130,246,0.12);
+            margin-bottom: 18px;
+            font-size: 10px;
+        }
+        .payme-step-mini {
+            flex: 1;
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-right: 1.5px solid rgba(59,130,246,0.12);
+            background: #f8fafc;
+        }
+        .payme-step-mini:last-child { border-right: none; }
+        .payme-step-mini.active { background: var(--blue-neon); color: #fff; }
+    </style>
+</head>
+
+<body>
+
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top-line"></div>
+        <div class="sidebar-logo">
+            <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+            <div>
+                <div class="logo-text">B1</div>
+                <div class="logo-tagline" data-lang-key="tagline">Doim birinchi bo'ling</div>
+            </div>
+        </div>
+
+
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="setLanguage('uz')">O'zb</button>
+            <button class="lang-btn" onclick="setLanguage('ru')">Рус</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section" data-lang-key="nav_main">ASOSIY</div>
+            <div class="nav-item active" onclick="navigate('dashboard', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_dashboard">Boshqaruv paneli</span>
+            </div>
+            <div class="nav-item" onclick="navigate('banks', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_banks">Banklar</span>
+            </div>
+            <div class="nav-item" onclick="navigate('cards', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <path d="M2 10h20" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_cards">Kartalar</span>
+            </div>
+            <div class="nav-item" onclick="navigate('loans', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_loans">Kreditlar</span>
+            </div>
+
+            <div class="sidebar-section" data-lang-key="nav_invest">INVESTITSIYA</div>
+            <div class="nav-item" onclick="navigate('investors', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_investors">Investorlar</span>
+            </div>
+            <div class="nav-item" onclick="navigate('analytics', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18" />
+                    <path d="M18 9l-5 5-4-4-3 3" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_analytics">Tahlil</span>
+            </div>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card" onclick="navigateProfile()" style="cursor:pointer;" title="Profilni ochish">
+                <div class="avatar" id="userAvatarCircle">AK</div>
+                <div style="flex:1">
+                    <div class="user-name" id="sidebarUserName">Anvar Karimov</div>
+                    <div class="user-tier" id="sidebarUserTier">Premium</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="opacity:0.4;flex-shrink:0">
+                    <path d="M9 18l6-6-6-6" />
+                </svg>
+            </div>
+        </div>
+    </aside>
+
+
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                </svg>
+                <input type="text" id="searchInput" data-lang-placeholder="search_placeholder"
+                    placeholder="Bank, kredit yoki xizmat qidirish..." oninput="handleSearch(this.value)">
+                <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+            </div>
+            <div class="topbar-right">
+                <span class="topbar-time" id="clock">--:--</span>
+                <button class="topbar-btn" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+                    <svg class="theme-icon-light" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="theme-icon-dark" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <button class="topbar-btn notif-btn" onclick="showNotifications()" style="position:relative">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <span id="notifBadge"
+                        style="position:absolute;top:-4px;right:-4px;background:#f43f5e;color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--bg-primary)">0</span>
+                </button>
+                <button class="topbar-btn" onclick="showSettings()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <section id="sec-dashboard" class="section active">
+
+                <div class="welcome-hero">
+                    <div class="hero-glow"></div>
+                    <div class="welcome-greeting" data-lang-key="welcome_greeting">Xush kelibsiz qaytib,</div>
+                    <div class="welcome-name" id="dash-welcome-name"></div>
+                    <div class="welcome-meta"><span class="pulse-dot"></span> <span
+                            data-lang-key="welcome_status">Barcha tizimlar ishlayapti</span></div>
+                    <div class="welcome-stats">
+                        <div>
+                            <div class="wstat-label" data-lang-key="total_balance">Umumiy Balans</div>
+                            <div class="wstat-val gt-blue" id="dash-total-balance">0 UZS</div>
+                        </div>
+                        <div>
+                            <div class="wstat-label" data-lang-key="monthly_growth">Oylik O'sish</div>
+                            <div class="wstat-val gt-green" id="dash-monthly-growth">0%</div>
+                        </div>
+                        <div>
+                            <div class="wstat-label" data-lang-key="credit_score">Kredit Bali</div>
+                            <div class="wstat-val gt-purple" id="dash-credit-score">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Currency Exchange Rates Widget (CBU.UZ) -->
+                <div class="currency-widget" id="currencyWidget">
+                    <div class="currency-widget-header">
+                        <div class="currency-widget-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.7"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            <span data-lang-key="currency_rates">Valyuta Kurslari</span>
+                            <span class="currency-source">CBU.UZ</span>
+                        </div>
+                        <span class="currency-updated" id="currencyUpdated"></span>
+                    </div>
+                    <div class="currency-rates-row" id="currencyRatesRow">
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇺🇸</span>
+                            <span class="currency-code">USD</span>
+                            <span class="currency-rate-val" id="rate-usd">—</span>
+                        </div>
+                        <div class="currency-divider"></div>
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇪🇺</span>
+                            <span class="currency-code">EUR</span>
+                            <span class="currency-rate-val" id="rate-eur">—</span>
+                        </div>
+                        <div class="currency-divider"></div>
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇷🇺</span>
+                            <span class="currency-code">RUB</span>
+                            <span class="currency-rate-val" id="rate-rub">—</span>
+                        </div>
+                        <div class="currency-divider"></div>
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇬🇧</span>
+                            <span class="currency-code">GBP</span>
+                            <span class="currency-rate-val" id="rate-gbp">—</span>
+                        </div>
+                        <div class="currency-divider"></div>
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇨🇳</span>
+                            <span class="currency-code">CNY</span>
+                            <span class="currency-rate-val" id="rate-cny">—</span>
+                        </div>
+                        <div class="currency-divider"></div>
+                        <div class="currency-rate-item">
+                            <span class="currency-flag">🇹🇷</span>
+                            <span class="currency-code">TRY</span>
+                            <span class="currency-rate-val" id="rate-try">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ad-banner ad-banner-blue">
+                    <div class="ad-glow ad-glow-blue"></div>
+                    <div>
+                        <div class="ad-badge" data-lang-key="ad_special">MAXSUS TAKLIF</div>
+                        <div class="ad-title" data-lang-key="ad_title">Premium Platinum Kartani Oling</div>
+                        <div class="ad-desc" data-lang-key="ad_desc">5% cashback, cheksiz limitlar va bepul xalqaro
+                            o'tkazmalar</div>
+                    </div>
+                    <button class="btn-primary" onclick="openCardOffer()" data-lang-key="ad_btn">Hozir Olish</button>
+                </div>
+
+
+                <div class="grid-4" style="margin-bottom:20px">
+                    <div class="card card-blue">
+                        <div class="stat-icon-wrap"
+                            style="background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05))">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6"
+                                stroke-width="2">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                                <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+                            </svg>
+                        </div>
+                        <div class="stat-label" data-lang-key="stat_savings">Jamg'armalar</div>
+                        <div class="stat-value" id="dash-savings">0 UZS</div>
+                        <div class="stat-change up"> <span data-lang-key="this_month"></span></div>
+                    </div>
+                    <div class="card card-purple">
+                        <div class="stat-icon-wrap"
+                            style="background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(139,92,246,.05))">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6"
+                                stroke-width="2">
+                                <path d="M3 3v18h18" />
+                                <path d="M18 9l-5 5-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <div class="stat-label" data-lang-key="stat_investments">Investitsiyalar</div>
+                        <div class="stat-value" id="dash-investments">0 UZS</div>
+                        <div class="stat-change up"><span data-lang-key="ytd"></span></div>
+                    </div>
+                    <div class="card card-green">
+                        <div class="stat-icon-wrap"
+                            style="background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05))">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                                stroke-width="2">
+                                <rect x="2" y="5" width="20" height="14" rx="2" />
+                                <path d="M2 10h20" />
+                            </svg>
+                        </div>
+                        <div class="stat-label" data-lang-key="stat_cards">Aktiv Kartalar</div>
+                        <div class="stat-value" id="dash-cards-count">0</div>
+                        <div class="stat-change"><span data-lang-key="no_issues">Muammo yo'q</span></div>
+                    </div>
+                    <div class="card card-cyan">
+                        <div class="stat-icon-wrap"
+                            style="background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.05))">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06b6d4"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 6v6l4 2" />
+                            </svg>
+                        </div>
+                        <div class="stat-label" data-lang-key="stat_loans">Aktiv Kreditlar</div>
+                        <div class="stat-value" id="dash-loans-count">0</div>
+                        <div class="stat-change down"> <span data-lang-key="remaining"></span></div>
+                    </div>
+                </div>
+
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="sec-title"><span data-lang-key="portfolio_growth">Portfolio O'sishi</span></div>
+                        <div class="chart-wrap"><canvas id="portfolioChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="sec-title"><span data-lang-key="spending_breakdown">Xarajatlar Taqsimoti</span>
+                        </div>
+                        <div class="chart-wrap"><canvas id="spendingChart"></canvas></div>
+                    </div>
+                </div>
+
+
+                <div class="divider"></div>
+                <div class="sec-title" data-lang-key="quick_actions">Tez Harakatlar</div>
+                <div class="grid-4">
+                    <div class="rec-card" onclick="openTransferModal()">
+                        <div class="rec-icon"
+                            style="background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05))"></div>
+                        <div>
+                            <div class="rec-title" data-lang-key="action_transfer">Pul O'tkazish</div>
+                            <div class="rec-desc" data-lang-key="action_transfer_desc">Tez va xavfsiz o'tkazmalar</div>
+                        </div>
+                    </div>
+                    <div class="rec-card" onclick="openApplicationModal('loan', 1)">
+                        <div class="rec-icon"
+                            style="background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05))"></div>
+                        <div>
+                            <div class="rec-title" data-lang-key="action_apply_loan">Kredit Olish</div>
+                            <div class="rec-desc" data-lang-key="action_apply_loan_desc">Ariza topshirish va tasdiqlash
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rec-card" onclick="openApplicationModal('card', 1)">
+                        <div class="rec-icon"
+                            style="background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(139,92,246,.05))"></div>
+                        <div>
+                            <div class="rec-title" data-lang-key="action_new_card">Yangi Karta</div>
+                            <div class="rec-desc" data-lang-key="action_new_card_desc">Premium kartalar buyurtma qilish
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rec-card"
+                        onclick="navigate('analytics', document.querySelector('[onclick*=analytics]'))">
+                        <div class="rec-icon"
+                            style="background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.05))"></div>
+                        <div>
+                            <div class="rec-title" data-lang-key="action_analytics">Tahlil Ko'rish</div>
+                            <div class="rec-desc" data-lang-key="action_analytics_desc">Moliyaviy statistika va
+                                hisobotlar</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="sec-banks" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="banks_title">Banklarni Solishtirish</div>
+                        <div class="page-subtitle" data-lang-key="banks_subtitle">O'zbekiston va xalqaro banklarning eng
+                            yaxshi takliflari</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-ghost" onclick="filterBanks('all')"
+                            data-lang-key="filter_all">Barchasi</button>
+                        <button class="btn-primary" onclick="filterBanks('recommended')"
+                            data-lang-key="filter_recommended">Tavsiya etilgan</button>
+                    </div>
+                </div>
+
+
+                <div class="info-box info-green" style="margin-bottom:20px">
+                    <div class="info-box-title"> <span data-lang-key="banks_tip_title">Bank Tanlash Bo'yicha
+                            Maslahat</span></div>
+                    <p data-lang-key="banks_tip_desc">Bankni tanlashda foiz stavkasi, xizmat haqqi, mobil ilova sifati
+                        va mijozlarga xizmat ko'rsatishga e'tibor bering. Quyidagi jadvalda barcha muhim ma'lumotlar
+                        keltirilgan.</p>
+                </div>
+
+
+                <div class="filter-pills">
+                    <button class="filter-pill active" onclick="filterBankType(event,'all')"
+                        data-lang-key="bank_type_all">Barcha turlar</button>
+                    <button class="filter-pill" onclick="filterBankType(event,'digital')"
+                        data-lang-key="bank_type_digital">Raqamli</button>
+                    <button class="filter-pill" onclick="filterBankType(event,'traditional')"
+                        data-lang-key="bank_type_traditional">An'anaviy</button>
+                    <button class="filter-pill" onclick="filterBankType(event,'international')"
+                        data-lang-key="bank_type_international">Xalqaro</button>
+                </div>
+
+
+                <div class="card card-no-hover" style="overflow-x:auto">
+                    <table class="bank-table">
+                        <thead>
+                            <tr>
+                                <th data-lang-key="th_bank">Bank</th>
+                                <th data-lang-key="th_apy">Foiz (APY)</th>
+                                <th data-lang-key="th_min_deposit">Min. Depozit</th>
+                                <th data-lang-key="th_fees">Oylik Haq</th>
+                                <th data-lang-key="th_features">Xususiyatlar</th>
+                                <th data-lang-key="th_rating">Reyting</th>
+                                <th data-lang-key="th_action">Harakat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bankTableBody">
+
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="divider"></div>
+                <div class="grid-2" style="gap:14px">
+                    <div class="card">
+                        <div class="inv-live-header" style="margin-bottom:10px">
+                            <div class="inv-live-title">
+                                <span class="live-dot"></span>
+                                <span data-lang-key="apy_comparison">APY Solishtiruvi</span>
+                                <span class="currency-source">CBU.UZ LIVE</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrap"><canvas id="bankChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="inv-live-header" style="margin-bottom:10px">
+                            <div class="inv-live-title">
+                                <span class="live-dot"></span>
+                                <span data-lang-key="bank_revenue_rank">🏆 Eng Ko'p Daromad</span>
+                                <span class="currency-source">CBU.UZ</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrap"><canvas id="bankRevenueChart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="sec-cards" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="cards_title">Bank Kartalari</div>
+                        <div class="page-subtitle" data-lang-key="cards_subtitle">Premium va standart kartalarni
+                            solishtiring</div>
+                    </div>
+                </div>
+
+
+                <div class="ad-banner" style="background:linear-gradient(135deg,rgba(0,184,217,0.12),rgba(0,105,255,0.1));border:1.5px solid rgba(0,105,255,0.2);margin-bottom:14px">
+                    <div class="ad-glow" style="background:radial-gradient(ellipse 60% 80% at 15% 50%,rgba(0,184,217,0.2),transparent)"></div>
+                    <div>
+                        <div class="ad-badge" style="background:rgba(0,184,217,0.15);color:#0069ff" data-lang-key="ad_payme">PAYME CONNECT</div>
+                        <div class="ad-title" data-lang-key="paycom_ad_title">Paycom karta — 0 UZS yillik!</div>
+                        <div class="ad-desc" data-lang-key="paycom_ad_desc">3% cashback • Bepul yetkazib berish • 2 daqiqada buyurtma</div>
+                    </div>
+                    <button style="background:linear-gradient(135deg,#00b8d9,#0069ff);color:#fff;border:none;padding:12px 22px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:all 0.18s" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='1'" onclick="quickOrderCard('paycom')" data-lang-key="paycom_ad_btn">🔗 Payme Connect</button>
+                </div>
+
+                <div class="ad-banner ad-banner-amber">
+                    <div class="ad-glow ad-glow-amber"></div>
+                    <div>
+                        <div class="ad-badge" data-lang-key="ad_limited">CHEKLANGAN TAKLIF</div>
+                        <div class="ad-title" data-lang-key="cards_ad_title">Birinchi Yilda Bepul Xizmat!</div>
+                        <div class="ad-desc" data-lang-key="cards_ad_desc">Gold yoki Platinum karta buyurtma qiling va
+                            birinchi yil hech qanday to'lovsiz foydalaning</div>
+                    </div>
+                    <button class="btn-rose" onclick="orderCard('promo')" data-lang-key="cards_ad_btn">Buyurtma
+                        Berish</button>
+                </div>
+
+
+                <div class="grid-3" id="cardsGrid">
+
+                </div>
+
+
+                <div class="divider"></div>
+                <div class="sec-title" data-lang-key="cards_compare_title">Kartalarni Solishtirish</div>
+                <div class="card card-no-hover" style="overflow-x:auto">
+                    <table class="bank-table">
+                        <thead>
+                            <tr>
+                                <th data-lang-key="th_card">Karta</th>
+                                <th data-lang-key="th_annual_fee">Yillik To'lov</th>
+                                <th data-lang-key="th_cashback">Cashback</th>
+                                <th data-lang-key="th_limit">Limit</th>
+                                <th data-lang-key="th_benefits">Imtiyozlar</th>
+                                <th data-lang-key="th_action">Harakat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cardsTableBody">
+
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+
+            <section id="sec-loans" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="loans_title">Kreditlar Markazi</div>
+                        <div class="page-subtitle" data-lang-key="loans_subtitle">Shaxsiy, avto va ipoteka kreditlari
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-primary" onclick="openLoanCalculator()"
+                            data-lang-key="loan_calculator">Kredit Kalkulyator</button>
+                    </div>
+                </div>
+
+
+                <div class="ad-banner ad-banner-blue" style="margin-bottom:20px">
+                    <div class="ad-glow ad-glow-blue"></div>
+                    <div>
+                        <div class="ad-badge" data-lang-key="ad_special">MAXSUS TAKLIF</div>
+                        <div class="ad-title" data-lang-key="loan_promo_title">12% dan boshlanuvchi kredit!</div>
+                        <div class="ad-desc" data-lang-key="loan_promo_desc">Onlayn ariza — 1 kunda ko'rib chiqish. Hujjatlar minimal</div>
+                    </div>
+                    <button class="btn-primary" onclick="openApplicationModal('loan', 5)" data-lang-key="loan_promo_btn">Hozir Ariza Berish</button>
+                </div>
+
+
+                <div class="grid-3" style="margin-bottom:20px">
+                    <div class="info-box">
+                        <div class="info-box-title"> <span data-lang-key="loan_info_rate">Foiz Stavkasi</span></div>
+                        <p data-lang-key="loan_info_rate_desc">Yillik foiz stavkasi 12% dan boshlanadi. Kredit
+                            tarixingiz va summasiga qarab o'zgarishi mumkin.</p>
+                    </div>
+                    <div class="info-box info-amber">
+                        <div class="info-box-title"> <span data-lang-key="loan_info_docs">Kerakli Hujjatlar</span></div>
+                        <p data-lang-key="loan_info_docs_desc">Pasport, ish joyidan ma'lumotnoma, oxirgi 6 oylik bank
+                            ko'chirmasi.</p>
+                    </div>
+                    <div class="info-box info-green">
+                        <div class="info-box-title">⏱ <span data-lang-key="loan_info_time">Ko'rib Chiqish Muddati</span>
+                        </div>
+                        <p data-lang-key="loan_info_time_desc">Ariza 1-3 ish kunida ko'rib chiqiladi. Online ariza
+                            orqali tezroq natija oling.</p>
+                    </div>
+                </div>
+
+
+                <div class="filter-pills">
+                    <button class="filter-pill active" onclick="filterLoans(event,'all')"
+                        data-lang-key="loan_type_all">Barcha kreditlar</button>
+                    <button class="filter-pill" onclick="filterLoans(event,'personal')"
+                        data-lang-key="loan_type_personal">Shaxsiy</button>
+                    <button class="filter-pill" onclick="filterLoans(event,'auto')"
+                        data-lang-key="loan_type_auto">Avto</button>
+                    <button class="filter-pill" onclick="filterLoans(event,'mortgage')"
+                        data-lang-key="loan_type_mortgage">Ipoteka</button>
+                    <button class="filter-pill" onclick="filterLoans(event,'business')"
+                        data-lang-key="loan_type_business">Biznes</button>
+                </div>
+
+
+                <div class="grid-3" id="loansGrid">
+
+                </div>
+
+
+                <div class="divider"></div>
+                <div class="card">
+                    <div class="sec-title" data-lang-key="loan_rate_trends">Kredit Stavkalari Tendensiyasi</div>
+                    <div class="chart-wrap"><canvas id="loanChart"></canvas></div>
+                </div>
+
+                <div class="divider"></div>
+                <div class="sec-title" data-lang-key="loan_compare_title">Kreditlarni Solishtirish</div>
+                <div class="card card-no-hover" style="overflow-x:auto">
+                    <table class="bank-table">
+                        <thead>
+                            <tr>
+                                <th data-lang-key="th_loan_type">Kredit Turi</th>
+                                <th data-lang-key="th_bank">Bank</th>
+                                <th data-lang-key="th_rate">Foiz</th>
+                                <th data-lang-key="th_amount">Summa</th>
+                                <th data-lang-key="th_term">Muddat</th>
+                                <th data-lang-key="th_monthly">Oylik To'lov</th>
+                                <th data-lang-key="th_action">Harakat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTableBody">
+
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+
+            <section id="sec-investors" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="investors_title">Investorlar Platformasi</div>
+                        <div class="page-subtitle" id="investorsSectionSubtitle" data-lang-key="investors_subtitle">Loyihalaringizga investor toping
+                            yoki investitsiya qiling</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-ghost" onclick="openInvestorGuideByMode()" id="investorGuideBtn"
+                            data-lang-key="investor_guide">Qo'llanma</button>
+                        <button class="btn-primary" onclick="handleInvestorPrimaryAction()" id="investorPrimaryActionBtn">Investor
+                            Bo'lish</button>
+                    </div>
+                </div>
+
+                <div class="filter-pills" id="investorRoleSwitcher" style="margin-bottom:14px">
+                    <button class="filter-pill active" onclick="setInvestorMode('individual', event)" id="investorModeIndividualBtn">Jismoniy shaxs</button>
+                    <button class="filter-pill" onclick="setInvestorMode('legal', event)" id="investorModeLegalBtn">Yuridik shaxs</button>
+                </div>
+
+                <div class="info-box" style="margin-bottom:20px">
+                    <div class="info-box-title"> <span id="investorRoleInfoTitle">Investitsiya Qanday
+                            Ishlaydi?</span></div>
+                    <p id="investorRoleInfoDesc">1. Loyihani tanlang → 2. Investitsiya summasini kiriting → 3.
+                        Shartnoma imzolang → 4. Daromad oling. Minimal investitsiya $1,000 dan boshlanadi. Barcha
+                        loyihalar tekshiruvdan o'tgan.</p>
+                    <div id="investorRoleInfoNote" style="margin-top:12px;font-size:12px;color:var(--text-muted)"></div>
+                </div>
+
+
+                <div class="filter-pills" id="investorDomainFilters">
+                    <button class="filter-pill active" onclick="filterInvestors(event,'all')"
+                        data-lang-key="inv_filter_all">Barcha sohalar</button>
+                    <button class="filter-pill" onclick="filterInvestors(event,'tech')"
+                        data-lang-key="inv_filter_tech">Texnologiya</button>
+                    <button class="filter-pill" onclick="filterInvestors(event,'real-estate')"
+                        data-lang-key="inv_filter_realestate">Ko'chmas mulk</button>
+                    <button class="filter-pill" onclick="filterInvestors(event,'startup')"
+                        data-lang-key="inv_filter_startup">Startaplar</button>
+                    <button class="filter-pill" onclick="filterInvestors(event,'agriculture')"
+                        data-lang-key="inv_filter_agro">Qishloq xo'jaligi</button>
+                </div>
+
+
+                <div class="grid-3" id="investorsGrid">
+
+                </div>
+
+
+                <div class="divider"></div>
+
+                <!-- LIVE CBU INVESTMENT PERFORMANCE WIDGET -->
+                <div class="card inv-live-card">
+                    <div class="inv-live-header">
+                        <div class="inv-live-title">
+                            <span class="live-dot"></span>
+                            <span data-lang-key="investment_performance">Результаты Инвестиций</span>
+                            <span class="currency-source">CBU.UZ LIVE</span>
+                        </div>
+                        <div class="inv-live-meta">
+                            <span class="inv-live-updated" id="invLiveUpdated">—</span>
+                            <button class="inv-refresh-btn" onclick="fetchInvestmentRates()" title="Обновить">↻</button>
+                        </div>
+                    </div>
+
+                    <!-- KPI row: total invested, current value, profit/loss -->
+                    <div class="inv-kpi-row" id="invKpiRow">
+                        <div class="inv-kpi-card">
+                            <div class="inv-kpi-lbl" data-lang-key="inv_total_invested">Вложено (USD)</div>
+                            <div class="inv-kpi-val" id="invKpiInvested">$10,000</div>
+                        </div>
+                        <div class="inv-kpi-card">
+                            <div class="inv-kpi-lbl" data-lang-key="inv_current_uzs">Текущая стоимость (UZS)</div>
+                            <div class="inv-kpi-val" id="invKpiUzs">—</div>
+                        </div>
+                        <div class="inv-kpi-card">
+                            <div class="inv-kpi-lbl" data-lang-key="inv_rate_change">Изменение курса USD</div>
+                            <div class="inv-kpi-val" id="invKpiChange">—</div>
+                        </div>
+                        <div class="inv-kpi-card">
+                            <div class="inv-kpi-lbl" data-lang-key="inv_eur_rate">Курс EUR</div>
+                            <div class="inv-kpi-val" id="invKpiEur">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Live currency table for investment tracking -->
+                    <div class="inv-live-table" id="invLiveTable">
+                        <div class="inv-live-table-head">
+                            <span data-lang-key="inv_col_currency">Валюта</span>
+                            <span data-lang-key="inv_col_rate">Курс (UZS)</span>
+                            <span data-lang-key="inv_col_change">Изм.</span>
+                            <span data-lang-key="inv_col_trend">Тренд</span>
+                        </div>
+                        <div id="invLiveRows">
+                            <div class="inv-live-row skeleton"><span>USD</span><span>...</span><span></span><span></span></div>
+                            <div class="inv-live-row skeleton"><span>EUR</span><span>...</span><span></span><span></span></div>
+                            <div class="inv-live-row skeleton"><span>GBP</span><span>...</span><span></span><span></span></div>
+                            <div class="inv-live-row skeleton"><span>CNY</span><span>...</span><span></span><span></span></div>
+                            <div class="inv-live-row skeleton"><span>RUB</span><span>...</span><span></span><span></span></div>
+                            <div class="inv-live-row skeleton"><span>TRY</span><span>...</span><span></span><span></span></div>
+                        </div>
+                    </div>
+
+                    <div class="inv-live-note" data-lang-key="inv_live_note">
+                        ✦ Курсы обновляются каждые 60 секунд · Источник: cbu.uz
+                    </div>
+                </div>
+
+                <!-- Original investment chart -->
+                <div class="card" style="margin-top:14px">
+                    <div class="sec-title" data-lang-key="investment_performance">Результаты Инвестиций — История</div>
+                    <div class="chart-wrap-lg"><canvas id="investorChart"></canvas></div>
+                </div>
+            </section>
+
+
+            <section id="sec-analytics" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="analytics_title">Moliyaviy Tahlil</div>
+                        <div class="page-subtitle" data-lang-key="analytics_subtitle">Batafsil statistika va prognozlar
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-ghost" onclick="downloadReport()" data-lang-key="download_report">Hisobot
+                            Yuklab Olish</button>
+                    </div>
+                </div>
+
+
+                <div class="grid-4" style="margin-bottom:20px">
+                    <div class="card">
+                        <div class="kpi-lbl" data-lang-key="kpi_net_worth">Sof Boylik</div>
+                        <div class="kpi-val gt-blue">$284,521</div>
+                        <div class="kpi-change up"><span data-lang-key="vs_last_month"></span></div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-lbl" data-lang-key="kpi_income">Oylik Daromad</div>
+                        <div class="kpi-val gt-green">$9,200</div>
+                        <div class="kpi-change up"></div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-lbl" data-lang-key="kpi_spending">Oylik Xarajat</div>
+                        <div class="kpi-val" style="color:var(--rose-neon)">$3,100</div>
+                        <div class="kpi-change down"></div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-lbl" data-lang-key="kpi_savings_rate">Jamg'arma Nisbati</div>
+                        <div class="kpi-val gt-purple">66.3%</div>
+                        <div class="kpi-change up"></div>
+                    </div>
+                </div>
+
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="sec-title" data-lang-key="income_vs_spending">Daromad vs Xarajat</div>
+                        <div class="chart-wrap-lg"><canvas id="analyticsChart1"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="sec-title" data-lang-key="asset_allocation">Aktivlar Taqsimoti</div>
+                        <div class="chart-wrap-lg"><canvas id="analyticsChart2"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:14px">
+                    <div class="sec-title" data-lang-key="net_worth_history">Sof Boylik Tarixi</div>
+                    <div class="chart-wrap-lg"><canvas id="analyticsChart3"></canvas></div>
+                </div>
+            </section>
+
+            <!-- ===== PROFILE PAGE ===== -->
+            <section id="sec-profile" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="profile_title">Mening Profilim</div>
+                        <div class="page-subtitle" data-lang-key="profile_subtitle">Shaxsiy ma'lumotlar, kartalar va moliyaviy ko'rsatkichlar</div>
+                    </div>
+                </div>
+
+                <!-- PROFILE HERO -->
+                <div class="profile-page-hero">
+                    <div class="profile-page-avatar" id="profilePageAvatar">AK</div>
+                    <div class="profile-page-hero-info">
+                        <div class="profile-page-name" id="profilePageName">Foydalanuvchi</div>
+                        <div class="profile-page-tier" id="profilePageTier">⭐ Premium</div>
+                        <div class="profile-page-meta" id="profilePageMeta">
+                            <span id="profilePageEmail">—</span>
+                            <span class="profile-meta-dot">·</span>
+                            <span id="profilePagePhone">—</span>
+                        </div>
+                    </div>
+                    <button class="profile-page-edit-btn" onclick="openProfileEditModal()" data-lang-key="edit_btn">✏️ Tahrirlash</button>
+                </div>
+
+                <!-- INFO + FINANCE GRID -->
+                <div class="profile-page-grid">
+                    <!-- Left: Personal Info -->
+                    <div class="card">
+                        <div class="sec-title" style="margin-bottom:14px" data-lang-key="personal_info">👤 Shaxsiy ma'lumotlar</div>
+                        <div class="profile-info-rows">
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="first_name_label">Ism</span>
+                                <span class="pir-val" id="pg-firstname">—</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="last_name_label">Familiya</span>
+                                <span class="pir-val" id="pg-lastname">—</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="email_label">Email</span>
+                                <span class="pir-val" id="pg-email">—</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="phone_label">Telefon</span>
+                                <span class="pir-val" id="pg-phone">—</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="tariff_label">Tarif</span>
+                                <span class="pir-val">
+                                    <span class="tier-badge-amber" id="pg-tier" data-lang-key="premium_badge">Premium</span>
+                                </span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="pir-label" data-lang-key="registered_label">Ro'yxatdan o'tgan</span>
+                                <span class="pir-val" id="pg-joined">2026-06-05</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Finance Stats -->
+                    <div class="card">
+                        <div style="margin-bottom:14px">
+                            <div class="sec-title" data-lang-key="financial_indicators_label">📊 Moliyaviy ko'rsatkichlar</div>
+                        </div>
+                        <div class="profile-finance-rows">
+                            <div class="pfr-item blue">
+                                <div class="pfr-label" data-lang-key="card_balance_label">💳 Kartadagi balans</div>
+                                <div class="pfr-val" id="pgf-card-balance">0 UZS</div>
+                            </div>
+                            <div class="pfr-item green">
+                                <div class="pfr-label" data-lang-key="credits_label">📈 Kreditlar</div>
+                                <div class="pfr-val" id="pgf-credits">0 UZS</div>
+                            </div>
+                            <div class="pfr-item purple">
+                                <div class="pfr-label" data-lang-key="investments_label">💼 Investitsiyalar</div>
+                                <div class="pfr-val" id="pgf-investments">0 UZS</div>
+                            </div>
+                            <div class="pfr-item amber">
+                                <div class="pfr-label" data-lang-key="savings_label">🏦 Jamg'armalar</div>
+                                <div class="pfr-val" id="pgf-savings">0 UZS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARDS SECTION -->
+                <div class="card" style="margin-top:14px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                        <div class="sec-title" data-lang-key="my_cards_label">💳 Mening kartalarim</div>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn-ghost" style="font-size:12px;padding:7px 14px" onclick="openAddCard()" data-lang-key="add_card_btn">+ Karta qo'shish</button>
+                            <button class="btn-primary" style="font-size:12px;padding:7px 14px" onclick="openOrderCardPanel()">🔗 Buyurtma berish</button>
+                        </div>
+                    </div>
+
+                    <!-- Quick card order panel (shown when no card / or on demand) -->
+                    <div id="orderCardPanel" style="display:none;margin-bottom:16px">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:12px">
+                            <div class="quick-card-opt" onclick="quickOrderCard('paycom')" style="background:linear-gradient(135deg,#00b8d9,#0069ff)">
+                                <div style="font-size:22px;font-weight:900">P</div>
+                                <div style="font-size:11px;font-weight:700;margin-top:4px">Paycom</div>
+                                <div style="font-size:9px;opacity:0.8">0 UZS • 3% cashback</div>
+                            </div>
+                            <div class="quick-card-opt" onclick="quickOrderCard('uzcard')" style="background:linear-gradient(135deg,#1a56db,#3b82f6)">
+                                <div style="font-size:18px;font-weight:900">UZ</div>
+                                <div style="font-size:11px;font-weight:700;margin-top:4px">Uzcard</div>
+                                <div style="font-size:9px;opacity:0.8">10K UZS • 1% cashback</div>
+                            </div>
+                            <div class="quick-card-opt" onclick="quickOrderCard('humo')" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">
+                                <div style="font-size:22px;font-weight:900">H</div>
+                                <div style="font-size:11px;font-weight:700;margin-top:4px">Humo</div>
+                                <div style="font-size:9px;opacity:0.8">15K UZS • 2% cashback</div>
+                            </div>
+                            <div class="quick-card-opt" onclick="quickOrderCard('visa')" style="background:linear-gradient(135deg,#1e3a5f,#2563eb)">
+                                <div style="font-size:15px;font-weight:900;letter-spacing:-1px">VISA</div>
+                                <div style="font-size:11px;font-weight:700;margin-top:4px">Visa</div>
+                                <div style="font-size:9px;opacity:0.8">50K UZS • 2.5% cashback</div>
+                            </div>
+                            <div class="quick-card-opt" onclick="quickOrderCard('mastercard')" style="background:linear-gradient(135deg,#eb1c26,#f57f17)">
+                                <div style="font-size:20px">⬤⬤</div>
+                                <div style="font-size:11px;font-weight:700;margin-top:4px">Mastercard</div>
+                                <div style="font-size:9px;opacity:0.8">80K UZS • 4% cashback</div>
+                            </div>
+                        </div>
+                        <button class="btn-ghost" style="font-size:12px;width:100%;padding:8px" onclick="document.getElementById('orderCardPanel').style.display='none'">✕ Yopish</button>
+                    </div>
+
+                    <div class="profile-page-cards" id="profilePageCards">
+                        <div class="profile-page-empty">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.2" opacity="0.25">
+                                <rect x="2" y="5" width="20" height="14" rx="2" />
+                                <path d="M2 10h20" />
+                            </svg>
+                            <p data-lang-key="no_cards_msg">Hech qanday karta biriktirilmagan</p>
+                            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+                                <button class="profile-page-edit-btn" onclick="openAddCard()" data-lang-key="add_card_btn">+ Mavjud kartani biriktirish</button>
+                                <button class="profile-page-edit-btn" style="background:var(--blue-neon);color:#fff;border-color:var(--blue-neon)" onclick="openOrderCardPanel()">🔗 Yangi karta buyurtma qilish</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ADD CARD MODAL -->
+    <div class="add-card-modal" id="addCardModal">
+        <div class="add-card-inner">
+            <h3 style="margin-bottom:16px;font-size:15px;font-weight:600" data-lang-key="add_new_card_title">💳 Yangi karta qo'shish</h3>
+            <div class="add-card-field">
+                <label data-lang-key="card_number_label">Karta raqami</label>
+                <input type="text" id="newCardNumber" placeholder="•••• •••• •••• ••••" maxlength="19"
+                    oninput="formatCardInput(this)">
+            </div>
+            <div class="add-card-field">
+                <label data-lang-key="expiry_date_label">Amal qilish muddati</label>
+                <input type="text" id="newCardExpiry" placeholder="MM/YY" maxlength="5"
+                    oninput="formatExpiry(this)">
+            </div>
+            <div class="add-card-field">
+                <label data-lang-key="card_name_label">Karta nomi (ixtiyoriy)</label>
+                <input type="text" id="newCardName" placeholder="Masalan: Uzcard, Humo...">
+            </div>
+            <div class="add-card-actions">
+                <button class="btn-cancel" onclick="closeAddCard()" data-lang-key="cancel_btn">Bekor qilish</button>
+                <button class="btn-save" onclick="saveNewCard()" data-lang-key="save_btn">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT FINANCE MODAL -->
+    <div class="add-card-modal" id="editFinanceModal">
+        <div class="add-card-inner">
+            <h3 style="margin-bottom:16px;font-size:15px;font-weight:600" data-lang-key="edit_finance_title">📊 Moliyaviy ma'lumotlar</h3>
+            <div class="add-card-field"><label data-lang-key="card_balance_label">Kartadagi balans (UZS)</label><input type="number" id="ef-card-balance" placeholder="0" disabled></div>
+            <div class="add-card-field"><label data-lang-key="credits_label">Kreditlar (UZS)</label><input type="number" id="ef-credits" placeholder="0"></div>
+            <div class="add-card-field"><label data-lang-key="investments_label">Investitsiyalar (UZS)</label><input type="number" id="ef-investments" placeholder="0"></div>
+            <div class="add-card-field"><label data-lang-key="savings_label">Jamg'armalar (UZS)</label><input type="number" id="ef-savings" placeholder="0"></div>
+            <div class="add-card-actions">
+                <button class="btn-cancel" onclick="closeEditFinance()" data-lang-key="cancel_btn">Bekor qilish</button>
+                <button class="btn-save" onclick="saveFinanceData()" data-lang-key="save_btn">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div class="add-card-modal" id="editProfileModal">
+        <div class="add-card-inner">
+            <h3 style="margin-bottom:16px;font-size:15px;font-weight:600" data-lang-key="edit_profile_title">✏️ Profilni tahrirlash</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="add-card-field"><label data-lang-key="first_name_label">Ism</label><input type="text" id="ep-firstname" placeholder="Ism"></div>
+                <div class="add-card-field"><label data-lang-key="last_name_label">Familiya</label><input type="text" id="ep-lastname" placeholder="Familiya"></div>
+            </div>
+            <div class="add-card-field"><label data-lang-key="email_label">Email</label><input type="email" id="ep-email" placeholder="email@example.com"></div>
+            <div class="add-card-field"><label data-lang-key="phone_label">Telefon</label><input type="text" id="ep-phone" placeholder="+998 XX XXX XX XX"></div>
+            <div class="add-card-actions">
+                <button class="btn-cancel" onclick="document.getElementById('editProfileModal').classList.remove('open')" data-lang-key="cancel_btn">Bekor qilish</button>
+                <button class="btn-save" onclick="saveProfileEdit()" data-lang-key="save_btn">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="bankModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('bankModal')">×</button>
+            <div id="bankModalContent"></div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="cardModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('cardModal')">×</button>
+            <div id="cardModalContent"></div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="loanModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('loanModal')">×</button>
+            <div id="loanModalContent"></div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="investorModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('investorModal')">×</button>
+            <div id="investorModalContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="applicationModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('applicationModal')">×</button>
+            <div id="applicationModalContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="notificationsModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('notificationsModal')">×</button>
+            <div id="notificationsModalContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+            <div id="settingsModalContent"></div>
+        </div>
+    </div>
+
+
+    <div class="modal-overlay" id="transferModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('transferModal')">×</button>
+            <div class="modal-title" data-lang-key="transfer_title">Pul O'tkazish</div>
+            <div class="modal-section">
+                <label class="modal-section-title" data-lang-key="transfer_from">Qayerdan</label>
+                <select class="q-input" id="transferFrom" style="min-height:auto;resize:none">
+                    <option>Asosiy hisob - $142,780</option>
+                    <option>Jamg'arma hisob - $98,420</option>
+                </select>
+            </div>
+            <div class="modal-section">
+                <label class="modal-section-title" data-lang-key="transfer_to">Qayerga</label>
+                <input type="text" class="q-input" id="transferTo" style="min-height:auto;resize:none"
+                    data-lang-placeholder="transfer_to_placeholder" placeholder="Karta raqami yoki telefon">
+            </div>
+            <div class="modal-section">
+                <label class="modal-section-title" data-lang-key="transfer_amount">Summa</label>
+                <input type="number" class="q-input" id="transferAmount" style="min-height:auto;resize:none" placeholder="0 UZS">
+            </div>
+            <button class="btn-primary" style="width:100%" onclick="processTransfer()"
+                data-lang-key="transfer_btn">O'tkazish</button>
+        </div>
+    </div>
+
+
+    <div class="toast" id="toast">
+        <span class="toast-icon"><span class="toast-icon"></span>#10003;</span>
+        <span id="toastMessage">Muvaffaqiyatli!</span>
+    </div>
+
+    <script>
+        async function loadDashboardData() {
+            if (typeof loadProfilePage === 'function') {
+                await loadProfilePage();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

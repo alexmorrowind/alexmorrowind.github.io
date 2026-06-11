@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B1-Doim birinchi bo'ling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 24px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 7vw, 80px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      max-width: 900px;
+    }
+
+    .hero-title .grad {
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 580px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+
+    .trust-row {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* STATS */
+    .stats-banner {
+      background: linear-gradient(135deg, #f0f6ff, #f5f0ff);
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      border-radius: 12px;
+      padding: 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(59, 130, 246, 0.08);
+    }
+
+    .stats-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label-lg {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* APP SECTION */
+    .app-section {
+      background: linear-gradient(135deg, #f0f6ff, #f5f0ff);
+      border-radius: 24px;
+      padding: 56px 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      box-shadow: 0 8px 40px rgba(59, 130, 246, 0.08);
+    }
+
+    .app-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+    }
+
+    .app-section-text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .app-section-text p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .app-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .app-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      border-radius: 14px;
+      padding: 12px 20px;
+      text-decoration: none;
+      transition: all 0.22s;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.07);
+      min-width: 148px;
+    }
+
+    .app-btn:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.13);
+    }
+
+    .app-btn-icon {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 8px;
+    }
+
+    .app-btn-label {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-btn-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .app-btn-name {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    /* FEATURES GRID */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 18px;
+      padding: 28px;
+      transition: all 0.28s;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.06);
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px rgba(59, 130, 246, 0.12);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    /* CTA */
+    .cta-section {
+      text-align: center;
+      padding: 80px 48px 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, #f0f6ff, #f3f0ff);
+      border: 1.5px solid rgba(59, 130, 246, 0.15);
+      border-radius: 24px;
+      padding: 64px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(59, 130, 246, 0.1);
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--grad-primary);
+    }
+
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 16px;
+    }
+
+    .cta-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 460px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    /* STEPS */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .step-card {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      transition: all 0.28s;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.06);
+    }
+
+    .step-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--grad-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    @media(max-width:900px) {
+
+      .features-grid,
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-banner {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 32px;
+      }
+
+      .app-section {
+        flex-direction: column;
+        padding: 36px 28px;
+      }
+
+      .cta-box {
+        padding: 40px 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="banks.html" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="help.html" class="nav-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1 class="hero-title">
+      <span data-uz="Moliyangizni" data-ru="Управляйте">Moliyangizni</span><br>
+      <span class="grad" data-uz="aqlli boshqaring" data-ru="финансами умно">aqlli boshqaring</span><br>
+      <span data-uz="bir joydan" data-ru="в одном месте">bir joydan</span>
+    </h1>
+    <p class="hero-desc"
+      data-uz="B1 orqali banklar, kreditlar, kartalar va investitsiyalarni solishtiring, tahlil qiling va eng yaxshi taklifni toping. Hammasi bir platformada."
+      data-ru="Через B1 сравнивайте банки, кредиты, карты и инвестиции, анализируйте и находите лучшее предложение. Всё на одной платформе.">
+      B1 orqali banklar, kreditlar, kartalar va investitsiyalarni solishtiring, tahlil qiling va eng yaxshi taklifni
+      toping. Hammasi bir platformada.
+    </p>
+    <div class="hero-actions">
+      <a href="login.html" class="btn-hero btn-hero-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg>
+        <span data-uz="Bepul Boshlash" data-ru="Начать бесплатно">Bepul Boshlash</span>
+      </a>
+      <a href="features.html" class="btn-hero btn-hero-ghost">
+        <span data-uz="Batafsil Ko'rish" data-ru="Подробнее">Batafsil Ko'rish</span>
+      </a>
+    </div>
+    <div class="trust-row">
+      <div class="trust-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+          stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg><span data-uz="256-bit shifrlash" data-ru="256-bit шифрование">256-bit shifrlash</span></div>
+      <div class="trust-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+          stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg><span data-uz="24/7 ishlaydi" data-ru="Работает 24/7">24/7 ishlaydi</span></div>
+      <div class="trust-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+          stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg><span data-uz="Ro'yxatdan o'tish bepul" data-ru="Регистрация бесплатна">Ro'yxatdan o'tish bepul</span>
+      </div>
+      <div class="trust-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+          stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18M9 21V9" />
+        </svg><span data-uz="Barcha banklar bir joyda" data-ru="Все банки в одном месте">Barcha banklar bir joyda</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP DOWNLOAD -->
+  <section style="padding: 0 48px 60px; max-width: 1200px; margin: 0 auto;">
+    <div class="app-section">
+      <div class="app-section-text">
+        <h2 data-uz="Ilovamizni yuklab oling" data-ru="Скачайте наше приложение">Ilovamizni yuklab oling</h2>
+        <p data-uz="B1 ilovasi bilan moliyangizni istalgan joydan boshqaring"
+          data-ru="Управляйте финансами с приложением B1 из любой точки">B1 ilovasi bilan moliyangizni istalgan
+          joydan boshqaring</p>
+      </div>
+      <div class="app-buttons">
+        <!-- Google Play -->
+        <a href="https://play.google.com" target="_blank" class="app-btn">
+          <svg class="app-btn-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="#f1f5f9" />
+            <path d="M8.5 7.2L19.8 16 8.5 24.8V7.2z" fill="#34a853" />
+            <path d="M8.5 7.2l8.5 8.8-8.5 8.8L6 22.5V9.5L8.5 7.2z" fill="#4285f4" />
+            <path d="M8.5 7.2L19.8 16l3.2-2L10.8 6.2 8.5 7.2z" fill="#fbbc04" />
+            <path d="M8.5 24.8l11.3-8.8 3.2 2-12.2 7.8-2.3-1z" fill="#ea4335" />
+          </svg>
+          <div class="app-btn-label">
+            <span class="app-btn-sub" data-uz="Yuklab olish" data-ru="Скачать на">Yuklab olish</span>
+            <span class="app-btn-name">Google Play</span>
+          </div>
+        </a>
+        <!-- App Store -->
+        <a href="https://apps.apple.com" target="_blank" class="app-btn">
+          <svg class="app-btn-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="#f1f5f9" />
+            <path
+              d="M21.5 17.1c0-2.8 2.3-4.1 2.4-4.2-1.3-1.9-3.3-2.2-4-2.2-1.7-.2-3.3 1-4.2 1-.9 0-2.2-1-3.6-.9-1.9 0-3.6 1.1-4.5 2.7-1.9 3.3-.5 8.2 1.4 10.9.9 1.3 2 2.8 3.4 2.7 1.4-.1 1.9-.9 3.5-.9s2.1.9 3.5.8c1.5 0 2.4-1.3 3.3-2.6.7-1 1.2-2 1.5-2.7-.1 0-2.7-1-2.7-4.6z"
+              fill="#1d1d1f" />
+            <path d="M18.8 9c.8-.9 1.3-2.2 1.1-3.5-1.1.1-2.4.7-3.2 1.6-.7.8-1.3 2.1-1.1 3.3 1.2.1 2.4-.6 3.2-1.4z"
+              fill="#1d1d1f" />
+          </svg>
+          <div class="app-btn-label">
+            <span class="app-btn-sub" data-uz="Yuklab olish" data-ru="Скачать в">Yuklab olish</span>
+            <span class="app-btn-name">App Store</span>
+          </div>
+        </a>
+        <!-- AppGallery -->
+        <a href="https://appgallery.huawei.com" target="_blank" class="app-btn">
+          <svg class="app-btn-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="#cf0a2c" />
+            <path d="M16 6C10.48 6 6 10.48 6 16s4.48 10 10 10 10-4.48 10-10S21.52 6 16 6z" fill="white"
+              opacity="0.15" />
+            <path d="M12 13h3.5v6H12v-6zM16.5 13H20v6h-3.5v-6z" fill="white" />
+            <path d="M12 13h8v1.5H12V13z" fill="white" opacity="0.7" />
+            <circle cx="16" cy="10" r="1.5" fill="white" />
+            <path d="M14.5 10h3v3.5h-3V10z" fill="white" opacity="0.5" />
+          </svg>
+          <div class="app-btn-label">
+            <span class="app-btn-sub" data-uz="Ochish" data-ru="Открыть в">Ochish</span>
+            <span class="app-btn-name">AppGallery</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section style="padding: 0 48px 80px; max-width: 1200px; margin: 0 auto;">
+    <div class="stats-banner">
+      <div class="stat-item">
+        <div class="stat-num">30+</div>
+        <div class="stat-label-lg" data-uz="O'zbekiston banklari" data-ru="Банков Узбекистана">O'zbekiston banklari
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-label-lg" data-uz="Xavfsiz shifrlangan" data-ru="Все данные зашифрованы">Xavfsiz shifrlangan
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">3 min</div>
+        <div class="stat-label-lg" data-uz="Ariza topshirish vaqti" data-ru="Время подачи заявки">Ariza topshirish vaqti
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">24/7</div>
+        <div class="stat-label-lg" data-uz="Platform ishlaydi" data-ru="Платформа работает">Platform ishlaydi</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-line"></div>
+
+  <!-- FEATURES PREVIEW -->
+  <section id="features" style="padding:80px 48px; max-width:1200px; margin:0 auto;">
+    <div class="section-label" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</div>
+    <h2 class="section-title" data-uz="Nima uchun B1?" data-ru="Почему B1?">Nima uchun B1?</h2>
+    <p class="section-desc" data-uz="Moliyaviy qarorlar uchun barcha vositalar bitta platformada."
+      data-ru="Все инструменты для финансовых решений на одной платформе.">Moliyaviy qarorlar uchun barcha vositalar
+      bitta platformada.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)"><svg
+            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
+          </svg></div>
+        <div class="feature-title" data-uz="Bank taqqoslash" data-ru="Сравнение банков">Bank taqqoslash</div>
+        <div class="feature-text" data-uz="Barcha yirik banklarning depozit foizlari va shartlarini solishtiring."
+          data-ru="Сравните депозитные ставки всех крупных банков.">Barcha yirik banklarning depozit foizlari va
+          shartlarini solishtiring.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2)"><svg
+            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M2 10h20" />
+          </svg></div>
+        <div class="feature-title" data-uz="Premium kartalar" data-ru="Премиум карты">Premium kartalar</div>
+        <div class="feature-text" data-uz="Cashback va travel miles imtiyozlarga ega kartalarni solishtiring."
+          data-ru="Сравните карты с кэшбэком и travel miles.">Cashback va travel miles imtiyozlarga ega kartalarni
+          solishtiring.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.2)"><svg
+            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg></div>
+        <div class="feature-title" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</div>
+        <div class="feature-text" data-uz="Oylik to'lovni hisoblang va eng qulay kredit variantni tanlang."
+          data-ru="Рассчитайте ежемесячный платёж и выберите лучший кредит.">Oylik to'lovni hisoblang va eng qulay
+          kredit variantni tanlang.</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:32px">
+      <a href="features.html" class="btn-hero btn-hero-ghost" data-uz="Barcha imkoniyatlar"
+        data-ru="Все возможности">Barcha imkoniyatlar →</a>
+    </div>
+  </section>
+
+  <div class="divider-line"></div>
+
+  <!-- HOW IT WORKS -->
+  <section style="padding:80px 48px; max-width:1200px; margin:0 auto;">
+    <div class="section-label" data-uz="Qanday ishlaydi" data-ru="Как работает">Qanday ishlaydi</div>
+    <h2 class="section-title" data-uz="To'rt qadamda boshlang" data-ru="Начните за четыре шага">To'rt qadamda boshlang
+    </h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-title" data-uz="Ro'yxatdan o'ting" data-ru="Зарегистрируйтесь">Ro'yxatdan o'ting</div>
+        <div class="step-text" data-uz="Bepul va bir daqiqadan kam." data-ru="Бесплатно, меньше минуты.">Bepul va bir
+          daqiqadan kam.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-title" data-uz="Xizmatni tanlang" data-ru="Выберите услугу">Xizmatni tanlang</div>
+        <div class="step-text" data-uz="Bank, karta yoki kredit bo'limiga o'ting." data-ru="Перейдите в нужный раздел.">
+          Bank, karta yoki kredit bo'limiga o'ting.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-title" data-uz="Solishtiring" data-ru="Сравните">Solishtiring</div>
+        <div class="step-text" data-uz="Foiz stavkasi va shartlarni taqqoslang." data-ru="Сравните ставки и условия.">
+          Foiz stavkasi va shartlarni taqqoslang.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-title" data-uz="Ariza topshiring" data-ru="Подайте заявку">Ariza topshiring</div>
+        <div class="step-text" data-uz="Onlayn ariza to'ldiring." data-ru="Заполните онлайн-заявку.">Onlayn ariza
+          to'ldiring.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-box">
+      <h2 class="cta-title"><span data-uz="Moliyangizni" data-ru="Начните управлять">Moliyangizni</span><br><span
+          style="background:var(--grad-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"
+          data-uz="bugun boshlang" data-ru="финансами сегодня">bugun boshlang</span></h2>
+      <p class="cta-desc" data-uz="B1'da ro'yxatdan o'ting va eng yaxshi takliflarni toping. Hamma narsa bepul."
+        data-ru="Зарегистрируйтесь и найдите лучшие предложения. Всё бесплатно.">B1'da ro'yxatdan o'ting va eng yaxshi
+        takliflarni toping. Hamma narsa bepul.</p>
+      <a href="login.html" class="btn-hero btn-hero-primary"><span data-uz="Hoziroq Boshlash"
+          data-ru="Начать сейчас">Hoziroq Boshlash</span></a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma"
+          data-ru="Самая удобная финансовая платформа Узбекистана">O'zbekistondagi eng qulay moliyaviy platforma</p>
+        <div class="footer-phones">
+          <div class="footer-phone-label" data-uz="Qo'llab-quvvatlash xizmati:" data-ru="Телефон службы поддержки:">
+            Qo'llab-quvvatlash xizmati:</div>          <a href="tel:+998509097297" class="footer-phone">+998 50 909 72 97</a>
+        </div>
+        <div class="footer-socials">
+          <a href="https://t.me/bpay_uz" target="_blank" class="footer-social" aria-label="Telegram"><svg width="18"
+              height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" />
+            </svg></a>
+          <a href="https://facebook.com" target="_blank" class="footer-social" aria-label="Facebook"><svg width="18"
+              height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg></a>
+          <a href="https://instagram.com" target="_blank" class="footer-social" aria-label="Instagram"><svg width="18"
+              height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+            </svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Kompaniya" data-ru="Компания">KOMPANIYA</div>
+        <a href="about.html" class="footer-link" data-uz="Biz haqimizda" data-ru="О нас">Biz haqimizda</a>
+        <a href="blog.html" class="footer-link" data-uz="Blog" data-ru="Блог">Blog</a>
+        <a href="careers.html" class="footer-link" data-uz="Vakansiyalar" data-ru="Вакансии">Vakansiyalar</a>
+        <a href="developers.html" class="footer-link" data-uz="Dasturchilar uchun" data-ru="Разработчикам">Dasturchilar
+          uchun</a>
+        <a href="sitemap.html" class="footer-link" data-uz="Sayt xaritasi" data-ru="Карта сайта">Sayt xaritasi</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Xizmatlar" data-ru="Услуги">XIZMATLAR</div>
+        <a href="services.html#kredit" class="footer-link" data-uz="Kredit" data-ru="Кредит">Kredit</a>
+        <a href="services.html#mikrozaym" class="footer-link" data-uz="Mikrozaym" data-ru="Микрозайм">Mikrozaym</a>
+        <a href="services.html#tranzaksiyalar" class="footer-link" data-uz="Tranzaksiyalar"
+          data-ru="Транзакции">Tranzaksiyalar</a>
+        <a href="services.html#sugurta" class="footer-link" data-uz="Sug'urta" data-ru="Страховка">Sug'urta</a>
+        <a href="services.html#investitsiyalar" class="footer-link" data-uz="Investitsiyalar"
+          data-ru="Инвестиции">Investitsiyalar</a>
+        <a href="services.html#hamyon" class="footer-link" data-uz="Hamyon" data-ru="Кошелёк">Hamyon</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="Huquqiy" data-ru="Правовая информация">HUQUQIY</div>
+        <a href="privacy.html" class="footer-link" data-uz="Maxfiylik siyosati"
+          data-ru="Политика конфиденциальности">Maxfiylik siyosati</a>
+        <a href="oferta.html" class="footer-link" data-uz="Ommaviy oferta" data-ru="Публичная оферта">Ommaviy oferta</a>
+        <a href="terms.html" class="footer-link" data-uz="Foydalanish shartlari"
+          data-ru="Условия использования">Foydalanish shartlari</a>
+        <a href="license.html" class="footer-link" data-uz="Litsenziya" data-ru="Лицензия">Litsenziya</a>
+        <a href="ecology.html" class="footer-link" data-uz="Ekologiya siyosati"
+          data-ru="Экологическая политика">Ekologiya siyosati</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-uz="© 2025–2026. B1-Doim birinchi bo'ling" data-ru="© 2025–2026. B1 — Финансовая Платформа">©
+        2025–2026. B1-Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+</body>
+
+</html>

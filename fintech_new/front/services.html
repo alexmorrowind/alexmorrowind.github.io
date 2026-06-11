@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xizmatlar — B1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .services-section {
+      padding: 0 48px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .service-card {
+      background: #fff;
+      border: 1.5px solid rgba(59, 130, 246, 0.1);
+      border-radius: 18px;
+      padding: 28px 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      transition: all 0.28s;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.06);
+    }
+
+    .service-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.1);
+    }
+
+    .service-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .service-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .service-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .service-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(59, 130, 246, 0.07);
+      color: var(--blue-neon);
+      border: 1px solid rgba(59, 130, 246, 0.12);
+    }
+
+    @media(max-width:900px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .services-section {
+        padding: 0 24px 60px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link active">Xizmatlar</a>
+      <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="help.html" class="nav-link">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta">Boshlash</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-label">Xizmatlar</div>
+    <h1 class="page-hero-title" data-uz="Barcha moliyaviy xizmatlar" data-ru="Все финансовые услуги">Barcha moliyaviy
+      xizmatlar</h1>
+    <p class="page-hero-desc"
+      data-uz="Kredit, mikrozaym, tranzaksiyalar, sug'urta, investitsiyalar va hamyon — barchasi bir joyda."
+      data-ru="Кредиты, микрозаймы, переводы, страховка, инвестиции и кошелёк — всё в одном месте.">Kredit, mikrozaym,
+      tranzaksiyalar, sug'urta, investitsiyalar va hamyon — barchasi bir joyda.</p>
+  </div>
+
+  <div class="services-section">
+    <div class="services-grid">
+      <div class="service-card" id="kredit">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.03));border:1px solid rgba(59,130,246,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Kredit" data-ru="Кредит">Kredit</div>
+          <div class="service-text"
+            data-uz="Shaxsiy, avto va ipoteka kreditlarini onlayn oling. Past foiz stavkasi va qulay muddatlar."
+            data-ru="Получите личный, автокредит или ипотеку онлайн. Низкие ставки и удобные сроки.">Shaxsiy, avto va
+            ipoteka kreditlarini onlayn oling. Past foiz stavkasi va qulay muddatlar.</div>
+          <div class="service-tags"><span class="tag">Onlayn ariza</span><span class="tag">Past foiz</span><span
+              class="tag">Tez qabul</span></div>
+        </div>
+      </div>
+      <div class="service-card" id="mikrozaym">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.03));border:1px solid rgba(124,58,237,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M2 10h20" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Mikrozaym" data-ru="Микрозайм">Mikrozaym</div>
+          <div class="service-text"
+            data-uz="Tez va oson qisqa muddatli qarz. Minimal hujjatlar va tezkor ko'rib chiqish."
+            data-ru="Быстрый и простой краткосрочный займ. Минимум документов.">Tez va oson qisqa muddatli qarz. Minimal
+            hujjatlar va tezkor ko'rib chiqish.</div>
+          <div class="service-tags"><span class="tag">5 daqiqada</span><span class="tag">Minimal hujjat</span></div>
+        </div>
+      </div>
+      <div class="service-card" id="tranzaksiyalar">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(5,150,105,0.12),rgba(5,150,105,0.03));border:1px solid rgba(5,150,105,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Tranzaksiyalar" data-ru="Транзакции">Tranzaksiyalar</div>
+          <div class="service-text" data-uz="Tezkor o'tkazmalar va to'lovlar. Real vaqtda kuzatish imkoniyati."
+            data-ru="Быстрые переводы и оплаты. Отслеживание в реальном времени.">Tezkor o'tkazmalar va to'lovlar. Real
+            vaqtda kuzatish imkoniyati.</div>
+          <div class="service-tags"><span class="tag">Real vaqt</span><span class="tag">Xavfsiz</span><span
+              class="tag">24/7</span></div>
+        </div>
+      </div>
+      <div class="service-card" id="sugurta">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(8,145,178,0.12),rgba(8,145,178,0.03));border:1px solid rgba(8,145,178,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Sug'urta" data-ru="Страховка">Sug'urta</div>
+          <div class="service-text" data-uz="Hayot, avtomobil va mulk sug'urtasini raqobatdosh narxlarda toping."
+            data-ru="Найдите страховку жизни, авто и имущества по конкурентным ценам.">Hayot, avtomobil va mulk
+            sug'urtasini raqobatdosh narxlarda toping.</div>
+          <div class="service-tags"><span class="tag">Hayot</span><span class="tag">Avto</span><span
+              class="tag">Mulk</span></div>
+        </div>
+      </div>
+      <div class="service-card" id="investitsiyalar">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(217,119,6,0.12),rgba(217,119,6,0.03));border:1px solid rgba(217,119,6,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8">
+            <path d="M3 3v18h18" />
+            <path d="M18 9l-5 5-4-4-3 3" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Investitsiyalar" data-ru="Инвестиции">Investitsiyalar</div>
+          <div class="service-text" data-uz="Turli fondlar va loyihalarga investitsiya qiling. Daromadingizni oshiring."
+            data-ru="Инвестируйте в фонды и проекты. Увеличьте доходность.">Turli fondlar va loyihalarga investitsiya
+            qiling. Daromadingizni oshiring.</div>
+          <div class="service-tags"><span class="tag">Fondlar</span><span class="tag">Startaplar</span><span
+              class="tag">Ko'chmas mulk</span></div>
+        </div>
+      </div>
+      <div class="service-card" id="hamyon">
+        <div class="service-icon"
+          style="background:linear-gradient(135deg,rgba(225,29,72,0.12),rgba(225,29,72,0.03));border:1px solid rgba(225,29,72,0.15)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="1.8">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+        </div>
+        <div>
+          <div class="service-title" data-uz="Hamyon" data-ru="Кошелёк">Hamyon</div>
+          <div class="service-text" data-uz="Raqamli hamyoningizni to'ldiring va xizmatlar uchun to'lang."
+            data-ru="Пополняйте цифровой кошелёк и оплачивайте услуги.">Raqamli hamyoningizni to'ldiring va xizmatlar
+            uchun to'lang.</div>
+          <div class="service-tags"><span class="tag">To'ldirish</span><span class="tag">To'lov</span><span
+              class="tag">Bepul</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma" data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
+        <div class="footer-phones">
+          <div class="footer-phone-label" data-uz="Qo'llab-quvvatlash xizmati:" data-ru="Служба поддержки:">Qo'llab-quvvatlash xizmati:</div>          <a href="tel:+998509097297" class="footer-phone">+998 50 909 72 97</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="KOMPANIYA" data-ru="КОМПАНИЯ">KOMPANIYA</div>
+        <a href="about.html" class="footer-link" data-uz="Biz haqimizda" data-ru="О нас">Biz haqimizda</a>
+        <a href="blog.html" class="footer-link" data-uz="Blog" data-ru="Блог">Blog</a>
+        <a href="careers.html" class="footer-link" data-uz="Vakansiyalar" data-ru="Вакансии">Vakansiyalar</a>
+        <a href="developers.html" class="footer-link" data-uz="Dasturchilar uchun" data-ru="Разработчикам">Dasturchilar uchun</a>
+        <a href="sitemap.html" class="footer-link" data-uz="Sayt xaritasi" data-ru="Карта сайта">Sayt xaritasi</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="XIZMATLAR" data-ru="УСЛУГИ">XIZMATLAR</div>
+        <a href="#kredit" class="footer-link" data-uz="Kredit" data-ru="Кредит">Kredit</a>
+        <a href="#mikrozaym" class="footer-link" data-uz="Mikrozaym" data-ru="Микрозайм">Mikrozaym</a>
+        <a href="#tranzaksiyalar" class="footer-link" data-uz="Tranzaksiyalar" data-ru="Транзакции">Tranzaksiyalar</a>
+        <a href="#sugurta" class="footer-link" data-uz="Sug'urta" data-ru="Страховка">Sug'urta</a>
+        <a href="#investitsiyalar" class="footer-link" data-uz="Investitsiyalar" data-ru="Инвестиции">Investitsiyalar</a>
+        <a href="#hamyon" class="footer-link" data-uz="Hamyon" data-ru="Кошелёк">Hamyon</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="HUQUQIY" data-ru="ПРАВОВАЯ">HUQUQIY</div>
+        <a href="privacy.html" class="footer-link" data-uz="Maxfiylik siyosati" data-ru="Политика конфиденциальности">Maxfiylik siyosati</a>
+        <a href="oferta.html" class="footer-link" data-uz="Ommaviy oferta" data-ru="Публичная оферта">Ommaviy oferta</a>
+        <a href="terms.html" class="footer-link" data-uz="Foydalanish shartlari" data-ru="Условия использования">Foydalanish shartlari</a>
+        <a href="license.html" class="footer-link" data-uz="Litsenziya" data-ru="Лицензия">Litsenziya</a>
+        <a href="ecology.html" class="footer-link" data-uz="Ekologiya siyosati" data-ru="Экологическая политика">Ekologiya siyosati</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025–2026. B1 — Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+  <script src="shared.js"></script>
+</body>
+
+</html>
