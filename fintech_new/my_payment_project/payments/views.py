@@ -9,8 +9,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from .integrations import (
+    generate_sms_code,
     get_myid_status,
+    mask_phone,
+    myid_is_configured,
     payme_subscribe_rpc,
+    send_registration_sms,
     start_myid_authentication,
 )
 from .models import Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup
@@ -245,12 +249,17 @@ class RegisterView(APIView):
     def post(self, request):
         myid_session_id = request.data.get('myid_session_id')
         allow_without_myid = os.environ.get('ALLOW_REGISTER_WITHOUT_MYID', '').lower() in ['1', 'true', 'yes']
+        allow_without_phone_sms = os.environ.get('ALLOW_REGISTER_WITHOUT_PHONE_SMS', '').lower() in ['1', 'true', 'yes']
         kyc = None
         if myid_session_id:
             kyc = KYCVerification.objects.filter(session_id=myid_session_id).first()
         if not allow_without_myid and (not kyc or kyc.status not in ['verified', 'demo_verified']):
             return Response({
                 "myid": "MyID verification is required before registration"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        if not allow_without_phone_sms and kyc and not kyc.phone_verified:
+            return Response({
+                "phone_sms": "Phone SMS verification is required before registration"
             }, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = RegisterSerializer(data=request.data)
@@ -286,37 +295,72 @@ class RegistrationMyIDStartView(APIView):
         email = request.data.get('email', '').strip().lower()
         passport = request.data.get('passport', '').strip().upper()
         birth_date = request.data.get('birth_date', '')
-        agreed = bool(request.data.get('agreed_on_terms'))
+        phone = request.data.get('phone', '').strip()
+        agreed_value = request.data.get('agreed_on_terms')
+        agreed = agreed_value is True or str(agreed_value).lower() in ['1', 'true', 'yes', 'on']
 
-        if not email or not passport or not birth_date or not agreed:
+        if not email or not phone or not agreed:
             return Response({
-                "detail": "email, passport, birth_date and agreed_on_terms are required"
+                "detail": "email, phone and agreed_on_terms are required"
             }, status=status.HTTP_400_BAD_REQUEST)
 
         session_id = f"reg-myid-{uuid.uuid4()}"
         external_id = str(uuid.uuid4())
+        photo_from_camera = request.data.get('photo_from_camera') or {}
         payload = {
             "first_name": request.data.get('first_name', ''),
             "last_name": request.data.get('last_name', ''),
-            "phone": request.data.get('phone', ''),
+            "phone": phone,
             "pass_data": passport,
             "birth_date": birth_date,
-            "photo_from_camera": request.data.get('photo_from_camera') or {},
+            "photo_from_camera": photo_from_camera,
             "agreed_on_terms": agreed,
             "external_id": external_id,
             "is_resident": request.data.get('is_resident', True),
         }
+        has_inline_myid_data = bool(passport and birth_date and (photo_from_camera.get('front') or request.data.get('front')))
 
         try:
-            myid = start_myid_authentication(payload)
+            if has_inline_myid_data:
+                myid = start_myid_authentication(payload)
+            elif myid_is_configured() and os.environ.get('MYID_HOSTED_URL'):
+                hosted_url = os.environ['MYID_HOSTED_URL']
+                myid = {
+                    'demo': False,
+                    'status': 'pending',
+                    'job_id': '',
+                    'external_id': external_id,
+                    'redirect_url': hosted_url,
+                    'payload': {
+                        'source': 'hosted_redirect',
+                        'redirect_url': hosted_url,
+                    },
+                }
+            elif myid_is_configured():
+                return Response({
+                    "detail": "This MyID mode needs a hosted/redirect URL or inline passport, birth date and face photo data."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                myid = {
+                    'demo': True,
+                    'status': 'demo_verified',
+                    'job_id': f"myid-demo-{int(time.time())}",
+                    'external_id': external_id,
+                    'payload': {
+                        'first_name': payload["first_name"],
+                        'last_name': payload["last_name"],
+                        'phone': phone,
+                        'source': 'demo_redirect',
+                    },
+                }
             kyc = KYCVerification.objects.create(
                 session_id=session_id,
                 email=email,
-                phone=payload["phone"],
+                phone=phone,
                 first_name=payload["first_name"],
                 last_name=payload["last_name"],
                 passport=passport,
-                birth_date=birth_date,
+                birth_date=birth_date or None,
                 status=myid.get('status', 'pending'),
                 job_id=myid.get('job_id', ''),
                 external_id=myid.get('external_id', external_id),
@@ -327,11 +371,11 @@ class RegistrationMyIDStartView(APIView):
             kyc = KYCVerification.objects.create(
                 session_id=session_id,
                 email=email,
-                phone=payload["phone"],
+                phone=phone,
                 first_name=payload["first_name"],
                 last_name=payload["last_name"],
                 passport=passport,
-                birth_date=birth_date,
+                birth_date=birth_date or None,
                 status='failed',
                 external_id=external_id,
                 error=str(exc),
@@ -347,6 +391,7 @@ class RegistrationMyIDStartView(APIView):
             "status": kyc.status,
             "job_id": kyc.job_id,
             "external_id": kyc.external_id,
+            "redirect_url": myid.get('redirect_url', ''),
             "demo": kyc.status == 'demo_verified',
         }, status=status.HTTP_201_CREATED)
 
@@ -383,6 +428,67 @@ class RegistrationMyIDStatusView(APIView):
             "status": kyc.status,
             "payload": kyc.payload,
             "error": kyc.error,
+        })
+
+
+class RegistrationPhoneCodeView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        kyc = KYCVerification.objects.filter(session_id=session_id).first()
+        if not kyc:
+            return Response({"detail": "KYC session not found"}, status=status.HTTP_404_NOT_FOUND)
+        if kyc.status not in ['verified', 'demo_verified']:
+            return Response({"detail": "MyID verification must be completed first"}, status=status.HTTP_400_BAD_REQUEST)
+        if not kyc.phone:
+            return Response({"detail": "Phone is missing for this session"}, status=status.HTTP_400_BAD_REQUEST)
+
+        code = generate_sms_code()
+        sms = send_registration_sms(kyc.phone, code)
+        kyc.sms_code = code
+        kyc.sms_sent_at = timezone.now()
+        kyc.payload = {
+            **(kyc.payload or {}),
+            "phone_sms": {
+                "sent": bool(sms.get('sent')),
+                "demo": bool(sms.get('demo')),
+                "phone": sms.get('phone') or mask_phone(kyc.phone),
+            }
+        }
+        kyc.save(update_fields=['sms_code', 'sms_sent_at', 'payload'])
+
+        return Response({
+            "session_id": kyc.session_id,
+            "sent": bool(sms.get('sent')),
+            "phone": sms.get('phone') or mask_phone(kyc.phone),
+            "wait": sms.get('wait', 60000),
+            "demo": bool(sms.get('demo')),
+        })
+
+
+class RegistrationPhoneVerifyView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        code = str(request.data.get('code', '')).strip()
+        kyc = KYCVerification.objects.filter(session_id=session_id).first()
+        if not kyc:
+            return Response({"detail": "KYC session not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not code:
+            return Response({"detail": "SMS code is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not kyc.sms_code or code != kyc.sms_code:
+            return Response({"detail": "Invalid SMS code"}, status=status.HTTP_400_BAD_REQUEST)
+
+        kyc.phone_verified = True
+        kyc.sms_verified_at = timezone.now()
+        kyc.payload = {**(kyc.payload or {}), "phone_verified": True}
+        kyc.save(update_fields=['phone_verified', 'sms_verified_at', 'payload'])
+        return Response({
+            "session_id": kyc.session_id,
+            "phone_verified": True,
+            "phone": mask_phone(kyc.phone),
         })
 
 class ProfileView(APIView):
@@ -489,6 +595,12 @@ class PaymeSubscribeCardCodeView(APIView):
         if not token:
             return Response({"detail": "token is required"}, status=status.HTTP_400_BAD_REQUEST)
         response = payme_subscribe_rpc('cards.get_verify_code', {'token': token})
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        registered_phone = mask_phone(profile.phone or '')
+        result = response.setdefault('result', {})
+        result['registered_phone'] = registered_phone
+        if response.get('result', {}).get('phone') in [None, '', '99890*****00'] and registered_phone:
+            result['phone'] = registered_phone
         return Response(response)
 
 

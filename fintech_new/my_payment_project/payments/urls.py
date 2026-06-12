@@ -16,6 +16,8 @@ from .views import (
     PaymeSubscribeReceiptView,
     PaymeWebhookView,
     ProfileView,
+    RegistrationPhoneCodeView,
+    RegistrationPhoneVerifyView,
     RegistrationMyIDStartView,
     RegistrationMyIDStatusView,
     RegisterView,
@@ -37,6 +39,8 @@ urlpatterns = [
     # Регистрация и Авторизация (BPay)
     path('api/auth/myid/start/', RegistrationMyIDStartView.as_view(), name='auth_myid_start'),
     path('api/auth/myid/status/', RegistrationMyIDStatusView.as_view(), name='auth_myid_status'),
+    path('api/auth/phone-code/', RegistrationPhoneCodeView.as_view(), name='auth_phone_code'),
+    path('api/auth/phone-verify/', RegistrationPhoneVerifyView.as_view(), name='auth_phone_verify'),
     path('api/auth/register/', RegisterView.as_view(), name='auth_register'),
     path('api/auth/login/', TokenObtainPairView.as_view(), name='auth_login'), # Выдаст access и refresh токены
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

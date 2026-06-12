@@ -13,6 +13,17 @@ def env_bool(name, default=False):
     return value.lower() in ['1', 'true', 'yes', 'on']
 
 
+def normalize_phone(phone):
+    return ''.join(ch for ch in str(phone or '') if ch.isdigit())
+
+
+def mask_phone(phone):
+    digits = normalize_phone(phone)
+    if len(digits) < 7:
+        return phone or ''
+    return f"{digits[:5]}***{digits[-2:]}"
+
+
 def _post_json(url, payload, headers=None, timeout=20):
     data = json.dumps(payload).encode('utf-8')
     req = request.Request(
@@ -121,6 +132,38 @@ def get_myid_status(job_id):
         timeout=30,
     )
     return {'status': 'verified', 'payload': response}
+
+
+def generate_sms_code():
+    if env_bool('SMS_DEMO_MODE', default=True):
+        return os.environ.get('SMS_DEMO_CODE', '666666')
+    return str(int(time.time() * 1000))[-6:]
+
+
+def send_registration_sms(phone, code):
+    sms_url = os.environ.get('SMS_PROVIDER_URL')
+    sms_token = os.environ.get('SMS_PROVIDER_TOKEN')
+    if not sms_url or not sms_token:
+        return {
+            'demo': True,
+            'sent': True,
+            'phone': mask_phone(phone),
+            'wait': 60000,
+        }
+
+    response = _post_json(
+        sms_url,
+        {'phone': normalize_phone(phone), 'message': f'B1 verification code: {code}'},
+        headers={'Authorization': f'Bearer {sms_token}'},
+        timeout=10,
+    )
+    return {
+        'demo': False,
+        'sent': True,
+        'phone': mask_phone(phone),
+        'payload': response,
+        'wait': 60000,
+    }
 
 
 def payme_subscribe_is_configured(require_password=False):

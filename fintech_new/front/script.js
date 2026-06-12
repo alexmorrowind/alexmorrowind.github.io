@@ -4728,7 +4728,7 @@ function openAddCard() {
                 <input type="text" class="q-input" id="paymeCardName" value="Payme" style="min-height:auto">
             </div>
             <div style="background:#00b8d911;border:1px solid #00b8d933;border-radius:12px;padding:12px;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:16px">
-                ${isUz ? 'Test rejimida SMS kod odatda 666666. Real Payme sozlanganda SMS kartaga ulangan telefon raqamiga boradi.' : 'В тестовом режиме SMS код обычно 666666. После настройки реального Payme SMS придёт на телефон карты.'}
+                ${isUz ? 'SMS ro‘yxatdan o‘tgan telefon raqamingizga bog‘lanadi. Test rejimida kod odatda 666666.' : 'SMS привязываем к номеру из вашего профиля. В тестовом режиме код обычно 666666.'}
             </div>
             <div style="display:flex;gap:10px">
                 <button type="submit" class="btn-primary" style="flex:1">${isUz ? 'SMS kod yuborish' : 'Отправить SMS код'}</button>
@@ -4760,7 +4760,12 @@ async function startPaymeCardFlow(event) {
     try {
         const createResponse = await apiRequest('/payme/subscribe/cards/create/', {
             method: 'POST',
-            body: { number, expire: expireRaw, save: true },
+            body: {
+                number,
+                expire: expireRaw,
+                save: true,
+                registered_phone: globalProfileData?.phone || localStorage.getItem('userPhone') || '',
+            },
         });
         const card = createResponse?.result?.card;
         if (!card?.token) throw new Error('Payme token not returned');
@@ -4774,6 +4779,7 @@ async function startPaymeCardFlow(event) {
             number: card.number,
             expire: card.expire || expireRaw,
             name,
+            registeredPhone: codeResponse?.result?.registered_phone || globalProfileData?.phone || localStorage.getItem('userPhone') || '',
         };
         renderPaymeSmsStep(codeResponse?.result || {});
     } catch (error) {
@@ -4795,7 +4801,7 @@ function renderPaymeSmsStep(result) {
         <div class="modal-title" style="margin-bottom:8px">📩 ${isUz ? 'SMS kodni kiriting' : 'Введите SMS код'}</div>
         <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:16px">
             ${isUz ? 'Payme kodni karta telefon raqamiga yubordi:' : 'Payme отправил код на телефон карты:'}
-            <strong>${result.phone || '99890*****00'}</strong>
+            <strong>${result.registered_phone || result.phone || pendingPaymeCard.registeredPhone || '99890*****00'}</strong>
         </p>
         <form onsubmit="verifyPaymeCardFlow(event)">
             <div class="modal-section">
