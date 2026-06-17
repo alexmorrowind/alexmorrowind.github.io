@@ -620,7 +620,16 @@ const investorsData = [
 const STARTUP_STORAGE_KEY = 'b1_legal_startups';
 const LEGAL_ENTITY_STORAGE_KEY = 'b1_legal_entity_profile';
 const PAYME_ORDERS_STORAGE_KEY = 'b1_payme_orders';
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+function getApiBaseUrl() {
+    if (window.B1_API_BASE_URL) return window.B1_API_BASE_URL.replace(/\/$/, '');
+    const host = window.location.hostname;
+    if (host === '127.0.0.1' || host === 'localhost' || host === '') {
+        return 'http://127.0.0.1:8000/api';
+    }
+    return `${window.location.origin}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 const USD_TO_UZS_RATE = 12500;
 let investorUserMode = localStorage.getItem('b1_investor_mode') || 'individual';
 let currentInvestorDomain = 'all';
@@ -735,6 +744,10 @@ function getAuthToken() {
     return localStorage.getItem('accessToken') || localStorage.getItem('authToken') || '';
 }
 
+function apiUrl(path) {
+    return `${API_BASE_URL}${path}`;
+}
+
 async function apiRequest(path, { method = 'GET', body, auth = true } = {}) {
     const token = getAuthToken();
     if (auth && !token) {
@@ -743,7 +756,7 @@ async function apiRequest(path, { method = 'GET', body, auth = true } = {}) {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
@@ -1887,7 +1900,7 @@ async function submitApplication(event, type, targetId) {
             amount: paymeAmount,
         };
         if (token) {
-            const response = await fetch('http://127.0.0.1:8000/api/applications/', {
+            const response = await fetch(apiUrl('/applications/'), {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -2089,7 +2102,7 @@ function _renderPaymeCardStep(content, prov, isUz) {
             const cardNumber = '•••• •••• •••• ' + Math.floor(1000 + Math.random() * 9000);
             const expiry = (new Date().getMonth() + 1).toString().padStart(2,'0') + '/' + (new Date().getFullYear() + 3).toString().slice(2);
             try {
-                await fetch('http://127.0.0.1:8000/api/user/cards/', {
+                await fetch(apiUrl('/user/cards/'), {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ number: cardNumber, expiry: expiry, balance: 0, name: prov.name })
@@ -4349,7 +4362,7 @@ async function loadProfilePage() {
 
     try {
         // 1. Fetch Profile Data
-        const profResponse = await fetch('http://127.0.0.1:8000/api/user/profile/', {
+        const profResponse = await fetch(apiUrl('/user/profile/'), {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -4370,7 +4383,7 @@ async function loadProfilePage() {
         }
 
         // 2. Fetch Cards Data
-        const cardsResponse = await fetch('http://127.0.0.1:8000/api/user/cards/', {
+        const cardsResponse = await fetch(apiUrl('/user/cards/'), {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -4883,7 +4896,7 @@ async function deleteProfileCard(id) {
 
     const token = localStorage.getItem('accessToken');
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/user/cards/${id}/`, {
+        const response = await fetch(apiUrl(`/user/cards/${id}/`), {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -4929,7 +4942,7 @@ async function saveFinanceData() {
 
     const token = localStorage.getItem('accessToken');
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/user/profile/', {
+        const response = await fetch(apiUrl('/user/profile/'), {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -4970,7 +4983,7 @@ async function saveProfileEdit() {
 
     const token = localStorage.getItem('accessToken');
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/user/profile/', {
+        const response = await fetch(apiUrl('/user/profile/'), {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,

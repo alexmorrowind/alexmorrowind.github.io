@@ -774,6 +774,7 @@
 
   </div>
 
+  <script src="config.js"></script>
   <script>
     let currentLang = 'uz';
 
@@ -852,7 +853,16 @@
     }
 
     // НАСТРОЙКА СОЕДИНЕНИЯ С БЭКЕНДОМ
-    const API_URL = 'http://127.0.0.1:8000/api';
+    function getApiBaseUrl() {
+      if (window.B1_API_BASE_URL) return window.B1_API_BASE_URL.replace(/\/$/, '');
+      const host = window.location.hostname;
+      if (host === '127.0.0.1' || host === 'localhost' || host === '') {
+        return 'http://127.0.0.1:8000/api';
+      }
+      return `${window.location.origin}/api`;
+    }
+
+    const API_URL = getApiBaseUrl();
     let myidPhotoFromCamera = '';
     let myidFrameReady = false;
     let pendingRegistrationData = null;
