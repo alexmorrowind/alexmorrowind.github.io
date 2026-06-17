@@ -4,12 +4,14 @@ from .views import (
     ApplicationCreateView,
     CardDetailView,
     CardListView,
+    IntegrationStatusView,
     InvestmentListCreateView,
     LegalEntityProfileView,
     LegalEntitySubmitView,
     MyIDCompleteView,
     MyIDStartView,
     PaymeCreateOrderView,
+    PaymeDepositRatesView,
     PaymeSubscribeCardCodeView,
     PaymeSubscribeCardCreateView,
     PaymeSubscribeCardVerifyView,
@@ -28,9 +30,12 @@ from .views import (
 
 
 urlpatterns = [
+    path('api/integrations/status/', IntegrationStatusView.as_view(), name='integration_status'),
+
     # Payme Webhook
     path('api/payme/', PaymeWebhookView.as_view(), name='payme_webhook'),
     path('api/payme/create-order/', PaymeCreateOrderView.as_view(), name='payme_create_order'),
+    path('api/payme/deposit-rates/', PaymeDepositRatesView.as_view(), name='payme_deposit_rates'),
     path('api/payme/subscribe/cards/create/', PaymeSubscribeCardCreateView.as_view(), name='payme_subscribe_card_create'),
     path('api/payme/subscribe/cards/code/', PaymeSubscribeCardCodeView.as_view(), name='payme_subscribe_card_code'),
     path('api/payme/subscribe/cards/verify/', PaymeSubscribeCardVerifyView.as_view(), name='payme_subscribe_card_verify'),

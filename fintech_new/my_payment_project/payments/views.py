@@ -6,7 +6,8 @@ from decimal import Decimal
 from urllib.parse import quote_plus
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import status
 from django.utils import timezone
 from .integrations import (
     generate_sms_code,
@@ -16,13 +17,10 @@ from .integrations import (
     payme_subscribe_rpc,
     send_registration_sms,
     start_myid_authentication,
+    get_config,
 )
-from .models import Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup
+from .models import APIConfiguration, Bank, Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup
 
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.contrib.auth.models import User
 from .serializers import (
     InvestmentSerializer,
     LegalEntityProfileSerializer,
@@ -31,59 +29,130 @@ from .serializers import (
     StartupSerializer,
 )
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.models import User
-from .serializers import RegisterSerializer
-
 PAYME_ERRORS = {
-    "AUTH_ERROR": {"code": -32504, "message": "Ошибка авторизации"},
-    "ORDER_NOT_FOUND": {"code": -31050, "message": "Заказ не найден"},
-    "INVALID_AMOUNT": {"code": -31001, "message": "Неверная сумма заказа"},
-    "CANT_CANCEL": {"code": -31007, "message": "Невозможно выполнить операцию"},
-    "TRANSACTION_NOT_FOUND": {"code": -31003, "message": "Транзакция не найдена"},
+    "AUTH_ERROR": {
+        "code": -32504,
+        "message": {"ru": "Ошибка авторизации", "uz": "Avtorizatsiya xatosi", "en": "Authorization error"},
+    },
+    "ORDER_NOT_FOUND": {
+        "code": -31050,
+        "message": {"ru": "Заказ не найден", "uz": "Buyurtma topilmadi", "en": "Order not found"},
+        "data": "Bpay",
+    },
+    "INVALID_AMOUNT": {
+        "code": -31001,
+        "message": {"ru": "Неверная сумма заказа", "uz": "Buyurtma summasi noto'g'ri", "en": "Invalid order amount"},
+    },
+    "CANT_CANCEL": {
+        "code": -31007,
+        "message": {"ru": "Невозможно выполнить операцию", "uz": "Operatsiyani bajarib bo'lmaydi", "en": "Operation cannot be performed"},
+    },
+    "TRANSACTION_NOT_FOUND": {
+        "code": -31003,
+        "message": {"ru": "Транзакция не найдена", "uz": "Tranzaksiya topilmadi", "en": "Transaction not found"},
+    },
+}
+
+PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
+SECRET_CONFIG_KEYS = {
+    'PAYME_MERCHANT_KEY',
+    'PAYME_SUBSCRIBE_KEY',
+    'MYID_PASSWORD',
+    'SMS_PROVIDER_TOKEN',
+    'DJANGO_SECRET_KEY',
 }
 
 
+def config_value_is_set(value):
+    if value is None:
+        return False
+    normalized = str(value).strip()
+    if not normalized:
+        return False
+    return not normalized.lower().startswith(PLACEHOLDER_PREFIXES)
+
+
+def mask_config_value(key, value):
+    if not config_value_is_set(value):
+        return ''
+    value = str(value)
+    if key in SECRET_CONFIG_KEYS:
+        return '****' if len(value) <= 8 else f"{value[:4]}...{value[-4:]}"
+    return value
+
+
+def config_source(key):
+    db_config = APIConfiguration.objects.filter(key=key, is_active=True).first()
+    if db_config and config_value_is_set(db_config.value):
+        return 'django_admin', db_config.value
+    env_value = os.environ.get(key)
+    if config_value_is_set(env_value):
+        return 'env', env_value
+    return 'missing', ''
+
+
+def config_group_status(keys):
+    items = {}
+    configured = True
+    for key in keys:
+        source, value = config_source(key)
+        is_set = config_value_is_set(value)
+        configured = configured and is_set
+        items[key] = {
+            'configured': is_set,
+            'source': source,
+            'value': mask_config_value(key, value),
+        }
+    return {'configured': configured, 'items': items}
+
+
 def get_payme_merchant_key():
-    return os.environ.get('PAYME_MERCHANT_KEY', 'test_merchant_secret_key')
+    return get_config('PAYME_MERCHANT_KEY', 'test_merchant_secret_key')
 
 
 def get_payme_merchant_id():
-    return os.environ.get('PAYME_MERCHANT_ID', 'test_merchant_id')
+    return get_config('PAYME_MERCHANT_ID', 'test_merchant_id')
+
+
+def get_payme_account_key():
+    return get_config('PAYME_ACCOUNT_KEY', 'Bpay')
 
 
 def build_payme_checkout_url(order):
     merchant_id = get_payme_merchant_id()
+    account_key = get_payme_account_key()
     amount_tiyin = int(Decimal(order.amount) * 100)
-    callback = os.environ.get('PAYME_CALLBACK_URL', 'http://127.0.0.1:8765/index.html')
-    base_url = os.environ.get('PAYME_CHECKOUT_URL', 'https://checkout.paycom.uz')
-    payload = f"m={merchant_id};ac.order_id={order.id};a={amount_tiyin};c={callback};ct=15"
+    callback = get_config('PAYME_CALLBACK_URL', 'http://127.0.0.1:8765/index.html')
+    base_url = get_config('PAYME_CHECKOUT_URL', 'https://checkout.paycom.uz')
+    payload = f"m={merchant_id};ac.{account_key}={order.id};a={amount_tiyin};c={callback};ct=15"
     encoded = base64.b64encode(payload.encode('utf-8')).decode('utf-8')
     return f"{base_url}/{quote_plus(encoded)}"
+
 
 class PaymeWebhookView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
+        request_id = request.data.get('id')
         # 1. Проверка авторизации
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Basic '):
-            return self._rpc_error("AUTH_ERROR", request.data.get('id'))
+            return self._rpc_error("AUTH_ERROR", request_id)
 
-        encoded_credentials = auth_header.split(' ')[1]
-        decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
-        username, password = decoded_credentials.split(':', 1)
+        try:
+            encoded_credentials = auth_header.split(' ')[1]
+            decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+            username, password = decoded_credentials.split(':', 1)
+        except Exception:
+            return self._rpc_error("AUTH_ERROR", request_id)
 
         MERCHANT_KEY = get_payme_merchant_key()
-        if username != 'Paycom' or password != MERCHANT_KEY:
-            return self._rpc_error("AUTH_ERROR", request.data.get('id'))
+        if password != MERCHANT_KEY:
+            return self._rpc_error("AUTH_ERROR", request_id)
 
         # 2. Разбор JSON-RPC
         method = request.data.get('method')
         params = request.data.get('params', {})
-        request_id = request.data.get('id')
 
         if method == "CheckPerformTransaction":
             return self._check_perform_transaction(params, request_id)
@@ -98,10 +167,27 @@ class PaymeWebhookView(APIView):
         elif method == "GetStatement":
             return self._get_statement(params, request_id)
         
-        return Response({"error": {"code": -32601, "message": "Метод не найден"}, "id": request_id})
+        return Response({"error": {
+            "code": -32601,
+            "message": {"ru": "Метод не найден", "uz": "Metod topilmadi", "en": "Method not found"},
+        }, "id": request_id})
+
+    def _extract_order_id(self, params):
+        account = params.get('account') or {}
+        if not isinstance(account, dict):
+            return None
+        account_key = get_payme_account_key()
+        for key in [account_key, 'order_id', 'OrderId', 'order', 'id', 'Bpay', 'bpay']:
+            value = account.get(key)
+            if value not in [None, '']:
+                return value
+        for value in account.values():
+            if isinstance(value, (str, int)) and str(value).strip():
+                return value
+        return None
 
     def _check_perform_transaction(self, params, request_id):
-        order_id = params.get('account', {}).get('order_id')
+        order_id = self._extract_order_id(params)
         amount = params.get('amount')
 
         try:
@@ -119,7 +205,7 @@ class PaymeWebhookView(APIView):
 
     def _create_transaction(self, params, request_id):
         payme_id = params.get('id')
-        order_id = params.get('account', {}).get('order_id')
+        order_id = self._extract_order_id(params)
         amount = params.get('amount')
         create_time = params.get('time')
 
@@ -165,7 +251,27 @@ class PaymeWebhookView(APIView):
                 startup.amount_raised = startup.amount_raised + investment.amount
                 startup.save(update_fields=['amount_raised', 'updated_at'])
 
+            # If this is a registration or card connection order, connect the profile and card
+            if order.purpose in ['card_order', 'application'] and order.user:
+                profile, _ = UserProfile.objects.get_or_create(user=order.user)
+                profile.myid_status = 'verified'
+                profile.save(update_fields=['myid_status'])
+
+                # Create a realistic test card
+                import random
+                card_num = f"86000691{random.randint(10000000, 99999999)}"
+                Card.objects.create(
+                    user=order.user,
+                    number=f"{card_num[:4]} {card_num[4:8]} {card_num[8:12]} {card_num[12:]}",
+                    expiry="03/29",
+                    balance=Decimal('500000.00'),
+                    name="Payme Humo",
+                    provider="payme",
+                    payme_verified=True,
+                )
+
         return Response({"result": {"transaction": tx.payme_id, "perform_time": tx.perform_time, "state": 2}, "id": request_id})
+
 
     def _cancel_transaction(self, params, request_id):
         payme_id = params.get('id')
@@ -239,20 +345,90 @@ class PaymeWebhookView(APIView):
 
     def _rpc_error(self, error_type, request_id):
         error_data = PAYME_ERRORS.get(error_type, {"code": -32603, "message": "Внутренняя ошибка"})
+        if error_type == "ORDER_NOT_FOUND":
+            error_data = {**error_data, "data": get_payme_account_key()}
         return Response({"error": error_data, "id": request_id})
 
 
 from .models import UserProfile, Card
 from .serializers import CardSerializer
 
+
+class IntegrationStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            'registration_provider': 'payme',
+            'payme_merchant': config_group_status([
+                'PAYME_MERCHANT_ID',
+                'PAYME_MERCHANT_KEY',
+                'PAYME_CHECKOUT_URL',
+                'PAYME_CALLBACK_URL',
+                'PAYME_ACCOUNT_KEY',
+            ]),
+            'payme_subscribe': config_group_status([
+                'PAYME_SUBSCRIBE_ID',
+                'PAYME_SUBSCRIBE_KEY',
+                'PAYME_SUBSCRIBE_BASE_URL',
+            ]),
+            'sms': config_group_status([
+                'SMS_DEMO_MODE',
+                'SMS_DEMO_CODE',
+                'SMS_PROVIDER_URL',
+                'SMS_PROVIDER_TOKEN',
+            ]),
+            'myid': {
+                **config_group_status([
+                    'MYID_BASE_URL',
+                    'MYID_CLIENT_ID',
+                    'MYID_USERNAME',
+                    'MYID_PASSWORD',
+                    'MYID_HOSTED_URL',
+                ]),
+                'used_for_registration': False,
+            },
+            'notes': [
+                'Secrets are masked and never returned fully.',
+                'Django Admin values override .env values when active.',
+                'Registration currently redirects to Payme checkout, not MyID/camera.',
+            ],
+        })
+
+
+class PaymeDepositRatesView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        rates = [
+            {
+                'name': bank.name,
+                'apy': float(bank.apy or 0),
+                'min_amount': float(bank.min_deposit or 0),
+            }
+            for bank in Bank.objects.all().order_by('-apy')[:12]
+        ]
+        return Response({
+            'source': 'backend_local',
+            'rates': rates,
+        })
+
+
 class RegisterView(APIView):
     def post(self, request):
         myid_session_id = request.data.get('myid_session_id')
-        allow_without_myid = os.environ.get('ALLOW_REGISTER_WITHOUT_MYID', '').lower() in ['1', 'true', 'yes']
-        allow_without_phone_sms = os.environ.get('ALLOW_REGISTER_WITHOUT_PHONE_SMS', '').lower() in ['1', 'true', 'yes']
+        payme_connect = request.data.get('payme_connect', False) or (request.data.get('phone') and not myid_session_id)
+        
+        allow_without_myid = get_config('ALLOW_REGISTER_WITHOUT_MYID', 'true').lower() in ['1', 'true', 'yes']
+        allow_without_phone_sms = get_config('ALLOW_REGISTER_WITHOUT_PHONE_SMS', 'true').lower() in ['1', 'true', 'yes']
+        
         kyc = None
         if myid_session_id:
             kyc = KYCVerification.objects.filter(session_id=myid_session_id).first()
+            if kyc:
+                allow_without_myid = False
+                allow_without_phone_sms = False
+                
         if not allow_without_myid and (not kyc or kyc.status not in ['verified', 'demo_verified']):
             return Response({
                 "myid": "MyID verification is required before registration"
@@ -281,11 +457,35 @@ class RegisterView(APIView):
                 profile.myid_session_id = kyc.session_id
                 profile.myid_payload = kyc.payload
             profile.save()
-            return Response({
+
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+            tokens = {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            }
+
+            response_data = {
                 "message": "User registered successfully",
+                "tokens": tokens,
                 "myid_status": profile.myid_status,
-            }, status=status.HTTP_201_CREATED)
+            }
+
+            if payme_connect:
+                # Create a card_order order to link the profile and card
+                order = Order.objects.create(
+                    user=user,
+                    amount=Decimal('1000.00'),
+                    purpose='card_order',
+                    description='Регистрация и привязка профиля через Payme',
+                )
+                order.checkout_url = build_payme_checkout_url(order)
+                order.save(update_fields=['checkout_url'])
+                response_data['payme_checkout_url'] = order.checkout_url
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class RegistrationMyIDStartView(APIView):
@@ -323,8 +523,8 @@ class RegistrationMyIDStartView(APIView):
         try:
             if has_inline_myid_data:
                 myid = start_myid_authentication(payload)
-            elif myid_is_configured() and os.environ.get('MYID_HOSTED_URL'):
-                hosted_url = os.environ['MYID_HOSTED_URL']
+            elif myid_is_configured() and get_config('MYID_HOSTED_URL'):
+                hosted_url = get_config('MYID_HOSTED_URL')
                 myid = {
                     'demo': False,
                     'status': 'pending',
@@ -770,7 +970,7 @@ class MyIDStartView(APIView):
         profile.myid_status = 'pending'
         profile.myid_session_id = session_id
         profile.myid_payload = {
-            "mode": "demo" if not os.environ.get('MYID_CLIENT_ID') else "api_ready",
+            "mode": "demo" if not get_config('MYID_CLIENT_ID') else "api_ready",
             "passport": profile.director_passport,
             "birth_date": str(profile.director_birth_date) if profile.director_birth_date else request.data.get('birth_date', ''),
         }
@@ -779,9 +979,9 @@ class MyIDStartView(APIView):
         return Response({
             "session_id": session_id,
             "status": profile.myid_status,
-            "verification_url": os.environ.get('MYID_VERIFICATION_URL', ''),
-            "demo": not bool(os.environ.get('MYID_CLIENT_ID')),
-            "message": "MYID credentials are not configured; demo verification can be completed from frontend." if not os.environ.get('MYID_CLIENT_ID') else "MYID session prepared.",
+            "verification_url": get_config('MYID_VERIFICATION_URL', ''),
+            "demo": not bool(get_config('MYID_CLIENT_ID')),
+            "message": "MYID credentials are not configured; demo verification can be completed from frontend." if not get_config('MYID_CLIENT_ID') else "MYID session prepared.",
         })
 
 
@@ -793,7 +993,7 @@ class MyIDCompleteView(APIView):
         if not profile:
             return Response({"detail": "Legal entity profile not created"}, status=status.HTTP_404_NOT_FOUND)
 
-        profile.myid_status = 'demo_verified' if not os.environ.get('MYID_CLIENT_ID') else 'verified'
+        profile.myid_status = 'demo_verified' if not get_config('MYID_CLIENT_ID') else 'verified'
         profile.verified_at = timezone.now()
         profile.myid_payload = {
             **(profile.myid_payload or {}),

@@ -221,3 +221,41 @@ class Investment(models.Model):
 
     def __str__(self):
         return f"{self.investor_id} -> {self.startup_id}: {self.amount}"
+
+
+class APIConfiguration(models.Model):
+    KEY_CHOICES = [
+        # Payme Merchant
+        ('PAYME_MERCHANT_ID', 'Payme Merchant ID'),
+        ('PAYME_MERCHANT_KEY', 'Payme Merchant Key'),
+        ('PAYME_CHECKOUT_URL', 'Payme Checkout URL'),
+        ('PAYME_CALLBACK_URL', 'Payme Callback URL'),
+        ('PAYME_ACCOUNT_KEY', 'Payme Account Key'),
+        # Payme Subscribe
+        ('PAYME_SUBSCRIBE_ID', 'Payme Subscribe ID'),
+        ('PAYME_SUBSCRIBE_KEY', 'Payme Subscribe Key'),
+        ('PAYME_SUBSCRIBE_BASE_URL', 'Payme Subscribe Base URL'),
+        # MyID
+        ('MYID_BASE_URL', 'MyID Base URL'),
+        ('MYID_CLIENT_ID', 'MyID Client ID'),
+        ('MYID_USERNAME', 'MyID Username'),
+        ('MYID_PASSWORD', 'MyID Password'),
+        ('MYID_HOSTED_URL', 'MyID Hosted URL'),
+        # SMS
+        ('SMS_DEMO_MODE', 'SMS Demo Mode (true/false)'),
+        ('SMS_DEMO_CODE', 'SMS Demo Code'),
+        ('SMS_PROVIDER_URL', 'SMS Provider URL'),
+        ('SMS_PROVIDER_TOKEN', 'SMS Provider Token'),
+    ]
+
+    key = models.CharField(max_length=100, choices=KEY_CHOICES, unique=True, verbose_name="Key")
+    value = models.CharField(max_length=500, blank=True, null=True, verbose_name="Value")
+    is_active = models.BooleanField(default=True, verbose_name="Is Active")
+    description = models.TextField(blank=True, null=True, verbose_name="Description")
+
+    class Meta:
+        verbose_name = "API Configuration"
+        verbose_name_plural = "API Configurations"
+
+    def __str__(self):
+        return f"{self.key}: {'[SET]' if self.value else '[EMPTY]'}"

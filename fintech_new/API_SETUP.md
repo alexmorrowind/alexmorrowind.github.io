@@ -1,116 +1,144 @@
-# MyID and Payme setup
+# API setup for B1 fintech app
 
-This project has safe demo fallbacks: if real credentials are not set, MyID returns
-`demo_verified` and Payme Subscribe returns demo card/SMS responses. This lets the
-registration and card UI be tested locally without sending real data.
+This project is configured so API keys stay on the backend only. The frontend
+calls Django endpoints under `/api/...` and never stores Payme keys.
 
-Copy `my_payment_project/.env.example` to `my_payment_project/.env`, then fill the
-values you have. Do not commit `.env` to GitHub.
+## Where to put API keys
 
-## MyID
+You have two safe options.
 
-Docs: https://docs.myid.uz/#/ru/embedded
+1. Local or cloud environment file:
 
-Set these environment variables on the Django server:
-
-```bash
-MYID_BASE_URL=https://your-myid-api-host
-MYID_CLIENT_ID=your_client_id
-MYID_USERNAME=your_username
-MYID_PASSWORD=your_password
+```text
+fintech_new/my_payment_project/.env
 ```
 
-Registration flow:
+2. Django Admin:
 
-1. Frontend sends user name, email, phone and consent to `/api/auth/myid/start/`.
-2. In demo mode, backend returns `demo_verified`.
-3. With real MyID, set `MYID_HOSTED_URL` or use inline MyID credentials when they
-   are issued by MyID.
-4. Backend sends an SMS code to the registration phone via `/api/auth/phone-code/`.
-5. Frontend verifies SMS via `/api/auth/phone-verify/`.
-6. `/api/auth/register/` accepts registration only after MyID and SMS are verified.
-
-For now SMS is demo mode with code `666666`. Connect a real SMS provider later via
-`SMS_PROVIDER_URL` and `SMS_PROVIDER_TOKEN`.
-
-## Payme Subscribe
-
-Docs:
-
-- https://developer.help.paycom.uz/protokol-subscribe-api
-- https://developer.help.paycom.uz/metody-subscribe-api/
-
-Set these environment variables on the Django server:
-
-```bash
-PAYME_SUBSCRIBE_BASE_URL=https://checkout.test.paycom.uz/api
-PAYME_SUBSCRIBE_ID=your_cashier_id
-PAYME_SUBSCRIBE_KEY=your_cashier_password
+```text
+http://127.0.0.1:8000/admin/
+Payments -> API Configurations
 ```
 
-Card flow:
+Django Admin values override `.env` values when `is_active=True`.
 
-1. Frontend posts card number and expiry to `/api/payme/subscribe/cards/create/`.
-2. Backend calls Payme `cards.create`.
-3. Frontend asks for SMS with `/api/payme/subscribe/cards/code/`.
-4. Frontend submits SMS code to `/api/payme/subscribe/cards/verify/`.
-5. Backend stores only the Payme token, masked card number, expiry, and status.
+Check current integration state here:
 
-In Payme test mode, use the test cards from Payme docs and SMS code `666666`.
-
-## Payme Merchant checkout
-
-For checkout/investment orders, set:
-
-```bash
-PAYME_MERCHANT_ID=your_merchant_id
-PAYME_MERCHANT_KEY=your_merchant_key
-PAYME_CHECKOUT_URL=https://checkout.test.paycom.uz
-PAYME_CALLBACK_URL=https://your-public-site.example/index.html
+```text
+http://127.0.0.1:8000/api/integrations/status/
 ```
 
-From the Payme cabinet:
+Secrets are masked in that endpoint.
 
-- `Ключ` is the production key. Use it only when the real site is ready.
-- `Тестовый ключ` is the test key. Put it into `PAYME_MERCHANT_KEY` while testing.
-- `Endpoint URL` must point to the backend Payme webhook, not only to GitHub Pages,
-  if Payme asks for the server callback endpoint. Use:
+## Payme Merchant
+
+Used for registration redirect, card connect redirect, orders, investments,
+reports, and Payme webhook callbacks.
+
+In `.env`:
+
+```bash
+PAYME_MERCHANT_ID=your_payme_merchant_or_cashbox_id
+PAYME_MERCHANT_KEY=paste_test_key_here
+PAYME_CHECKOUT_URL=https://test.paycom.uz
+PAYME_CALLBACK_URL=http://127.0.0.1:8765/index.html
+PAYME_ACCOUNT_KEY=Bpay
+```
+
+From your Payme cabinet:
+
+- `Тестовый ключ` -> `PAYME_MERCHANT_KEY` while testing.
+- `Ключ` -> `PAYME_MERCHANT_KEY` only when production is ready.
+- Cashbox/Merchant ID -> `PAYME_MERCHANT_ID`.
+- Account field from Payme sandbox, for your current cashbox it is `Bpay` ->
+  `PAYME_ACCOUNT_KEY=Bpay`.
+
+Payme server webhook endpoint:
 
 ```text
 https://your-backend-domain.example/api/payme/
 ```
 
-Payme must be able to reach the backend webhook:
+For local sandbox tests in the browser, use:
 
 ```text
-POST /api/payme/
+http://127.0.0.1:8000/api/payme/
 ```
 
-If Payme cabinet asks for a user return/callback page after checkout, use the
-frontend page:
+Do not use `/api/integrations/status/` as Payme endpoint. That URL is only for
+checking whether keys are configured.
+
+User return page after checkout:
 
 ```text
 https://your-frontend-domain.example/index.html
 ```
 
-## Public test server
+Merchant checkout URLs:
 
-For real MyID camera and Payme callbacks, use HTTPS.
+- Test checkout page: `https://test.paycom.uz`
+- Production checkout page: `https://checkout.paycom.uz`
+- Subscribe API test endpoint stays separate: `https://checkout.test.paycom.uz/api`
 
-Fast test option:
+## Payme Subscribe
 
-- Run Django and frontend locally.
-- Expose them with ngrok or cloudflared.
-- Put the public HTTPS frontend URL into `PAYME_CALLBACK_URL`.
-- Add the public backend/frontend origins to Django CORS/allowed hosts.
+Used for tokenized card linking by card number + SMS code. This is optional if
+you only want redirect-based checkout, but keep it ready for real card token
+flows.
 
-Cleaner cloud option:
+```bash
+PAYME_SUBSCRIBE_BASE_URL=https://checkout.test.paycom.uz/api
+PAYME_SUBSCRIBE_ID=your_payme_subscribe_id
+PAYME_SUBSCRIBE_KEY=your_payme_subscribe_key_or_password
+```
 
-- Deploy Django to Render, Railway, Fly.io, or a VPS.
-- Use PostgreSQL instead of local SQLite.
-- Serve the frontend over HTTPS.
-- If frontend is on GitHub Pages and backend is on Render/Railway, set
-  `window.B1_API_BASE_URL = 'https://your-backend.example/api'` in
-  `front/config.js`.
-- Set `DEBUG=False`, real `ALLOWED_HOSTS`, and exact `CORS_ALLOWED_ORIGINS`.
-- Store all API keys as server environment variables, never in frontend JS.
+## Registration
+
+Registration is currently Payme-first:
+
+1. User enters name, email, phone and password.
+2. Frontend calls `/api/auth/register/` with `payme_connect=true`.
+3. Backend creates a Payme `card_order` and returns `payme_checkout_url`.
+4. Frontend redirects to Payme.
+5. Payme calls backend webhook `/api/payme/`.
+
+MyID/camera is not used for registration anymore.
+
+## SMS and MyID
+
+SMS and MyID keys are still available for future flows, but registration does not
+depend on them now.
+
+```bash
+SMS_DEMO_MODE=true
+SMS_DEMO_CODE=666666
+SMS_PROVIDER_URL=
+SMS_PROVIDER_TOKEN=
+
+MYID_BASE_URL=
+MYID_CLIENT_ID=
+MYID_USERNAME=
+MYID_PASSWORD=
+MYID_HOSTED_URL=
+```
+
+## Public deployment
+
+If frontend is on GitHub Pages and backend is on Render/Railway/Fly/VPS:
+
+```js
+// fintech_new/front/config.js
+window.B1_API_BASE_URL = 'https://your-backend-domain.example/api';
+```
+
+Backend `.env` for public testing:
+
+```bash
+DJANGO_DEBUG=false
+DJANGO_ALLOWED_HOSTS=your-backend-domain.example
+CORS_ALLOW_ALL_ORIGINS=false
+CORS_ALLOWED_ORIGINS=https://your-github-pages-domain.example
+PAYME_CALLBACK_URL=https://your-github-pages-domain.example/index.html
+```
+
+Do not commit `.env`, `db.sqlite3`, or real API keys to GitHub.

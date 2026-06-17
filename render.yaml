@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: b1-fintech-backend
+    runtime: python
+    rootDir: fintech_new/my_payment_project
+    buildCommand: ./build.sh
+    startCommand: gunicorn core.wsgi:application
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: b1-fintech-backend.onrender.com
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "false"
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://alexmorrowind.github.io
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://alexmorrowind.github.io
+      - key: PAYME_CHECKOUT_URL
+        value: https://test.paycom.uz
+      - key: PAYME_ACCOUNT_KEY
+        value: Bpay
+      - key: DATABASE_URL
+        fromDatabase:
+          name: b1-fintech-db
+          property: connectionString
+
+databases:
+  - name: b1-fintech-db
+    databaseName: b1_fintech
+    user: b1_fintech

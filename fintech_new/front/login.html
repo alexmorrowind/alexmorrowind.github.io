@@ -699,38 +699,12 @@
             <input type="tel" class="field-input" id="regPhone" placeholder="+998 90 123 45 67">
           </div>
           <label class="checkbox-wrap" style="align-items:flex-start;margin:-4px 0 14px;color:var(--text-muted);font-size:12px">
-            <input type="checkbox" id="regMyIDTerms">
-            <span data-uz="MyID orqali shaxsni tekshirish va shaxsiy ma'lumotlarni qayta ishlashga roziman."
-              data-ru="Я согласен на проверку личности через MyID и обработку персональных данных.">
-              MyID orqali shaxsni tekshirish va shaxsiy ma'lumotlarni qayta ishlashga roziman.
+            <input type="checkbox" id="regPaymeTerms" checked>
+            <span data-uz="Payme orqali ro'yxatdan o'tish shartlariga roziman."
+              data-ru="Я согласен на регистрацию через Payme.">
+              Payme orqali ro'yxatdan o'tish shartlariga roziman.
             </span>
           </label>
-          <div style="border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:12px;margin-bottom:14px;background:rgba(15,23,42,.28)">
-            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px">
-              <div>
-                <div style="font-size:12px;font-weight:700">MyID</div>
-                <div id="myidStatusText" style="font-size:11px;color:var(--text-muted)">Avval MyID orqali tasdiqlang, keyin telefon SMS kodi keladi.</div>
-              </div>
-              <button type="button" class="btn-demo" style="padding:8px 10px;margin:0;width:auto" onclick="openMyIDFrame()">
-                MyID ga o'tish
-              </button>
-            </div>
-            <div id="myidFrameWrap" style="display:none;border-radius:12px;overflow:hidden;border:1px solid rgba(148,163,184,.24);height:280px;background:#0f172a">
-              <iframe id="myidFrame" src="about:blank" allow="camera;fullscreen" allowfullscreen border="0" style="width:100%;height:100%;border:0"></iframe>
-            </div>
-          </div>
-          <div id="regSmsBox" style="display:none;border:1px solid rgba(34,197,94,.35);border-radius:14px;padding:12px;margin-bottom:14px;background:rgba(34,197,94,.08)">
-            <div style="font-size:12px;font-weight:700;margin-bottom:6px" data-uz="Telefon SMS tasdiqlash" data-ru="Подтверждение телефона по SMS">Telefon SMS tasdiqlash</div>
-            <div id="regSmsHint" style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:10px">
-              SMS kod yuborildi. Test rejimida kod: 666666.
-            </div>
-            <div class="field" style="margin-bottom:10px">
-              <input type="text" class="field-input" id="regSmsCode" placeholder="666666" maxlength="6">
-            </div>
-            <button type="button" class="btn-submit" style="margin-top:0" onclick="finishSmsRegistration(event)"
-              data-uz="SMSni tasdiqlab ro'yxatdan o'tish"
-              data-ru="Подтвердить SMS и зарегистрироваться">SMSni tasdiqlab ro'yxatdan o'tish</button>
-          </div>
           <div class="field">
             <label class="field-label" data-uz="Parol" data-ru="Пароль">Parol</label>
             <div class="field-pw">
@@ -761,8 +735,8 @@
             <div class="field-error" id="regConfirmErr" data-uz="Parollar mos kelmaydi" data-ru="Пароли не совпадают">
               Parollar mos kelmaydi</div>
           </div>
-          <button class="btn-submit" style="margin-top:4px" onclick="handleRegister(event)" data-uz="MyID orqali davom etish"
-            data-ru="Продолжить через MyID">MyID orqali davom etish</button>
+          <button class="btn-submit" style="margin-top:10px; background: linear-gradient(135deg, #00b8d9, #0069ff); box-shadow: 0 6px 20px rgba(0, 184, 217, 0.25);" onclick="handleRegister(event)" data-uz="Payme ga o'tish"
+            data-ru="Перейти в Payme">Payme ga o'tish</button>
           <div class="switch-link">
             <span data-uz="Hisob bor?" data-ru="Уже есть аккаунт?">Hisob bor?</span> <a href="#"
               onclick="switchTab('login')" data-uz="Kirish" data-ru="Войти">Kirish</a>
@@ -863,159 +837,6 @@
     }
 
     const API_URL = getApiBaseUrl();
-    let myidPhotoFromCamera = '';
-    let myidFrameReady = false;
-    let pendingRegistrationData = null;
-    let pendingMyidSessionId = '';
-
-    function delay(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    window.addEventListener('message', function (e) {
-      const data = e.data || {};
-      const statusText = document.getElementById('myidStatusText');
-      if (data.cmd === -1) {
-        myidFrameReady = true;
-        if (statusText) statusText.textContent = currentLang === 'uz' ? 'MyID kamera tayyor.' : 'Камера MyID готова.';
-      } else if (data.cmd === 0 && statusText) {
-        statusText.textContent = data.status_message || (currentLang === 'uz' ? 'Yuz tekshirilmoqda...' : 'Проверка лица...');
-      } else if (data.cmd === 1 && statusText) {
-        statusText.textContent = currentLang === 'uz' ? 'Kamerani ishga tushirib bo\'lmadi.' : 'Не удалось запустить камеру.';
-      } else if (data.cmd === 2 && data.photo_from_camera) {
-        myidPhotoFromCamera = data.photo_from_camera;
-        if (statusText) statusText.textContent = currentLang === 'uz' ? 'Face photo olindi. Endi ro\'yxatdan o\'ting.' : 'Фото лица получено. Теперь можно регистрироваться.';
-      }
-    });
-
-    function openMyIDFrame() {
-      const wrap = document.getElementById('myidFrameWrap');
-      const frame = document.getElementById('myidFrame');
-      if (!wrap || !frame) return;
-      wrap.style.display = 'block';
-      if (frame.src === 'about:blank') {
-        frame.src = 'https://docs.myid.uz/iframe';
-      }
-      setTimeout(() => {
-        try {
-          frame.contentWindow.postMessage({ cmd: 'open', config: { locale: currentLang || 'ru' } }, '*');
-        } catch (error) {
-          console.warn('MyID iframe open:', error);
-        }
-      }, myidFrameReady ? 100 : 900);
-    }
-
-    async function runRegistrationMyID(payload) {
-      const startResponse = await fetch(`${API_URL}/auth/myid/start/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const startData = await startResponse.json();
-      if (!startResponse.ok) {
-        throw new Error(startData.error || startData.detail || 'MyID start failed');
-      }
-      if (startData.redirect_url) {
-        const statusText = document.getElementById('myidStatusText');
-        if (statusText) statusText.textContent = currentLang === 'uz' ? 'MyID sahifasi ochildi. Tasdiqlashni yakunlang.' : 'Открыли MyID. Завершите подтверждение там.';
-        window.open(startData.redirect_url, '_blank', 'noopener,noreferrer');
-      }
-      if (['verified', 'demo_verified'].includes(startData.status)) {
-        return startData.session_id;
-      }
-
-      for (let i = 0; i < 8; i++) {
-        await delay(700);
-        const statusResponse = await fetch(`${API_URL}/auth/myid/status/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: startData.session_id })
-        });
-        const statusData = await statusResponse.json();
-        if (['verified', 'demo_verified'].includes(statusData.status)) {
-          return startData.session_id;
-        }
-        if (statusData.status === 'failed') {
-          throw new Error(statusData.error || 'MyID verification failed');
-        }
-      }
-      throw new Error('MyID verification timeout');
-    }
-
-    async function sendRegistrationSms(sessionId) {
-      const response = await fetch(`${API_URL}/auth/phone-code/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'SMS send failed');
-      }
-      const smsBox = document.getElementById('regSmsBox');
-      const smsHint = document.getElementById('regSmsHint');
-      if (smsBox) smsBox.style.display = 'block';
-      if (smsHint) {
-        smsHint.textContent = currentLang === 'uz'
-          ? `SMS kod ${data.phone || 'telefon raqamingiz'} raqamiga yuborildi. Test rejimida kod: 666666.`
-          : `SMS-код отправлен на ${data.phone || 'ваш номер'}. В тестовом режиме код: 666666.`;
-      }
-      return data;
-    }
-
-    async function verifyRegistrationSms(sessionId, code) {
-      const response = await fetch(`${API_URL}/auth/phone-verify/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, code })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || 'SMS verification failed');
-      }
-      return data;
-    }
-
-    async function createAccountAfterVerification(regData, myidSessionId) {
-      const response = await fetch(`${API_URL}/auth/register/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: regData.email,
-          password: regData.password,
-          first_name: regData.firstName,
-          last_name: regData.lastName,
-          phone: regData.phone,
-          myid_session_id: myidSessionId
-        })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        if (data.email) throw new Error(data.email[0]);
-        throw new Error(data.phone_sms || data.myid || (currentLang === 'uz' ? 'Ro‘yxatdan o‘tishda xatolik!' : 'Ошибка при регистрации!'));
-      }
-
-      const loginResponse = await fetch(`${API_URL}/auth/login/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: regData.email, password: regData.password })
-      });
-      const loginData = await loginResponse.json();
-
-      if (loginResponse.ok) {
-        localStorage.setItem('accessToken', loginData.access);
-        localStorage.setItem('refreshToken', loginData.refresh);
-        localStorage.setItem('userPhone', regData.phone);
-        localStorage.setItem('userFirstName', regData.firstName);
-        localStorage.setItem('userLastName', regData.lastName);
-        localStorage.setItem('userEmail', regData.email);
-      }
-
-      showSuccess('register');
-    }
 
     async function handleLogin(e) {
       if (e) e.preventDefault(); // Останавливаем перезагрузку браузера
@@ -1067,45 +888,62 @@
       const firstName = document.getElementById('regFirst').value.trim();
       const lastName = document.getElementById('regLast').value.trim();
       const phone = document.getElementById('regPhone').value.trim();
-      const myidTerms = document.getElementById('regMyIDTerms').checked;
+      const paymeTerms = document.getElementById('regPaymeTerms').checked;
       const submitBtn = e ? e.target : null;
-      const smsBox = document.getElementById('regSmsBox');
 
       let valid = true;
       if (!email || !email.includes('@')) { showError('regEmailErr', true); valid = false; }
       if (pass.length < 6) { showError('regPassErr', true); valid = false; }
       if (pass !== confirm) { showError('regConfirmErr', true); valid = false; }
-      if (!phone || !myidTerms) {
-        alert(currentLang === 'uz' ? 'MyID uchun telefon raqami va rozilik kerak.' : 'Для MyID нужен номер телефона и согласие.');
+      if (!phone || !paymeTerms) {
+        alert(currentLang === 'uz' ? 'Payme uchun telefon raqami va rozilik kerak.' : 'Для Payme нужен номер телефона и согласие.');
         valid = false;
       }
       if (!valid) return;
 
       try {
-        pendingRegistrationData = null;
-        pendingMyidSessionId = '';
-        if (smsBox) smsBox.style.display = 'none';
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = currentLang === 'uz' ? 'MyID ga o\'tilmoqda...' : 'Переходим в MyID...';
+          submitBtn.textContent = currentLang === 'uz' ? 'Ro\'yxatdan o\'tilmoqda...' : 'Регистрируемся...';
         }
-        const registrationData = { email, password: pass, firstName, lastName, phone };
-        const myidSessionId = await runRegistrationMyID({
-          email,
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-          agreed_on_terms: myidTerms,
-          is_resident: true
+        
+        const response = await fetch(`${API_URL}/auth/register/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            password: pass,
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
+            payme_connect: true
+          })
         });
-        if (submitBtn) {
-          submitBtn.textContent = currentLang === 'uz' ? 'SMS yuborilmoqda...' : 'Отправляем SMS...';
+        
+        const data = await response.json();
+        if (!response.ok) {
+          if (data.email) throw new Error(data.email[0]);
+          throw new Error(data.detail || data.message || 'Registration failed');
         }
-        await sendRegistrationSms(myidSessionId);
-        pendingRegistrationData = registrationData;
-        pendingMyidSessionId = myidSessionId;
-        if (submitBtn) {
-          submitBtn.textContent = currentLang === 'uz' ? 'SMS kodni kiriting' : 'Введите SMS код';
+
+        // Save tokens for instant login on return
+        if (data.tokens) {
+          localStorage.setItem('accessToken', data.tokens.access);
+          localStorage.setItem('refreshToken', data.tokens.refresh);
+        }
+        localStorage.setItem('userPhone', phone);
+        localStorage.setItem('userFirstName', firstName);
+        localStorage.setItem('userLastName', lastName);
+        localStorage.setItem('userEmail', email);
+
+        if (data.payme_checkout_url) {
+          if (submitBtn) {
+            submitBtn.textContent = currentLang === 'uz' ? 'Payme sahifasiga o\'tilmoqda...' : 'Перенаправление в Payme...';
+          }
+          // Redirect immediately to Payme checkout
+          window.location.href = data.payme_checkout_url;
+        } else {
+          showSuccess('register');
         }
       } catch (error) {
         console.error('Xatolik:', error);
@@ -1113,40 +951,12 @@
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = currentLang === 'uz' ? "MyID orqali davom etish" : 'Продолжить через MyID';
+          submitBtn.textContent = currentLang === 'uz' ? "Payme ga o'tish" : 'Перейти в Payme';
         }
       }
     }
 
-    async function finishSmsRegistration(e) {
-      if (e) e.preventDefault();
-      const btn = e ? e.target : null;
-      const code = document.getElementById('regSmsCode').value.trim();
-      if (!pendingRegistrationData || !pendingMyidSessionId) {
-        alert(currentLang === 'uz' ? 'Avval MyID tekshiruvini boshlang.' : 'Сначала пройдите MyID.');
-        return;
-      }
-      if (!code) {
-        alert(currentLang === 'uz' ? 'SMS kodni kiriting.' : 'Введите SMS код.');
-        return;
-      }
-      try {
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = currentLang === 'uz' ? 'Tekshirilmoqda...' : 'Проверяем...';
-        }
-        await verifyRegistrationSms(pendingMyidSessionId, code);
-        await createAccountAfterVerification(pendingRegistrationData, pendingMyidSessionId);
-      } catch (error) {
-        console.error('SMS registration:', error);
-        alert(error.message || (currentLang === 'uz' ? 'SMS tasdiqlanmadi.' : 'SMS не подтверждён.'));
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = currentLang === 'uz' ? "SMSni tasdiqlab ro'yxatdan o'tish" : 'Подтвердить SMS и зарегистрироваться';
-        }
-      }
-    }
+
 
     function demoLogin(e) {
       if (e) e.preventDefault();

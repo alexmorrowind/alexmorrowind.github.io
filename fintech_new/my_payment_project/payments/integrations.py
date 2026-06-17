@@ -5,12 +5,37 @@ import time
 import uuid
 from urllib import parse, request
 
+PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
+
+
+def config_value_is_set(value):
+    if value is None:
+        return False
+    normalized = str(value).strip()
+    if not normalized:
+        return False
+    return not normalized.lower().startswith(PLACEHOLDER_PREFIXES)
+
+
+def get_config(key, default=None):
+    try:
+        from payments.models import APIConfiguration
+        config = APIConfiguration.objects.filter(key=key, is_active=True).first()
+        if config and config_value_is_set(config.value):
+            return config.value
+    except Exception:
+        pass
+    env_value = os.environ.get(key)
+    return env_value if config_value_is_set(env_value) else default
+
 
 def env_bool(name, default=False):
-    value = os.environ.get(name)
+    value = get_config(name)
     if value is None:
         return default
-    return value.lower() in ['1', 'true', 'yes', 'on']
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in ['1', 'true', 'yes', 'on']
 
 
 def normalize_phone(phone):
@@ -50,20 +75,20 @@ def _post_form(url, payload, headers=None, timeout=20):
 
 def myid_is_configured():
     return all([
-        os.environ.get('MYID_BASE_URL'),
-        os.environ.get('MYID_CLIENT_ID'),
-        os.environ.get('MYID_USERNAME'),
-        os.environ.get('MYID_PASSWORD'),
+        get_config('MYID_BASE_URL'),
+        get_config('MYID_CLIENT_ID'),
+        get_config('MYID_USERNAME'),
+        get_config('MYID_PASSWORD'),
     ])
 
 
 def get_myid_access_token():
-    base_url = os.environ['MYID_BASE_URL'].rstrip('/')
+    base_url = get_config('MYID_BASE_URL').rstrip('/')
     payload = {
         'grant_type': 'password',
-        'username': os.environ['MYID_USERNAME'],
-        'password': os.environ['MYID_PASSWORD'],
-        'client_id': os.environ['MYID_CLIENT_ID'],
+        'username': get_config('MYID_USERNAME'),
+        'password': get_config('MYID_PASSWORD'),
+        'client_id': get_config('MYID_CLIENT_ID'),
     }
     response = _post_form(f'{base_url}/api/v1/oauth2/access-token', payload, timeout=5)
     return response['access_token'], response
@@ -87,7 +112,7 @@ def start_myid_authentication(payload):
         }
 
     access_token, token_payload = get_myid_access_token()
-    base_url = os.environ['MYID_BASE_URL'].rstrip('/')
+    base_url = get_config('MYID_BASE_URL').rstrip('/')
     external_id = payload.get('external_id') or str(uuid.uuid4())
     request_payload = {
         'pass_data': payload.get('pass_data', '').upper(),
@@ -97,7 +122,7 @@ def start_myid_authentication(payload):
             'front': payload.get('photo_from_camera', {}).get('front') or payload.get('front'),
         },
         'agreed_on_terms': bool(payload.get('agreed_on_terms')),
-        'client_id': os.environ['MYID_CLIENT_ID'],
+        'client_id': get_config('MYID_CLIENT_ID'),
         'device': payload.get('device') or {'platform': 'web', 'app': 'B1'},
         'threshold': payload.get('threshold', 0.5),
         'external_id': external_id,
@@ -123,7 +148,7 @@ def get_myid_status(job_id):
         return {'status': 'demo_verified', 'payload': {'source': 'demo'}}
 
     access_token, _ = get_myid_access_token()
-    base_url = os.environ['MYID_BASE_URL'].rstrip('/')
+    base_url = get_config('MYID_BASE_URL').rstrip('/')
     query = parse.urlencode({'job_id': job_id})
     response = _post_json(
         f'{base_url}/api/v1/authentication/simple-inplace-authentication-request-status?{query}',
@@ -136,13 +161,13 @@ def get_myid_status(job_id):
 
 def generate_sms_code():
     if env_bool('SMS_DEMO_MODE', default=True):
-        return os.environ.get('SMS_DEMO_CODE', '666666')
+        return get_config('SMS_DEMO_CODE', '666666')
     return str(int(time.time() * 1000))[-6:]
 
 
 def send_registration_sms(phone, code):
-    sms_url = os.environ.get('SMS_PROVIDER_URL')
-    sms_token = os.environ.get('SMS_PROVIDER_TOKEN')
+    sms_url = get_config('SMS_PROVIDER_URL')
+    sms_token = get_config('SMS_PROVIDER_TOKEN')
     if not sms_url or not sms_token:
         return {
             'demo': True,
@@ -167,8 +192,8 @@ def send_registration_sms(phone, code):
 
 
 def payme_subscribe_is_configured(require_password=False):
-    has_id = bool(os.environ.get('PAYME_SUBSCRIBE_ID'))
-    has_password = bool(os.environ.get('PAYME_SUBSCRIBE_KEY'))
+    has_id = bool(get_config('PAYME_SUBSCRIBE_ID'))
+    has_password = bool(get_config('PAYME_SUBSCRIBE_KEY'))
     return has_id and (has_password if require_password else True)
 
 
@@ -176,11 +201,11 @@ def payme_subscribe_rpc(method, params, backend=False):
     if not payme_subscribe_is_configured(require_password=backend):
         return _payme_subscribe_demo(method, params)
 
-    base_url = os.environ.get('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.test.paycom.uz/api').rstrip('/')
-    cashier_id = os.environ['PAYME_SUBSCRIBE_ID']
+    base_url = get_config('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.test.paycom.uz/api').rstrip('/')
+    cashier_id = get_config('PAYME_SUBSCRIBE_ID')
     auth = cashier_id
     if backend:
-        auth = f"{cashier_id}:{os.environ['PAYME_SUBSCRIBE_KEY']}"
+        auth = f"{cashier_id}:{get_config('PAYME_SUBSCRIBE_KEY')}"
 
     payload = {
         'id': int(time.time() * 1000),

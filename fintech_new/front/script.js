@@ -3839,37 +3839,21 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const initialized = {};
 
 /* ═══════════════════════════════════════════════════
-   PAYME CONNECT — Real APY rates from payme.uz API
-   Fetches real deposit rates, falls back to banksData
+   PAYME CONNECT — backend-proxied APY rates
+   Frontend never stores or sends Payme API keys directly.
 ═══════════════════════════════════════════════════ */
 async function fetchPaymeDepositRates() {
-    // Payme Connect provides bank deposit rate data via their open finance API.
-    // Endpoint: https://checkout.paycom.uz/api (public market data endpoint)
-    // We request deposit rate comparisons for Uzbek banks.
     try {
-        const resp = await fetch('https://checkout.paycom.uz/api', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Auth-Token': '63e9440f65ca1d0a4f244f76:' },
-            body: JSON.stringify({
-                method: 'rates.get_deposit_rates',
-                params: { currency: 'UZS', product: 'deposit' },
-                id: Date.now()
-            })
-        });
-        if (!resp.ok) throw new Error('Payme API ' + resp.status);
-        const json = await resp.json();
-        // Payme returns { result: { rates: [{bank_name, apy, min_amount},...] } }
-        if (json.result && Array.isArray(json.result.rates)) {
-            return json.result.rates.map(r => ({
-                name: r.bank_name,
+        const json = await apiRequest('/payme/deposit-rates/', { auth: false });
+        if (json && Array.isArray(json.rates)) {
+            return json.rates.map(r => ({
+                name: r.name || r.bank_name,
                 apy: parseFloat(r.apy) || 0
             }));
         }
-        throw new Error('Unexpected Payme response shape');
+        throw new Error('Unexpected backend response shape');
     } catch (err) {
-        // Payme API not reachable (CORS in browser, or credentials needed) —
-        // fall back to our local banksData which reflects current published rates.
-        console.info('[Payme APY] Using local data:', err.message);
+        console.info('[Payme APY] Using frontend fallback data:', err.message);
         return null;
     }
 }
@@ -4714,42 +4698,34 @@ function renderProfilePageCards() {
 
 let pendingPaymeCard = null;
 
-function openAddCard() {
+async function openAddCard() {
     const isUz = currentLang === 'uz';
-    const modal = document.getElementById('applicationModal');
-    const content = document.getElementById('applicationModalContent');
-    if (!modal || !content) return;
+    const confirmMsg = isUz 
+        ? "Kartani ulash uchun Payme to'lov sahifasiga o'tishni xohlaysizmi? (1000 UZS test to'lovi)"
+        : "Вы хотите перейти на страницу оплаты Payme для привязки карты? (тестовый платеж 1000 UZS)";
+    
+    if (!confirm(confirmMsg)) return;
 
-    content.innerHTML = `
-        <div class="modal-title" style="margin-bottom:8px">💳 ${isUz ? 'Payme orqali karta qo\'shish' : 'Добавить карту через Payme'}</div>
-        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:16px">
-            ${isUz
-                ? 'Karta Payme Subscribe API orqali token qilinadi. Biz to\'liq karta raqamini saqlamaymiz, faqat token va maskalangan raqam saqlanadi.'
-                : 'Карта токенизируется через Payme Subscribe API. Мы не храним полный номер карты, только token и маску.'}
-        </p>
-        <form id="paymeAddCardForm" onsubmit="startPaymeCardFlow(event)">
-            <div class="modal-section">
-                <label class="modal-section-title">${isUz ? 'Karta raqami' : 'Номер карты'}</label>
-                <input type="text" class="q-input" id="paymeCardNumber" placeholder="8600 0691 9540 6311" maxlength="19" oninput="formatCardInput(this)" style="min-height:auto">
-            </div>
-            <div class="modal-section">
-                <label class="modal-section-title">${isUz ? 'Amal qilish muddati' : 'Срок действия'}</label>
-                <input type="text" class="q-input" id="paymeCardExpire" placeholder="03/99" maxlength="5" oninput="formatExpiry(this)" style="min-height:auto">
-            </div>
-            <div class="modal-section">
-                <label class="modal-section-title">${isUz ? 'Karta nomi' : 'Название карты'}</label>
-                <input type="text" class="q-input" id="paymeCardName" value="Payme" style="min-height:auto">
-            </div>
-            <div style="background:#00b8d911;border:1px solid #00b8d933;border-radius:12px;padding:12px;font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:16px">
-                ${isUz ? 'SMS ro‘yxatdan o‘tgan telefon raqamingizga bog‘lanadi. Test rejimida kod odatda 666666.' : 'SMS привязываем к номеру из вашего профиля. В тестовом режиме код обычно 666666.'}
-            </div>
-            <div style="display:flex;gap:10px">
-                <button type="submit" class="btn-primary" style="flex:1">${isUz ? 'SMS kod yuborish' : 'Отправить SMS код'}</button>
-                <button type="button" class="btn-ghost" onclick="closeModal('applicationModal')">${isUz ? 'Bekor qilish' : 'Отмена'}</button>
-            </div>
-        </form>
-    `;
-    openModal('applicationModal');
+    try {
+        const response = await apiRequest('/payme/create-order/', {
+            method: 'POST',
+            body: {
+                amount: 1000,
+                purpose: 'card_order',
+                description: isUz ? 'Karta qo\'shish tasdiqlash' : 'Подтверждение привязки карты',
+            }
+        });
+
+        if (response && response.checkout_url) {
+            // Redirect to Payme Checkout immediately
+            window.location.href = response.checkout_url;
+        } else {
+            throw new Error("Checkout URL not returned from backend");
+        }
+    } catch (error) {
+        console.error("Error creating card order:", error);
+        showToast(isUz ? "Xatolik: Payme sahifasini ochib bo'lmadi" : "Ошибка: Не удалось открыть страницу Payme");
+    }
 }
 
 async function startPaymeCardFlow(event) {
