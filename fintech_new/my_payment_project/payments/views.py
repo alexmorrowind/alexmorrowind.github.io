@@ -379,8 +379,17 @@ class IntegrationStatusView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        payme_env_keys = sorted(key for key in os.environ if key.startswith('PAYME_'))
         return Response({
             'registration_provider': 'payme',
+            'runtime': {
+                'host': request.get_host(),
+                'render': bool(os.environ.get('RENDER')),
+                'render_external_hostname': os.environ.get('RENDER_EXTERNAL_HOSTNAME', ''),
+                'render_service_name': os.environ.get('RENDER_SERVICE_NAME', ''),
+                'render_git_commit': os.environ.get('RENDER_GIT_COMMIT', ''),
+                'payme_env_keys_present': payme_env_keys,
+            },
             'payme_merchant': config_group_status([
                 'PAYME_MERCHANT_ID',
                 'PAYME_MERCHANT_KEY',
