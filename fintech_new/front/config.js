@@ -2,7 +2,7 @@
 // Local frontend uses http://127.0.0.1:8000/api automatically from script.js.
 // GitHub Pages needs the public Render backend URL.
 (function () {
-  const productionApiUrl = 'https://b1-fintech-backend.onrender.com/api';
+  const productionApiUrl = 'https://alexmorrowind-github-io.onrender.com/api';
   const host = window.location.hostname;
 
   if (host === 'alexmorrowind.github.io') {
