@@ -54,7 +54,7 @@ load_env_file(BASE_DIR / '.env')
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-_^vk2a5y6mo59^ytklea9g=sz67s57wbomjfz8^&ax*yhchqw9')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool('DJANGO_DEBUG', default=True)
+DEBUG = env_bool('DJANGO_DEBUG', default=not env_bool('RENDER', default=False))
 
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 
