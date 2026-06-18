@@ -2,10 +2,11 @@ services:
   - type: web
     name: b1-fintech-backend
     runtime: python
-    rootDir: fintech_new/my_payment_project
     buildCommand: ./build.sh
-    startCommand: gunicorn core.wsgi:application
+    startCommand: ./start.sh
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.5"
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_DEBUG
