@@ -61,6 +61,13 @@ SECRET_CONFIG_KEYS = {
     'SMS_PROVIDER_TOKEN',
     'DJANGO_SECRET_KEY',
 }
+PAYME_CHECKOUT_REQUIRED_KEYS = [
+    'PAYME_MERCHANT_ID',
+    'PAYME_MERCHANT_KEY',
+    'PAYME_CHECKOUT_URL',
+    'PAYME_CALLBACK_URL',
+    'PAYME_ACCOUNT_KEY',
+]
 
 
 def config_value_is_set(value):
@@ -118,12 +125,26 @@ def get_payme_account_key():
     return get_config('PAYME_ACCOUNT_KEY', 'Bpay')
 
 
+def missing_payme_checkout_config():
+    return [key for key in PAYME_CHECKOUT_REQUIRED_KEYS if not config_value_is_set(get_config(key))]
+
+
+def payme_config_error_response():
+    return Response({
+        "detail": "Payme is not configured on the backend. Add the missing keys in Render Environment or Django Admin.",
+        "missing": missing_payme_checkout_config(),
+    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
 def build_payme_checkout_url(order):
+    missing = missing_payme_checkout_config()
+    if missing:
+        raise ValueError(f"Payme checkout is not configured: {', '.join(missing)}")
     merchant_id = get_payme_merchant_id()
     account_key = get_payme_account_key()
     amount_tiyin = int(Decimal(order.amount) * 100)
     callback = get_config('PAYME_CALLBACK_URL', 'http://127.0.0.1:8765/index.html')
-    base_url = get_config('PAYME_CHECKOUT_URL', 'https://checkout.paycom.uz')
+    base_url = get_config('PAYME_CHECKOUT_URL', 'https://test.paycom.uz')
     payload = f"m={merchant_id};ac.{account_key}={order.id};a={amount_tiyin};c={callback};ct=15"
     encoded = base64.b64encode(payload.encode('utf-8')).decode('utf-8')
     return f"{base_url}/{quote_plus(encoded)}"
@@ -437,6 +458,8 @@ class RegisterView(APIView):
             return Response({
                 "phone_sms": "Phone SMS verification is required before registration"
             }, status=status.HTTP_400_BAD_REQUEST)
+        if payme_connect and missing_payme_checkout_config():
+            return payme_config_error_response()
 
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -859,6 +882,9 @@ class PaymeCreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        if missing_payme_checkout_config():
+            return payme_config_error_response()
+
         amount = request.data.get('amount')
         purpose = request.data.get('purpose', 'application')
         target_id = request.data.get('target_id', '')
@@ -1052,6 +1078,9 @@ class InvestmentListCreateView(APIView):
         return Response(InvestmentSerializer(investments.order_by('-created_at'), many=True).data)
 
     def post(self, request):
+        if missing_payme_checkout_config():
+            return payme_config_error_response()
+
         startup = Startup.objects.filter(pk=request.data.get('startup')).first()
         if not startup:
             return Response({"startup": "Startup not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -1079,6 +1108,9 @@ class ApplicationCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        if request.data.get('amount') and missing_payme_checkout_config():
+            return payme_config_error_response()
+
         order = None
         amount = request.data.get('amount')
         if amount:
