@@ -58,6 +58,14 @@ DEBUG = env_bool('DJANGO_DEBUG', default=True)
 
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
 
+for host in [
+    os.environ.get('RENDER_EXTERNAL_HOSTNAME'),
+    'alexmorrowind-github-io.onrender.com',
+    '.onrender.com',
+]:
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
 
 # Application definition
 
