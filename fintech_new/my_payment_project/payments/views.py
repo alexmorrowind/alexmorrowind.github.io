@@ -42,6 +42,7 @@ PAYME_ERRORS = {
     "INVALID_AMOUNT": {
         "code": -31001,
         "message": {"ru": "Неверная сумма заказа", "uz": "Buyurtma summasi noto'g'ri", "en": "Invalid order amount"},
+        "data": "amount",
     },
     "CANT_CANCEL": {
         "code": -31007,
@@ -207,16 +208,68 @@ class PaymeWebhookView(APIView):
                 return value
         return None
 
-    def _check_perform_transaction(self, params, request_id):
-        order_id = self._extract_order_id(params)
-        amount = params.get('amount')
+    def _normalize_order_id(self, value):
+        if value in [None, '']:
+            return None
+        value = str(value).strip()
+        return int(value) if value.isdigit() else None
 
+    def _get_order_from_params(self, params):
+        order_id = self._normalize_order_id(self._extract_order_id(params))
+        if order_id is None:
+            return None
+        return Order.objects.filter(id=order_id).first()
+
+    def _merchant_transaction_id(self, tx):
+        return str(tx.id)
+
+    def _amount_tiyin(self, amount):
         try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
+            return int(amount)
+        except (TypeError, ValueError):
+            return None
+
+    def _create_transaction_result(self, tx):
+        return {
+            "create_time": tx.create_time,
+            "transaction": self._merchant_transaction_id(tx),
+            "state": tx.state,
+        }
+
+    def _perform_transaction_result(self, tx):
+        return {
+            "transaction": self._merchant_transaction_id(tx),
+            "perform_time": tx.perform_time,
+            "state": tx.state,
+        }
+
+    def _cancel_transaction_result(self, tx):
+        return {
+            "transaction": self._merchant_transaction_id(tx),
+            "cancel_time": tx.cancel_time,
+            "state": tx.state,
+        }
+
+    def _check_transaction_result(self, tx):
+        result = {
+            "create_time": tx.create_time,
+            "perform_time": tx.perform_time,
+            "cancel_time": tx.cancel_time,
+            "transaction": self._merchant_transaction_id(tx),
+            "state": tx.state,
+        }
+        if tx.reason is not None:
+            result["reason"] = tx.reason
+        return result
+
+    def _check_perform_transaction(self, params, request_id):
+        amount = params.get('amount')
+        order = self._get_order_from_params(params)
+
+        if not order:
             return self._rpc_error("ORDER_NOT_FOUND", request_id)
 
-        if int(order.amount * 100) != amount:
+        if int(order.amount * 100) != self._amount_tiyin(amount):
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
         if order.status != 'pending':
@@ -226,28 +279,26 @@ class PaymeWebhookView(APIView):
 
     def _create_transaction(self, params, request_id):
         payme_id = params.get('id')
-        order_id = self._extract_order_id(params)
         amount = params.get('amount')
         create_time = params.get('time')
+        order = self._get_order_from_params(params)
 
-        try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
+        if not order:
             return self._rpc_error("ORDER_NOT_FOUND", request_id)
 
-        if int(order.amount * 100) != amount:
+        if int(order.amount * 100) != self._amount_tiyin(amount):
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
         try:
             tx = PaymeTransaction.objects.get(payme_id=payme_id)
             if tx.state == 1:
-                return Response({"result": {"create_time": tx.create_time, "transaction": tx.payme_id, "state": 1}, "id": request_id})
+                return Response({"result": self._create_transaction_result(tx), "id": request_id})
             return self._rpc_error("CANT_CANCEL", request_id)
         except PaymeTransaction.DoesNotExist:
             pass
 
         tx = PaymeTransaction.objects.create(payme_id=payme_id, order=order, amount=amount, state=1, create_time=create_time)
-        return Response({"result": {"create_time": tx.create_time, "transaction": tx.payme_id, "state": 1}, "id": request_id})
+        return Response({"result": self._create_transaction_result(tx), "id": request_id})
 
     def _perform_transaction(self, params, request_id):
         payme_id = params.get('id')
@@ -291,7 +342,7 @@ class PaymeWebhookView(APIView):
                     payme_verified=True,
                 )
 
-        return Response({"result": {"transaction": tx.payme_id, "perform_time": tx.perform_time, "state": 2}, "id": request_id})
+        return Response({"result": self._perform_transaction_result(tx), "id": request_id})
 
 
     def _cancel_transaction(self, params, request_id):
@@ -304,11 +355,7 @@ class PaymeWebhookView(APIView):
             return self._rpc_error("TRANSACTION_NOT_FOUND", request_id)
 
         if tx.state in [-1, -2]:
-            return Response({"result": {
-                "transaction": tx.payme_id,
-                "cancel_time": tx.cancel_time,
-                "state": tx.state,
-            }, "id": request_id})
+            return Response({"result": self._cancel_transaction_result(tx), "id": request_id})
 
         current_time_ms = int(time.time() * 1000)
         tx.cancel_time = current_time_ms
@@ -321,11 +368,7 @@ class PaymeWebhookView(APIView):
         order.save(update_fields=['status'])
         Investment.objects.filter(order=order).update(status='canceled')
 
-        return Response({"result": {
-            "transaction": tx.payme_id,
-            "cancel_time": tx.cancel_time,
-            "state": tx.state,
-        }, "id": request_id})
+        return Response({"result": self._cancel_transaction_result(tx), "id": request_id})
 
     def _check_transaction(self, params, request_id):
         payme_id = params.get('id')
@@ -335,14 +378,7 @@ class PaymeWebhookView(APIView):
         except PaymeTransaction.DoesNotExist:
             return self._rpc_error("TRANSACTION_NOT_FOUND", request_id)
 
-        return Response({"result": {
-            "create_time": tx.create_time,
-            "perform_time": tx.perform_time,
-            "cancel_time": tx.cancel_time,
-            "transaction": tx.payme_id,
-            "state": tx.state,
-            "reason": tx.reason,
-        }, "id": request_id})
+        return Response({"result": self._check_transaction_result(tx), "id": request_id})
 
     def _get_statement(self, params, request_id):
         from_time = params.get('from', 0)
@@ -353,11 +389,11 @@ class PaymeWebhookView(APIView):
                 "id": tx.payme_id,
                 "time": tx.create_time,
                 "amount": tx.amount,
-                "account": {"order_id": str(tx.order_id)},
+                "account": {get_payme_account_key(): str(tx.order_id)},
                 "create_time": tx.create_time,
                 "perform_time": tx.perform_time,
                 "cancel_time": tx.cancel_time,
-                "transaction": tx.payme_id,
+                "transaction": self._merchant_transaction_id(tx),
                 "state": tx.state,
                 "reason": tx.reason,
             }
