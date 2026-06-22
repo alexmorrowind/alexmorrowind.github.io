@@ -3,7 +3,7 @@ import os
 import time
 import uuid
 from decimal import Decimal
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlsplit, urlunsplit
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -126,6 +126,26 @@ def get_payme_account_key():
     return get_config('PAYME_ACCOUNT_KEY', 'Bpay')
 
 
+def normalize_payme_checkout_url(base_url):
+    raw_url = str(base_url or '').strip().rstrip('/')
+    if not raw_url:
+        return raw_url
+
+    parsed = urlsplit(raw_url if '://' in raw_url else f'https://{raw_url}')
+    hostname = parsed.netloc.lower()
+    path = parsed.path.rstrip('/')
+
+    if hostname == 'test.paycom.uz':
+        hostname = 'checkout.test.paycom.uz'
+    elif hostname == 'paycom.uz':
+        hostname = 'checkout.paycom.uz'
+
+    if path == '/api':
+        path = ''
+
+    return urlunsplit((parsed.scheme or 'https', hostname, path, '', ''))
+
+
 def missing_payme_checkout_config():
     return [key for key in PAYME_CHECKOUT_REQUIRED_KEYS if not config_value_is_set(get_config(key))]
 
@@ -145,7 +165,9 @@ def build_payme_checkout_url(order):
     account_key = get_payme_account_key()
     amount_tiyin = int(Decimal(order.amount) * 100)
     callback = get_config('PAYME_CALLBACK_URL', 'http://127.0.0.1:8765/index.html')
-    base_url = get_config('PAYME_CHECKOUT_URL', 'https://test.paycom.uz')
+    base_url = normalize_payme_checkout_url(
+        get_config('PAYME_CHECKOUT_URL', 'https://checkout.test.paycom.uz')
+    )
     payload = f"m={merchant_id};ac.{account_key}={order.id};a={amount_tiyin};c={callback};ct=15"
     encoded = base64.b64encode(payload.encode('utf-8')).decode('utf-8')
     return f"{base_url}/{quote_plus(encoded)}"
