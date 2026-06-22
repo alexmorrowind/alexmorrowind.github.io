@@ -623,6 +623,9 @@ const PAYME_ORDERS_STORAGE_KEY = 'b1_payme_orders';
 function getApiBaseUrl() {
     if (window.B1_API_BASE_URL) return window.B1_API_BASE_URL.replace(/\/$/, '');
     const host = window.location.hostname;
+    if (host === 'alexmorrowind.github.io') {
+        return 'https://alexmorrowind-github-io.onrender.com/api';
+    }
     if (host === '127.0.0.1' || host === 'localhost' || host === '') {
         return 'http://127.0.0.1:8000/api';
     }
