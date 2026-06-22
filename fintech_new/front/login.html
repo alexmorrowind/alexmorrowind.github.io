@@ -893,6 +893,7 @@
       const phone = document.getElementById('regPhone').value.trim();
       const paymeTerms = document.getElementById('regPaymeTerms').checked;
       const submitBtn = e ? e.target : null;
+      let keepSubmitLocked = false;
 
       let valid = true;
       if (!email || !email.includes('@')) { showError('regEmailErr', true); valid = false; }
@@ -940,11 +941,23 @@
         localStorage.setItem('userEmail', email);
 
         if (data.payme_checkout_url) {
+          const checkoutUrl = data.payme_checkout_url;
+          localStorage.setItem('lastPaymeCheckoutUrl', checkoutUrl);
+          keepSubmitLocked = true;
           if (submitBtn) {
             submitBtn.textContent = currentLang === 'uz' ? 'Payme sahifasiga o\'tilmoqda...' : 'Перенаправление в Payme...';
           }
-          // Redirect immediately to Payme checkout
-          window.location.href = data.payme_checkout_url;
+          window.location.assign(checkoutUrl);
+
+          window.setTimeout(() => {
+            if (!submitBtn) return;
+            submitBtn.disabled = false;
+            submitBtn.textContent = currentLang === 'uz' ? 'Payme ochilmasa, qayta bosing' : 'Если Payme не открылся, нажмите снова';
+            submitBtn.onclick = function (event) {
+              event.preventDefault();
+              window.location.assign(checkoutUrl);
+            };
+          }, 2500);
         } else {
           showSuccess('register');
         }
@@ -952,7 +965,7 @@
         console.error('Xatolik:', error);
         alert(error.message || (currentLang === 'uz' ? 'Server bilan bog‘lanishda xatolik!' : 'Ошибка соединения с сервером!'));
       } finally {
-        if (submitBtn) {
+        if (submitBtn && !keepSubmitLocked) {
           submitBtn.disabled = false;
           submitBtn.textContent = currentLang === 'uz' ? "Payme ga o'tish" : 'Перейти в Payme';
         }
