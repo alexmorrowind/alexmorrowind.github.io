@@ -197,11 +197,33 @@ def payme_subscribe_is_configured(require_password=False):
     return has_id and (has_password if require_password else True)
 
 
+def normalize_payme_subscribe_base_url(base_url):
+    raw_url = str(base_url or '').strip().rstrip('/')
+    if not raw_url:
+        return raw_url
+
+    parsed = parse.urlsplit(raw_url if '://' in raw_url else f'https://{raw_url}')
+    hostname = parsed.netloc.lower()
+    path = parsed.path.rstrip('/')
+
+    if hostname == 'test.paycom.uz':
+        hostname = 'checkout.test.paycom.uz'
+    elif hostname == 'paycom.uz':
+        hostname = 'checkout.paycom.uz'
+
+    if not path:
+        path = '/api'
+
+    return parse.urlunsplit((parsed.scheme or 'https', hostname, path, '', ''))
+
+
 def payme_subscribe_rpc(method, params, backend=False):
     if not payme_subscribe_is_configured(require_password=backend):
         return _payme_subscribe_demo(method, params)
 
-    base_url = get_config('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.test.paycom.uz/api').rstrip('/')
+    base_url = normalize_payme_subscribe_base_url(
+        get_config('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.test.paycom.uz/api')
+    )
     cashier_id = get_config('PAYME_SUBSCRIBE_ID')
     auth = cashier_id
     if backend:

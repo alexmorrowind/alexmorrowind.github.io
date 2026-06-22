@@ -289,12 +289,16 @@ class PaymeWebhookView(APIView):
 
     def _check_perform_transaction(self, params, request_id):
         amount = params.get('amount')
-        order = self._get_order_from_params(params)
+        amount_tiyin = self._amount_tiyin(amount)
 
+        if amount_tiyin is None:
+            return self._rpc_error("INVALID_AMOUNT", request_id)
+
+        order = self._get_order_from_params(params)
         if not order:
             return self._rpc_error("ORDER_NOT_FOUND", request_id)
 
-        if int(order.amount * 100) != self._amount_tiyin(amount):
+        if int(order.amount * 100) != amount_tiyin:
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
         if order.status != 'pending':
@@ -306,12 +310,16 @@ class PaymeWebhookView(APIView):
         payme_id = params.get('id')
         amount = params.get('amount')
         create_time = params.get('time')
-        order = self._get_order_from_params(params)
+        amount_tiyin = self._amount_tiyin(amount)
 
+        if amount_tiyin is None:
+            return self._rpc_error("INVALID_AMOUNT", request_id)
+
+        order = self._get_order_from_params(params)
         if not order:
             return self._rpc_error("ORDER_NOT_FOUND", request_id)
 
-        if int(order.amount * 100) != self._amount_tiyin(amount):
+        if int(order.amount * 100) != amount_tiyin:
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
         try:

@@ -3828,9 +3828,20 @@ function filterInvestors(ev, domain) {
 }
 
 
+function formatToastMessage(message) {
+    if (typeof message === 'string') return message;
+    if (message?.message) return formatToastMessage(message.message);
+    if (message?.detail) return formatToastMessage(message.detail);
+    try {
+        return JSON.stringify(message);
+    } catch (_) {
+        return String(message);
+    }
+}
+
 function showToast(message) {
     const toast = document.getElementById('toast');
-    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toastMessage').textContent = formatToastMessage(message);
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
