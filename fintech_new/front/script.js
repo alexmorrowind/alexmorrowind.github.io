@@ -772,7 +772,10 @@ async function apiRequest(path, { method = 'GET', body, auth = true } = {}) {
         } catch (error) {
             // Keep the status text if backend did not return JSON.
         }
-        throw new Error(detail || `HTTP ${response.status}`);
+        const requestError = new Error(`HTTP ${response.status}: ${detail || response.statusText}`);
+        requestError.status = response.status;
+        requestError.detail = detail;
+        throw requestError;
     }
     if (response.status === 204) return null;
     return response.json();
@@ -812,7 +815,7 @@ async function createPaymeOrder({ purpose = 'application', targetId = '', amount
         });
         return rememberPaymeOrder(order);
     } catch (error) {
-        if (String(error?.message || '').startsWith('HTTP ')) {
+        if (error?.status || String(error?.message || '').startsWith('HTTP ')) {
             throw error;
         }
         const demoOrder = rememberPaymeOrder({
