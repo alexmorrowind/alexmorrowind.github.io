@@ -943,6 +943,12 @@
         if (data.payme_checkout_url) {
           const checkoutUrl = data.payme_checkout_url;
           localStorage.setItem('lastPaymeCheckoutUrl', checkoutUrl);
+          if (data.payme_order_id) {
+            localStorage.setItem('lastPaymeOrderId', data.payme_order_id);
+          }
+          if (data.payme_amount_tiyin) {
+            localStorage.setItem('lastPaymeAmountTiyin', data.payme_amount_tiyin);
+          }
           keepSubmitLocked = true;
           if (submitBtn) {
             submitBtn.textContent = currentLang === 'uz' ? 'Payme sahifasiga o\'tilmoqda...' : 'Перенаправление в Payme...';

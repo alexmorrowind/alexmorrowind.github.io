@@ -1,10 +1,12 @@
 import base64
+import time
 from urllib.parse import unquote, urlparse
 
 from django.test import TestCase, override_settings
+from rest_framework.test import APIClient
 
 from .integrations import normalize_payme_subscribe_base_url
-from .models import APIConfiguration, Order
+from .models import APIConfiguration, Order, PaymeTransaction
 from .views import PaymeWebhookView, build_payme_checkout_url, normalize_payme_checkout_url
 
 
@@ -120,3 +122,136 @@ class PaymeWebhookValidationTests(TestCase):
             APIConfiguration.objects.get(key='PAYME_MERCHANT_KEY').value,
             'new-payme-secret',
         )
+
+    def test_check_transaction_always_includes_reason_field(self):
+        order = Order.objects.create(amount='1000.00', purpose='card_order')
+        tx = PaymeTransaction.objects.create(
+            payme_id='tx-1',
+            order=order,
+            amount=100000,
+            state=1,
+            create_time=int(time.time() * 1000),
+        )
+
+        result = self.view._check_transaction_result(tx)
+
+        self.assertIn('reason', result)
+        self.assertIsNone(result['reason'])
+
+    def test_create_transaction_rejects_existing_transaction_for_different_order(self):
+        order_a = Order.objects.create(amount='1000.00', purpose='card_order')
+        order_b = Order.objects.create(amount='1000.00', purpose='card_order')
+        PaymeTransaction.objects.create(
+            payme_id='payme-test-id',
+            order=order_a,
+            amount=100000,
+            state=1,
+            create_time=123456,
+        )
+
+        response = self.view._create_transaction({
+            'id': 'payme-test-id',
+            'amount': 100000,
+            'account': {'Bpay': str(order_b.id)},
+            'time': 123456,
+        }, 8)
+
+        self.assertEqual(response.data['error']['code'], -31008)
+
+    def test_perform_transaction_times_out_old_transaction(self):
+        order = Order.objects.create(amount='1000.00', purpose='card_order')
+        tx = PaymeTransaction.objects.create(
+            payme_id='payme-timeout-id',
+            order=order,
+            amount=100000,
+            state=1,
+            create_time=int(time.time() * 1000) - (13 * 60 * 60 * 1000),
+        )
+
+        response = self.view._perform_transaction({'id': tx.payme_id}, 9)
+
+        tx.refresh_from_db()
+        order.refresh_from_db()
+
+        self.assertEqual(response.data['error']['code'], -31008)
+        self.assertEqual(tx.state, -1)
+        self.assertEqual(tx.reason, 4)
+        self.assertEqual(order.status, 'canceled')
+
+
+class PaymeMerchantEndpointTests(TestCase):
+    def setUp(self):
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_MERCHANT_KEY',
+            defaults={'value': 'test_merchant_secret_key', 'is_active': True},
+        )
+        self.client = APIClient()
+        self.auth = self._auth_header('test_merchant_secret_key')
+
+    def _auth_header(self, password):
+        encoded = base64.b64encode(f"Paycom:{password}".encode()).decode()
+        return f"Basic {encoded}"
+
+    def _rpc(self, method, params=None, request_id=1, auth=None):
+        return self.client.post(
+            '/api/payme/',
+            {
+                'jsonrpc': '2.0',
+                'id': request_id,
+                'method': method,
+                'params': params or {},
+            },
+            format='json',
+            HTTP_AUTHORIZATION=auth or self.auth,
+        )
+
+    def test_payme_endpoint_completes_main_transaction_lifecycle(self):
+        order = Order.objects.create(amount='1000.00', purpose='card_order')
+        account = {'Bpay': str(order.id)}
+        payme_id = 'payme-endpoint-test-id'
+        create_time = int(time.time() * 1000)
+
+        check = self._rpc('CheckPerformTransaction', {'amount': 100000, 'account': account}, 1)
+        self.assertEqual(check.status_code, 200)
+        self.assertEqual(check.data['result']['allow'], True)
+
+        create = self._rpc('CreateTransaction', {
+            'id': payme_id,
+            'amount': 100000,
+            'account': account,
+            'time': create_time,
+        }, 2)
+        self.assertEqual(create.status_code, 200)
+        self.assertEqual(create.data['result']['state'], 1)
+        self.assertEqual(create.data['result']['create_time'], create_time)
+
+        before_perform = self._rpc('CheckTransaction', {'id': payme_id}, 3)
+        self.assertEqual(before_perform.status_code, 200)
+        self.assertEqual(before_perform.data['result']['state'], 1)
+        self.assertIn('reason', before_perform.data['result'])
+        self.assertIsNone(before_perform.data['result']['reason'])
+
+        perform = self._rpc('PerformTransaction', {'id': payme_id}, 4)
+        self.assertEqual(perform.status_code, 200)
+        self.assertEqual(perform.data['result']['state'], 2)
+
+        statement = self._rpc('GetStatement', {'from': create_time - 1, 'to': int(time.time() * 1000) + 1000}, 5)
+        self.assertEqual(statement.status_code, 200)
+        self.assertEqual(statement.data['result']['transactions'][0]['id'], payme_id)
+
+    def test_payme_endpoint_returns_http_200_for_payme_errors(self):
+        auth_error = self.client.post(
+            '/api/payme/',
+            {'jsonrpc': '2.0', 'id': 10, 'method': 'CheckPerformTransaction', 'params': {}},
+            format='json',
+        )
+        self.assertEqual(auth_error.status_code, 200)
+        self.assertEqual(auth_error.data['error']['code'], -32504)
+
+        missing_order = self._rpc('CheckPerformTransaction', {
+            'amount': 100000,
+            'account': {'Bpay': '999999'},
+        }, 11)
+        self.assertEqual(missing_order.status_code, 200)
+        self.assertEqual(missing_order.data['error']['code'], -31050)
+        self.assertEqual(missing_order.data['error']['data'], 'Bpay')

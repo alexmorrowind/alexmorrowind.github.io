@@ -52,11 +52,17 @@ PAYME_ERRORS = {
         "code": -31007,
         "message": {"ru": "Невозможно выполнить операцию", "uz": "Operatsiyani bajarib bo'lmaydi", "en": "Operation cannot be performed"},
     },
+    "CANT_PERFORM": {
+        "code": -31008,
+        "message": {"ru": "Невозможно выполнить операцию", "uz": "Operatsiyani bajarib bo'lmaydi", "en": "Operation cannot be performed"},
+    },
     "TRANSACTION_NOT_FOUND": {
         "code": -31003,
         "message": {"ru": "Транзакция не найдена", "uz": "Tranzaksiya topilmadi", "en": "Transaction not found"},
     },
 }
+
+PAYME_TRANSACTION_TIMEOUT_MS = 12 * 60 * 60 * 1000
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 SECRET_CONFIG_KEYS = {
@@ -327,16 +333,29 @@ class PaymeWebhookView(APIView):
         }
 
     def _check_transaction_result(self, tx):
-        result = {
+        return {
             "create_time": tx.create_time,
             "perform_time": tx.perform_time,
             "cancel_time": tx.cancel_time,
             "transaction": self._merchant_transaction_id(tx),
             "state": tx.state,
+            "reason": tx.reason,
         }
-        if tx.reason is not None:
-            result["reason"] = tx.reason
-        return result
+
+    def _now_ms(self):
+        return int(time.time() * 1000)
+
+    def _transaction_is_timed_out(self, tx):
+        return tx.state == 1 and self._now_ms() - int(tx.create_time or 0) > PAYME_TRANSACTION_TIMEOUT_MS
+
+    def _expire_transaction(self, tx):
+        tx.state = -1
+        tx.reason = 4
+        tx.cancel_time = self._now_ms()
+        tx.save(update_fields=['state', 'reason', 'cancel_time'])
+        tx.order.status = 'canceled'
+        tx.order.save(update_fields=['status'])
+        Investment.objects.filter(order=tx.order).update(status='canceled')
 
     def _check_perform_transaction(self, params, request_id):
         amount = params.get('amount')
@@ -353,7 +372,7 @@ class PaymeWebhookView(APIView):
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
         if order.status != 'pending':
-            return self._rpc_error("CANT_CANCEL", request_id)
+            return self._rpc_error("CANT_PERFORM", request_id)
 
         return self._rpc_result({"allow": True}, request_id)
 
@@ -373,11 +392,19 @@ class PaymeWebhookView(APIView):
         if int(order.amount * 100) != amount_tiyin:
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
+        if order.status != 'pending':
+            return self._rpc_error("CANT_PERFORM", request_id)
+
         try:
             tx = PaymeTransaction.objects.get(payme_id=payme_id)
+            if tx.order_id != order.id or int(tx.amount) != amount_tiyin:
+                return self._rpc_error("CANT_PERFORM", request_id)
+            if self._transaction_is_timed_out(tx):
+                self._expire_transaction(tx)
+                return self._rpc_error("CANT_PERFORM", request_id)
             if tx.state == 1:
                 return self._rpc_result(self._create_transaction_result(tx), request_id)
-            return self._rpc_error("CANT_CANCEL", request_id)
+            return self._rpc_error("CANT_PERFORM", request_id)
         except PaymeTransaction.DoesNotExist:
             pass
 
@@ -392,8 +419,12 @@ class PaymeWebhookView(APIView):
         except PaymeTransaction.DoesNotExist:
             return self._rpc_error("TRANSACTION_NOT_FOUND", request_id)
 
+        if self._transaction_is_timed_out(tx):
+            self._expire_transaction(tx)
+            return self._rpc_error("CANT_PERFORM", request_id)
+
         if tx.state == 1:
-            current_time_ms = int(time.time() * 1000)
+            current_time_ms = self._now_ms()
             tx.state = 2
             tx.perform_time = current_time_ms
             tx.save()
@@ -425,6 +456,8 @@ class PaymeWebhookView(APIView):
                     provider="payme",
                     payme_verified=True,
                 )
+        elif tx.state != 2:
+            return self._rpc_error("CANT_PERFORM", request_id)
 
         return self._rpc_result(self._perform_transaction_result(tx), request_id)
 
@@ -441,7 +474,7 @@ class PaymeWebhookView(APIView):
         if tx.state in [-1, -2]:
             return self._rpc_result(self._cancel_transaction_result(tx), request_id)
 
-        current_time_ms = int(time.time() * 1000)
+        current_time_ms = self._now_ms()
         tx.cancel_time = current_time_ms
         tx.reason = reason
         tx.state = -2 if tx.state == 2 else -1
@@ -467,7 +500,7 @@ class PaymeWebhookView(APIView):
     def _get_statement(self, params, request_id):
         from_time = params.get('from', 0)
         to_time = params.get('to', int(time.time() * 1000))
-        transactions = PaymeTransaction.objects.filter(create_time__gte=from_time, create_time__lte=to_time)
+        transactions = PaymeTransaction.objects.filter(create_time__gte=from_time, create_time__lte=to_time).order_by('create_time')
         return self._rpc_result({"transactions": [
             {
                 "id": tx.payme_id,
@@ -655,6 +688,8 @@ class RegisterView(APIView):
                 order.checkout_url = build_payme_checkout_url(order)
                 order.save(update_fields=['checkout_url'])
                 response_data['payme_checkout_url'] = order.checkout_url
+                response_data['payme_order_id'] = order.id
+                response_data['payme_amount_tiyin'] = int(order.amount * 100)
 
             return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
