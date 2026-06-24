@@ -3,6 +3,7 @@ import time
 from urllib.parse import unquote, urlparse
 
 from django.test import TestCase, override_settings
+from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
 from .integrations import normalize_payme_subscribe_base_url
@@ -186,6 +187,12 @@ class PaymeMerchantEndpointTests(TestCase):
             defaults={'value': 'test_merchant_secret_key', 'is_active': True},
         )
         self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='payme-tester',
+            email='payme-tester@example.com',
+            password='Testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
         self.auth = self._auth_header('test_merchant_secret_key')
 
     def _auth_header(self, password):
@@ -255,3 +262,24 @@ class PaymeMerchantEndpointTests(TestCase):
         self.assertEqual(missing_order.status_code, 200)
         self.assertEqual(missing_order.data['error']['code'], -31050)
         self.assertEqual(missing_order.data['error']['data'], 'Bpay')
+
+    def test_payme_order_amount_is_limited_on_backend(self):
+        low = self.client.post('/api/payme/create-order/', {
+            'amount': 999,
+            'purpose': 'card_order',
+        }, format='json')
+        self.assertEqual(low.status_code, 400)
+        self.assertIn('min_amount', low.data)
+
+        high = self.client.post('/api/payme/create-order/', {
+            'amount': 10000001,
+            'purpose': 'card_order',
+        }, format='json')
+        self.assertEqual(high.status_code, 400)
+        self.assertIn('max_amount', high.data)
+
+        ok = self.client.post('/api/payme/create-order/', {
+            'amount': 1000,
+            'purpose': 'card_order',
+        }, format='json')
+        self.assertEqual(ok.status_code, 201)

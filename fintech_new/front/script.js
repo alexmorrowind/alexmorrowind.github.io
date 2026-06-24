@@ -781,7 +781,7 @@ async function apiRequest(path, { method = 'GET', body, auth = true } = {}) {
 function normalizePaymeAmount(amount, currency = 'UZS') {
     const numeric = Number(amount) || 0;
     const uzs = currency === 'USD' ? numeric * USD_TO_UZS_RATE : numeric;
-    return Math.max(1000, Math.round(uzs));
+    return Math.min(10000000, Math.max(1000, Math.round(uzs)));
 }
 
 function parseUzsAmount(value, fallback = 1000) {
@@ -812,6 +812,9 @@ async function createPaymeOrder({ purpose = 'application', targetId = '', amount
         });
         return rememberPaymeOrder(order);
     } catch (error) {
+        if (String(error?.message || '').startsWith('HTTP ')) {
+            throw error;
+        }
         const demoOrder = rememberPaymeOrder({
             ...payload,
             id: 'demo-' + Date.now(),

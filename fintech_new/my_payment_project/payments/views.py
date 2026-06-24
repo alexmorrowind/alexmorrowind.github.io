@@ -79,6 +79,8 @@ PAYME_CHECKOUT_REQUIRED_KEYS = [
     'PAYME_CALLBACK_URL',
     'PAYME_ACCOUNT_KEY',
 ]
+PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
+PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
 
 
 def config_value_is_set(value):
@@ -1080,8 +1082,12 @@ class PaymeCreateOrderView(APIView):
         except Exception:
             return Response({"amount": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if amount_decimal <= 0:
-            return Response({"amount": "Amount must be positive"}, status=status.HTTP_400_BAD_REQUEST)
+        if amount_decimal < PAYME_MIN_ORDER_AMOUNT_UZS or amount_decimal > PAYME_MAX_ORDER_AMOUNT_UZS:
+            return Response({
+                "amount": f"Amount must be between {PAYME_MIN_ORDER_AMOUNT_UZS} and {PAYME_MAX_ORDER_AMOUNT_UZS} UZS",
+                "min_amount": str(PAYME_MIN_ORDER_AMOUNT_UZS),
+                "max_amount": str(PAYME_MAX_ORDER_AMOUNT_UZS),
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         allowed_purposes = {choice[0] for choice in Order.PURPOSE_CHOICES}
         if purpose not in allowed_purposes:
