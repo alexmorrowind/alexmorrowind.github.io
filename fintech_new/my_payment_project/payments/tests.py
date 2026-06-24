@@ -1,4 +1,5 @@
 import base64
+import os
 import time
 from urllib.parse import unquote, urlparse
 
@@ -8,7 +9,7 @@ from rest_framework.test import APIClient
 
 from .integrations import normalize_payme_subscribe_base_url
 from .models import APIConfiguration, Order, PaymeTransaction
-from .views import PaymeWebhookView, build_payme_checkout_url, normalize_payme_checkout_url
+from .views import PaymeWebhookView, build_payme_checkout_url, get_payme_merchant_keys, normalize_payme_checkout_url
 
 
 class PaymeCheckoutUrlTests(TestCase):
@@ -123,6 +124,23 @@ class PaymeWebhookValidationTests(TestCase):
             APIConfiguration.objects.get(key='PAYME_MERCHANT_KEY').value,
             'new-payme-secret',
         )
+
+    def test_merchant_keys_include_admin_and_env_values(self):
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_MERCHANT_KEY',
+            defaults={'value': 'admin-secret', 'is_active': True},
+        )
+
+        original = os.environ.get('PAYME_MERCHANT_KEY')
+        os.environ['PAYME_MERCHANT_KEY'] = 'env-secret'
+        try:
+            self.assertIn('admin-secret', get_payme_merchant_keys())
+            self.assertIn('env-secret', get_payme_merchant_keys())
+        finally:
+            if original is None:
+                os.environ.pop('PAYME_MERCHANT_KEY', None)
+            else:
+                os.environ['PAYME_MERCHANT_KEY'] = original
 
     def test_check_transaction_always_includes_reason_field(self):
         order = Order.objects.create(amount='1000.00', purpose='card_order')
