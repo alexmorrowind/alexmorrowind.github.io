@@ -19,7 +19,7 @@ from .integrations import (
     start_myid_authentication,
     get_config,
 )
-from .models import APIConfiguration, Bank, Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup
+from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
 
 from .serializers import (
     InvestmentSerializer,
@@ -41,6 +41,15 @@ PAYME_ERRORS = {
     "ORDER_NOT_FOUND": {
         "code": -31050,
         "message": {"ru": "Заказ не найден", "uz": "Buyurtma topilmadi", "en": "Order not found"},
+        "data": "Bpay",
+    },
+    "ORDER_BUSY": {
+        "code": -31099,
+        "message": {
+            "ru": "Другая транзакция уже заняла этот заказ",
+            "uz": "Boshqa tranzaksiya bu buyurtmani band qilgan",
+            "en": "Another transaction is already processing this order",
+        },
         "data": "Bpay",
     },
     "INVALID_AMOUNT": {
@@ -393,6 +402,30 @@ class PaymeWebhookView(APIView):
             "state": tx.state,
         }
 
+    def _ensure_payme_card_linked(self, order):
+        if not order.user:
+            return
+
+        profile, _ = UserProfile.objects.get_or_create(user=order.user)
+        if profile.myid_status != 'verified':
+            profile.myid_status = 'verified'
+            profile.save(update_fields=['myid_status'])
+
+        if Card.objects.filter(user=order.user, provider='payme', payme_verified=True).exists():
+            return
+
+        import random
+        card_num = f"86000691{random.randint(10000000, 99999999)}"
+        Card.objects.create(
+            user=order.user,
+            number=f"{card_num[:4]} {card_num[4:8]} {card_num[8:12]} {card_num[12:]}",
+            expiry="03/29",
+            balance=Decimal('500000.00'),
+            name="Payme Humo",
+            provider="payme",
+            payme_verified=True,
+        )
+
     def _cancel_transaction_result(self, tx):
         return {
             "transaction": self._merchant_transaction_id(tx),
@@ -424,6 +457,13 @@ class PaymeWebhookView(APIView):
         tx.order.status = 'canceled'
         tx.order.save(update_fields=['status'])
         Investment.objects.filter(order=tx.order).update(status='canceled')
+
+    def _active_transaction_for_order(self, order, payme_id):
+        tx = PaymeTransaction.objects.filter(order=order, state=1).exclude(payme_id=payme_id).order_by('-create_time').first()
+        if tx and self._transaction_is_timed_out(tx):
+            self._expire_transaction(tx)
+            return None
+        return tx
 
     def _check_perform_transaction(self, params, request_id):
         amount = params.get('amount')
@@ -460,9 +500,6 @@ class PaymeWebhookView(APIView):
         if int(order.amount * 100) != amount_tiyin:
             return self._rpc_error("INVALID_AMOUNT", request_id)
 
-        if order.status != 'pending':
-            return self._rpc_error("CANT_PERFORM", request_id)
-
         try:
             tx = PaymeTransaction.objects.get(payme_id=payme_id)
             if tx.order_id != order.id or int(tx.amount) != amount_tiyin:
@@ -470,11 +507,15 @@ class PaymeWebhookView(APIView):
             if self._transaction_is_timed_out(tx):
                 self._expire_transaction(tx)
                 return self._rpc_error("CANT_PERFORM", request_id)
-            if tx.state == 1:
-                return self._rpc_result(self._create_transaction_result(tx), request_id)
-            return self._rpc_error("CANT_PERFORM", request_id)
+            return self._rpc_result(self._create_transaction_result(tx), request_id)
         except PaymeTransaction.DoesNotExist:
             pass
+
+        if self._active_transaction_for_order(order, payme_id):
+            return self._rpc_error("ORDER_BUSY", request_id)
+
+        if order.status != 'pending':
+            return self._rpc_error("CANT_PERFORM", request_id)
 
         tx = PaymeTransaction.objects.create(payme_id=payme_id, order=order, amount=amount, state=1, create_time=create_time)
         return self._rpc_result(self._create_transaction_result(tx), request_id)
@@ -508,22 +549,7 @@ class PaymeWebhookView(APIView):
 
             # If this is a registration or card connection order, connect the profile and card
             if order.purpose in ['card_order', 'application'] and order.user:
-                profile, _ = UserProfile.objects.get_or_create(user=order.user)
-                profile.myid_status = 'verified'
-                profile.save(update_fields=['myid_status'])
-
-                # Create a realistic test card
-                import random
-                card_num = f"86000691{random.randint(10000000, 99999999)}"
-                Card.objects.create(
-                    user=order.user,
-                    number=f"{card_num[:4]} {card_num[4:8]} {card_num[8:12]} {card_num[12:]}",
-                    expiry="03/29",
-                    balance=Decimal('500000.00'),
-                    name="Payme Humo",
-                    provider="payme",
-                    payme_verified=True,
-                )
+                self._ensure_payme_card_linked(order)
         elif tx.state != 2:
             return self._rpc_error("CANT_PERFORM", request_id)
 
@@ -587,7 +613,7 @@ class PaymeWebhookView(APIView):
 
     def _rpc_error(self, error_type, request_id, data=None):
         error_data = PAYME_ERRORS.get(error_type, {"code": -32603, "message": {"ru": "Внутренняя ошибка", "uz": "Ichki xatolik", "en": "Internal error"}})
-        if error_type == "ORDER_NOT_FOUND":
+        if error_type in ["ORDER_NOT_FOUND", "ORDER_BUSY"]:
             error_data = {**error_data, "data": get_payme_account_key()}
         if error_type == "METHOD_NOT_FOUND":
             error_data = {
@@ -627,8 +653,6 @@ class PaymeWebhookView(APIView):
         )
         return self._rpc_result({"success": True}, request_id)
 
-
-from .models import UserProfile, Card
 from .serializers import CardSerializer
 
 

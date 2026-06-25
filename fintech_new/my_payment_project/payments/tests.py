@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
 from .integrations import normalize_payme_subscribe_base_url
-from .models import APIConfiguration, Order, PaymeTransaction
+from .models import APIConfiguration, Card, Investment, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
 from .views import (
     PAYME_SANDBOX_ALIAS_TARGET_ID,
     PaymeWebhookView,
@@ -247,6 +247,94 @@ class PaymeWebhookValidationTests(TestCase):
 
         self.assertEqual(statement.data['result']['transactions'][0]['account'], {'Bpay': 'Bpay'})
 
+    def test_get_statement_returns_all_transactions_in_range(self):
+        order_a = Order.objects.create(amount='1000.00', purpose='card_order')
+        order_b = Order.objects.create(amount='1000.00', purpose='investment')
+        tx_a = PaymeTransaction.objects.create(
+            payme_id='payme-statement-1',
+            order=order_a,
+            amount=100000,
+            state=2,
+            create_time=1000,
+            perform_time=2000,
+        )
+        tx_b = PaymeTransaction.objects.create(
+            payme_id='payme-statement-2',
+            order=order_b,
+            amount=100000,
+            state=1,
+            create_time=3000,
+        )
+        PaymeTransaction.objects.create(
+            payme_id='payme-statement-outside',
+            order=order_b,
+            amount=100000,
+            state=1,
+            create_time=5000,
+        )
+
+        statement = self.view._get_statement({'from': 999, 'to': 4000}, 74)
+        tx_ids = [item['id'] for item in statement.data['result']['transactions']]
+
+        self.assertEqual(tx_ids, [tx_a.payme_id, tx_b.payme_id])
+
+    def test_perform_transaction_does_not_duplicate_payme_card_or_double_add_investment(self):
+        user = User.objects.create_user(username='payme-double', password='Testpass123')
+        UserProfile.objects.create(user=user, myid_status='verified')
+        order = Order.objects.create(user=user, amount='1000.00', purpose='card_order')
+        startup_owner = User.objects.create_user(username='startup-owner', password='Testpass123')
+        legal_entity = LegalEntityProfile.objects.create(
+            user=startup_owner,
+            company_name='Test Startup LLC',
+            legal_form='MCHJ',
+            accepted_terms=True,
+            accepted_investment_risk=True,
+            status='verified',
+            myid_status='verified',
+        )
+        startup = Startup.objects.create(
+            owner=startup_owner,
+            legal_entity=legal_entity,
+            name='Test Startup',
+            domain='startup',
+            stage='mvp',
+            funding_goal=1000,
+            min_investment=1000,
+            amount_raised=0,
+            roi=20,
+            description='Demo startup',
+            contact_email='demo@example.com',
+        )
+        investment_order = Order.objects.create(user=user, amount='1000.00', purpose='investment', target_id=str(startup.id))
+        Investment.objects.create(investor=user, startup=startup, order=investment_order, amount=1000)
+        now_ms = int(time.time() * 1000)
+        PaymeTransaction.objects.create(
+            payme_id='payme-card-perform',
+            order=order,
+            amount=100000,
+            state=1,
+            create_time=now_ms,
+        )
+        PaymeTransaction.objects.create(
+            payme_id='payme-invest-perform',
+            order=investment_order,
+            amount=100000,
+            state=1,
+            create_time=now_ms + 1,
+        )
+
+        first = self.view._perform_transaction({'id': 'payme-card-perform'}, 75)
+        second = self.view._perform_transaction({'id': 'payme-card-perform'}, 76)
+        invest = self.view._perform_transaction({'id': 'payme-invest-perform'}, 77)
+
+        self.assertEqual(first.data['result']['state'], 2)
+        self.assertEqual(second.data['result']['state'], 2)
+        self.assertEqual(invest.data['result']['state'], 2)
+        self.assertEqual(Card.objects.filter(user=user, provider='payme', payme_verified=True).count(), 1)
+        self.assertEqual(Investment.objects.get(order=investment_order).status, 'paid')
+        startup.refresh_from_db()
+        self.assertEqual(float(startup.amount_raised), 1000.0)
+
     def test_create_transaction_rejects_existing_transaction_for_different_order(self):
         order_a = Order.objects.create(amount='1000.00', purpose='card_order')
         order_b = Order.objects.create(amount='1000.00', purpose='card_order')
@@ -266,6 +354,26 @@ class PaymeWebhookValidationTests(TestCase):
         }, 8)
 
         self.assertEqual(response.data['error']['code'], -31008)
+
+    def test_create_transaction_rejects_new_transaction_when_order_is_busy(self):
+        order = Order.objects.create(amount='1000.00', purpose='card_order')
+        PaymeTransaction.objects.create(
+            payme_id='payme-active-transaction',
+            order=order,
+            amount=100000,
+            state=1,
+            create_time=int(time.time() * 1000),
+        )
+
+        response = self.view._create_transaction({
+            'id': 'payme-second-transaction',
+            'amount': 100000,
+            'account': {'Bpay': str(order.id)},
+            'time': int(time.time() * 1000),
+        }, 78)
+
+        self.assertEqual(response.data['error']['code'], -31099)
+        self.assertEqual(response.data['error']['data'], 'Bpay')
 
     def test_perform_transaction_times_out_old_transaction(self):
         order = Order.objects.create(amount='1000.00', purpose='card_order')
