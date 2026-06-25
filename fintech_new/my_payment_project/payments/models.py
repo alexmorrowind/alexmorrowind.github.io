@@ -228,6 +228,7 @@ class APIConfiguration(models.Model):
         # Payme Merchant
         ('PAYME_MERCHANT_ID', 'Payme Merchant ID'),
         ('PAYME_MERCHANT_KEY', 'Payme Merchant Key'),
+        ('PAYME_PREVIOUS_MERCHANT_KEY', 'Payme Previous Merchant Key'),
         ('PAYME_CHECKOUT_URL', 'Payme Checkout URL'),
         ('PAYME_CALLBACK_URL', 'Payme Callback URL'),
         ('PAYME_ACCOUNT_KEY', 'Payme Account Key'),

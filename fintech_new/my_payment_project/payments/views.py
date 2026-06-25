@@ -69,6 +69,7 @@ PAYME_SANDBOX_DEFAULT_AMOUNT_UZS = Decimal('1000.00')
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 SECRET_CONFIG_KEYS = {
     'PAYME_MERCHANT_KEY',
+    'PAYME_PREVIOUS_MERCHANT_KEY',
     'PAYME_SUBSCRIBE_KEY',
     'MYID_PASSWORD',
     'SMS_PROVIDER_TOKEN',
@@ -132,6 +133,10 @@ def get_payme_merchant_key():
     return get_config('PAYME_MERCHANT_KEY', 'test_merchant_secret_key')
 
 
+def get_payme_previous_merchant_key():
+    return get_config('PAYME_PREVIOUS_MERCHANT_KEY')
+
+
 def get_payme_merchant_keys():
     candidates = [
         APIConfiguration.objects.filter(key='PAYME_MERCHANT_KEY', is_active=True)
@@ -160,6 +165,17 @@ def get_payme_auth_keys():
     if config_value_is_set(fallback_key):
         return [str(fallback_key)]
     return ['test_merchant_secret_key']
+
+
+def set_payme_config_key(key, value, description):
+    APIConfiguration.objects.update_or_create(
+        key=key,
+        defaults={
+            'value': value,
+            'description': description,
+            'is_active': True,
+        }
+    )
 
 
 def get_payme_merchant_id():
@@ -247,14 +263,17 @@ class PaymeWebhookView(APIView):
             except Exception:
                 return self._rpc_error("AUTH_ERROR", request_id)
 
-            if password not in get_payme_auth_keys():
-                return self._rpc_error("AUTH_ERROR", request_id)
-
             # 2. Разбор JSON-RPC
             method = request.data.get('method')
             params = request.data.get('params', {})
             if not isinstance(params, dict):
                 return self._rpc_error("INVALID_REQUEST", request_id)
+
+            if method == "ChangePassword":
+                return self._change_password(params, request_id, password)
+
+            if password not in get_payme_auth_keys():
+                return self._rpc_error("AUTH_ERROR", request_id)
 
             if method == "CheckPerformTransaction":
                 return self._check_perform_transaction(params, request_id)
@@ -268,8 +287,6 @@ class PaymeWebhookView(APIView):
                 return self._check_transaction(params, request_id)
             elif method == "GetStatement":
                 return self._get_statement(params, request_id)
-            elif method == "ChangePassword":
-                return self._change_password(params, request_id)
 
             return self._rpc_error("METHOD_NOT_FOUND", request_id, data=method)
         except Exception:
@@ -349,6 +366,12 @@ class PaymeWebhookView(APIView):
 
     def _merchant_transaction_id(self, tx):
         return str(tx.id)
+
+    def _statement_account(self, tx):
+        account_key = get_payme_account_key()
+        if tx.order.target_id == PAYME_SANDBOX_ALIAS_TARGET_ID:
+            return {account_key: account_key}
+        return {account_key: str(tx.order_id)}
 
     def _amount_tiyin(self, amount):
         try:
@@ -551,7 +574,7 @@ class PaymeWebhookView(APIView):
                 "id": tx.payme_id,
                 "time": tx.create_time,
                 "amount": tx.amount,
-                "account": {get_payme_account_key(): str(tx.order_id)},
+                "account": self._statement_account(tx),
                 "create_time": tx.create_time,
                 "perform_time": tx.perform_time,
                 "cancel_time": tx.cancel_time,
@@ -574,18 +597,36 @@ class PaymeWebhookView(APIView):
             }
         return Response({"jsonrpc": "2.0", "error": error_data, "id": request_id})
 
-    def _change_password(self, params, request_id):
+    def _change_password(self, params, request_id, auth_password=None):
         new_password = str(params.get('password') or '').strip()
         if not new_password:
             return self._rpc_error("INVALID_REQUEST", request_id)
 
-        APIConfiguration.objects.update_or_create(
-            key='PAYME_MERCHANT_KEY',
-            defaults={
-                'value': new_password,
-                'description': 'Payme merchant key updated by ChangePassword',
-                'is_active': True,
-            }
+        current_password = get_payme_auth_keys()[0]
+        previous_password = get_payme_previous_merchant_key()
+
+        if new_password == current_password:
+            return self._rpc_error("AUTH_ERROR", request_id)
+
+        # Payme checks that the old password is no longer accepted after rotation.
+        if previous_password and new_password == str(previous_password).strip():
+            return self._rpc_error("AUTH_ERROR", request_id)
+
+        allowed_rotation_keys = {current_password}
+        if previous_password:
+            allowed_rotation_keys.add(str(previous_password).strip())
+        if auth_password and auth_password not in allowed_rotation_keys:
+            return self._rpc_error("AUTH_ERROR", request_id)
+
+        set_payme_config_key(
+            'PAYME_PREVIOUS_MERCHANT_KEY',
+            current_password,
+            'Previous Payme merchant key saved during ChangePassword',
+        )
+        set_payme_config_key(
+            'PAYME_MERCHANT_KEY',
+            new_password,
+            'Payme merchant key updated by ChangePassword',
         )
         return self._rpc_result({"success": True}, request_id)
 

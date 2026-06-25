@@ -11,6 +11,7 @@ def populate_api_configs(sender, **kwargs):
     default_descriptions = {
         'PAYME_MERCHANT_ID': 'Payme Merchant / Cashier ID used for checkout.',
         'PAYME_MERCHANT_KEY': 'Payme Merchant / Cashier Secret Key.',
+        'PAYME_PREVIOUS_MERCHANT_KEY': 'Previous Payme key used only for ChangePassword sandbox rotation checks.',
         'PAYME_CHECKOUT_URL': 'Payme Checkout Base URL (e.g., https://checkout.test.paycom.uz).',
         'PAYME_CALLBACK_URL': 'Return URL after payment completes (e.g. index.html).',
         'PAYME_ACCOUNT_KEY': 'Payme account field name from cabinet (for this cashbox: Bpay).',

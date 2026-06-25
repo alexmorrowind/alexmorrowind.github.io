@@ -184,6 +184,20 @@ class PaymeWebhookValidationTests(TestCase):
             'new-payme-secret',
         )
 
+    def test_change_password_rejects_current_password(self):
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_MERCHANT_KEY',
+            defaults={'value': 'current-payme-secret', 'is_active': True},
+        )
+
+        response = self.view._change_password({'password': 'current-payme-secret'}, 71)
+
+        self.assertEqual(response.data['error']['code'], -32504)
+        self.assertEqual(
+            APIConfiguration.objects.get(key='PAYME_MERCHANT_KEY').value,
+            'current-payme-secret',
+        )
+
     def test_merchant_keys_include_admin_and_env_values(self):
         APIConfiguration.objects.update_or_create(
             key='PAYME_MERCHANT_KEY',
@@ -215,6 +229,23 @@ class PaymeWebhookValidationTests(TestCase):
 
         self.assertIn('reason', result)
         self.assertIsNone(result['reason'])
+
+    def test_get_statement_keeps_sandbox_alias_account_value(self):
+        create_time = int(time.time() * 1000)
+        create = self.view._create_transaction({
+            'id': 'payme-statement-alias',
+            'amount': 100000,
+            'account': {'Bpay': 'Bpay'},
+            'time': create_time,
+        }, 72)
+        self.assertEqual(create.data['result']['state'], 1)
+
+        statement = self.view._get_statement({
+            'from': create_time - 1,
+            'to': create_time + 1,
+        }, 73)
+
+        self.assertEqual(statement.data['result']['transactions'][0]['account'], {'Bpay': 'Bpay'})
 
     def test_create_transaction_rejects_existing_transaction_for_different_order(self):
         order_a = Order.objects.create(amount='1000.00', purpose='card_order')
@@ -339,6 +370,44 @@ class PaymeMerchantEndpointTests(TestCase):
         self.assertEqual(missing_order.status_code, 200)
         self.assertEqual(missing_order.data['error']['code'], -31050)
         self.assertEqual(missing_order.data['error']['data'], 'Bpay')
+
+    def test_change_password_rotates_endpoint_authorization(self):
+        change = self._rpc(
+            'ChangePassword',
+            {'password': 'rotated-payme-secret'},
+            20,
+            auth=self._auth_header('test_merchant_secret_key'),
+        )
+        self.assertEqual(change.status_code, 200)
+        self.assertEqual(change.data['result']['success'], True)
+
+        old_auth_create = self._rpc(
+            'CreateTransaction',
+            {
+                'id': 'payme-old-auth-create',
+                'amount': 100000,
+                'account': {'Bpay': 'Bpay'},
+                'time': int(time.time() * 1000),
+            },
+            21,
+            auth=self._auth_header('test_merchant_secret_key'),
+        )
+        self.assertEqual(old_auth_create.status_code, 200)
+        self.assertEqual(old_auth_create.data['error']['code'], -32504)
+
+        new_auth_create = self._rpc(
+            'CreateTransaction',
+            {
+                'id': 'payme-new-auth-create',
+                'amount': 100000,
+                'account': {'Bpay': 'Bpay'},
+                'time': int(time.time() * 1000),
+            },
+            22,
+            auth=self._auth_header('rotated-payme-secret'),
+        )
+        self.assertEqual(new_auth_create.status_code, 200)
+        self.assertEqual(new_auth_create.data['result']['state'], 1)
 
     def test_payme_order_amount_is_limited_on_backend(self):
         low = self.client.post('/api/payme/create-order/', {
