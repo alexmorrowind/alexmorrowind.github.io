@@ -147,6 +147,21 @@ def get_payme_merchant_keys():
     return keys or ['test_merchant_secret_key']
 
 
+def get_payme_auth_keys():
+    db_key = APIConfiguration.objects.filter(key='PAYME_MERCHANT_KEY', is_active=True).values_list('value', flat=True).first()
+    if config_value_is_set(db_key):
+        return [str(db_key)]
+
+    env_key = os.environ.get('PAYME_MERCHANT_KEY')
+    if config_value_is_set(env_key):
+        return [str(env_key)]
+
+    fallback_key = get_payme_merchant_key()
+    if config_value_is_set(fallback_key):
+        return [str(fallback_key)]
+    return ['test_merchant_secret_key']
+
+
 def get_payme_merchant_id():
     return get_config('PAYME_MERCHANT_ID', 'test_merchant_id')
 
@@ -232,7 +247,7 @@ class PaymeWebhookView(APIView):
             except Exception:
                 return self._rpc_error("AUTH_ERROR", request_id)
 
-            if password not in get_payme_merchant_keys():
+            if password not in get_payme_auth_keys():
                 return self._rpc_error("AUTH_ERROR", request_id)
 
             # 2. Разбор JSON-RPC
