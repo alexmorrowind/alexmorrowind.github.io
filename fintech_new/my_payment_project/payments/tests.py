@@ -9,7 +9,13 @@ from rest_framework.test import APIClient
 
 from .integrations import normalize_payme_subscribe_base_url
 from .models import APIConfiguration, Order, PaymeTransaction
-from .views import PaymeWebhookView, build_payme_checkout_url, get_payme_merchant_keys, normalize_payme_checkout_url
+from .views import (
+    PAYME_SANDBOX_ALIAS_TARGET_ID,
+    PaymeWebhookView,
+    build_payme_checkout_url,
+    get_payme_merchant_keys,
+    normalize_payme_checkout_url,
+)
 
 
 class PaymeCheckoutUrlTests(TestCase):
@@ -115,6 +121,59 @@ class PaymeWebhookValidationTests(TestCase):
         }, 6)
 
         self.assertEqual(response.data['result']['state'], 1)
+
+    def test_sandbox_alias_reuses_isolated_order_across_multiple_runs(self):
+        create_time = int(time.time() * 1000)
+        first_check = self.view._check_perform_transaction({
+            'amount': 100000,
+            'account': {'Bpay': 'Bpay'},
+        }, 6)
+        self.assertEqual(first_check.data['result']['allow'], True)
+        self.assertEqual(
+            Order.objects.filter(target_id=PAYME_SANDBOX_ALIAS_TARGET_ID, status='pending').count(),
+            1,
+        )
+
+        first_create = self.view._create_transaction({
+            'id': 'payme-sandbox-repeat-1',
+            'amount': 100000,
+            'account': {'Bpay': 'Bpay'},
+            'time': create_time,
+        }, 61)
+        self.assertEqual(first_create.data['result']['state'], 1)
+
+        first_perform = self.view._perform_transaction({'id': 'payme-sandbox-repeat-1'}, 62)
+        self.assertEqual(first_perform.data['result']['state'], 2)
+        self.assertEqual(
+            Order.objects.filter(target_id=PAYME_SANDBOX_ALIAS_TARGET_ID, status='pending').count(),
+            0,
+        )
+
+        second_check = self.view._check_perform_transaction({
+            'amount': 100000,
+            'account': {'Bpay': 'Bpay'},
+        }, 63)
+        self.assertEqual(second_check.data['result']['allow'], True)
+        self.assertEqual(
+            Order.objects.filter(target_id=PAYME_SANDBOX_ALIAS_TARGET_ID, status='pending').count(),
+            1,
+        )
+
+    def test_sandbox_alias_does_not_consume_real_pending_orders(self):
+        real_order = Order.objects.create(amount='1000.00', purpose='card_order')
+
+        response = self.view._check_perform_transaction({
+            'amount': 100000,
+            'account': {'Bpay': 'Bpay'},
+        }, 64)
+
+        real_order.refresh_from_db()
+
+        self.assertEqual(response.data['result']['allow'], True)
+        self.assertEqual(real_order.status, 'pending')
+        self.assertFalse(
+            Order.objects.filter(target_id=PAYME_SANDBOX_ALIAS_TARGET_ID, id=real_order.id).exists()
+        )
 
     def test_change_password_updates_admin_configuration(self):
         response = self.view._change_password({'password': 'new-payme-secret'}, 7)

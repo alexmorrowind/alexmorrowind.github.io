@@ -63,6 +63,8 @@ PAYME_ERRORS = {
 }
 
 PAYME_TRANSACTION_TIMEOUT_MS = 12 * 60 * 60 * 1000
+PAYME_SANDBOX_ALIAS_TARGET_ID = 'payme-sandbox-alias'
+PAYME_SANDBOX_DEFAULT_AMOUNT_UZS = Decimal('1000.00')
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 SECRET_CONFIG_KEYS = {
@@ -305,16 +307,28 @@ class PaymeWebhookView(APIView):
         value = str(value).strip()
         return int(value) if value.isdigit() else None
 
+    def _get_or_create_sandbox_order(self):
+        order = Order.objects.filter(
+            target_id=PAYME_SANDBOX_ALIAS_TARGET_ID,
+            purpose='card_order',
+            amount=PAYME_SANDBOX_DEFAULT_AMOUNT_UZS,
+            status='pending',
+        ).order_by('-id').first()
+        if order:
+            return order
+
+        return Order.objects.create(
+            amount=PAYME_SANDBOX_DEFAULT_AMOUNT_UZS,
+            purpose='card_order',
+            target_id=PAYME_SANDBOX_ALIAS_TARGET_ID,
+            description='Payme sandbox test order',
+        )
+
     def _get_order_from_params(self, params, amount_tiyin=None):
         order_id = self._normalize_order_id(self._extract_order_id(params))
         if order_id is None:
             if self._is_sandbox_account_alias(params):
-                if amount_tiyin is not None:
-                    amount_decimal = Decimal(amount_tiyin) / Decimal('100')
-                    matching_order = Order.objects.filter(status='pending', amount=amount_decimal).order_by('-id').first()
-                    if matching_order:
-                        return matching_order
-                return Order.objects.filter(status='pending').order_by('-id').first()
+                return self._get_or_create_sandbox_order()
             return None
         return Order.objects.filter(id=order_id).first()
 
