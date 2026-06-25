@@ -612,10 +612,7 @@ class PaymeWebhookView(APIView):
         if previous_password and new_password == str(previous_password).strip():
             return self._rpc_error("AUTH_ERROR", request_id)
 
-        allowed_rotation_keys = {current_password}
-        if previous_password:
-            allowed_rotation_keys.add(str(previous_password).strip())
-        if auth_password and auth_password not in allowed_rotation_keys:
+        if auth_password and auth_password != current_password:
             return self._rpc_error("AUTH_ERROR", request_id)
 
         set_payme_config_key(

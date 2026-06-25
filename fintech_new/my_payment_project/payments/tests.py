@@ -395,6 +395,15 @@ class PaymeMerchantEndpointTests(TestCase):
         self.assertEqual(old_auth_create.status_code, 200)
         self.assertEqual(old_auth_create.data['error']['code'], -32504)
 
+        old_auth_change = self._rpc(
+            'ChangePassword',
+            {'password': 'another-rotated-payme-secret'},
+            23,
+            auth=self._auth_header('test_merchant_secret_key'),
+        )
+        self.assertEqual(old_auth_change.status_code, 200)
+        self.assertEqual(old_auth_change.data['error']['code'], -32504)
+
         new_auth_create = self._rpc(
             'CreateTransaction',
             {
