@@ -337,11 +337,20 @@ class PaymeWebhookValidationTests(ClearsPaymeEnvMixin, TestCase):
         os.environ['PAYME_MERCHANT_KEY'] = 'merchant-key'
         os.environ.pop('PAYME_SUBSCRIBE_ID', None)
         os.environ.pop('PAYME_SUBSCRIBE_KEY', None)
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_SUBSCRIBE_BASE_URL',
+            defaults={'value': '', 'is_active': True},
+        )
         try:
-            status = config_group_status(['PAYME_SUBSCRIBE_ID', 'PAYME_SUBSCRIBE_KEY'])
+            status = config_group_status([
+                'PAYME_SUBSCRIBE_ID',
+                'PAYME_SUBSCRIBE_KEY',
+                'PAYME_SUBSCRIBE_BASE_URL',
+            ])
             self.assertTrue(status['configured'])
             self.assertEqual(status['items']['PAYME_SUBSCRIBE_ID']['source'], 'env:PAYME_MERCHANT_ID')
             self.assertEqual(status['items']['PAYME_SUBSCRIBE_KEY']['source'], 'env:PAYME_MERCHANT_KEY')
+            self.assertEqual(status['items']['PAYME_SUBSCRIBE_BASE_URL']['source'], 'default')
         finally:
             for key, value in originals.items():
                 if value is None:

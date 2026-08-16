@@ -97,6 +97,11 @@ CONFIG_ALIASES = {
     'PAYME_SUBSCRIBE_ID': 'PAYME_MERCHANT_ID',
     'PAYME_SUBSCRIBE_KEY': 'PAYME_MERCHANT_KEY',
 }
+CONFIG_DEFAULTS = {
+    'PAYME_CHECKOUT_URL': 'https://checkout.paycom.uz',
+    'PAYME_SUBSCRIBE_BASE_URL': 'https://checkout.paycom.uz/api',
+    'PAYME_ACCOUNT_KEY': 'Bpay',
+}
 PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
 
@@ -192,6 +197,10 @@ def config_source(key):
         alias_config = APIConfiguration.objects.filter(key=alias, is_active=True).first()
         if alias_config and config_value_is_set(alias_config.value):
             return f'django_admin:{alias}', alias_config.value
+
+    default = CONFIG_DEFAULTS.get(key)
+    if config_value_is_set(default):
+        return 'default', default
 
     return 'missing', ''
 

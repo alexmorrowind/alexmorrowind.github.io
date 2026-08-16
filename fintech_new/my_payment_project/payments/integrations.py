@@ -12,6 +12,11 @@ CONFIG_ALIASES = {
 }
 PAYME_PRODUCTION_CHECKOUT_URL = 'https://checkout.paycom.uz'
 PAYME_PRODUCTION_SUBSCRIBE_URL = 'https://checkout.paycom.uz/api'
+CONFIG_DEFAULTS = {
+    'PAYME_CHECKOUT_URL': PAYME_PRODUCTION_CHECKOUT_URL,
+    'PAYME_SUBSCRIBE_BASE_URL': PAYME_PRODUCTION_SUBSCRIBE_URL,
+    'PAYME_ACCOUNT_KEY': 'Bpay',
+}
 
 
 def config_value_is_set(value):
@@ -73,6 +78,8 @@ def get_config(key, default=None):
                 return alias_config.value
     except Exception:
         pass
+    if default is None:
+        default = CONFIG_DEFAULTS.get(key)
     return default
 
 
