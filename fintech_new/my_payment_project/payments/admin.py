@@ -26,12 +26,7 @@ def reset_users_to_temporary_passwords(users):
 
 
 class B1UserAdmin(DjangoUserAdmin):
-    list_display = DjangoUserAdmin.list_display + ('password_admin_note',)
     actions = ['reset_passwords_to_temporary']
-
-    @admin.display(description='Password')
-    def password_admin_note(self, obj):
-        return 'Hidden; use reset action'
 
     @admin.action(description='Reset selected users to temporary passwords')
     def reset_passwords_to_temporary(self, request, queryset):
