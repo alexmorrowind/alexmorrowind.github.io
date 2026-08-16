@@ -1,6 +1,6 @@
 import os
 from django.contrib import admin
-from .models import APIConfiguration, UserProfile, Card, Order, PaymeTransaction, Startup, Investment, KYCVerification
+from .models import APIConfiguration, Bank, UserProfile, Card, Order, PaymeTransaction, Startup, Investment, KYCVerification
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 
@@ -55,6 +55,13 @@ class CardAdmin(admin.ModelAdmin):
     list_display = ('user', 'number', 'expiry', 'balance', 'name', 'provider', 'payme_verified')
     search_fields = ('user__username', 'number', 'name')
     list_filter = ('provider', 'payme_verified')
+
+
+@admin.register(Bank)
+class BankAdmin(admin.ModelAdmin):
+    list_display = ('name', 'abbr', 'apy', 'min_deposit', 'rating', 'is_recommended')
+    search_fields = ('name', 'abbr')
+    list_filter = ('is_recommended',)
 
 
 @admin.register(KYCVerification)

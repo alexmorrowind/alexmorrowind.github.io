@@ -6,6 +6,12 @@ import uuid
 from urllib import parse, request
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
+CONFIG_ALIASES = {
+    'PAYME_SUBSCRIBE_ID': 'PAYME_MERCHANT_ID',
+    'PAYME_SUBSCRIBE_KEY': 'PAYME_MERCHANT_KEY',
+}
+PAYME_PRODUCTION_CHECKOUT_URL = 'https://checkout.paycom.uz'
+PAYME_PRODUCTION_SUBSCRIBE_URL = 'https://checkout.paycom.uz/api'
 
 
 def config_value_is_set(value):
@@ -17,16 +23,57 @@ def config_value_is_set(value):
     return not normalized.lower().startswith(PLACEHOLDER_PREFIXES)
 
 
+def raw_env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return str(value).lower() in ['1', 'true', 'yes', 'on']
+
+
+def payme_test_mode_enabled():
+    return raw_env_bool('PAYME_TEST_MODE', default=False)
+
+
+def effective_config_value(key, value):
+    if not config_value_is_set(value) or payme_test_mode_enabled():
+        return value
+
+    if key == 'PAYME_CHECKOUT_URL':
+        parsed = parse.urlsplit(str(value) if '://' in str(value) else f'https://{value}')
+        if 'test.paycom.uz' in parsed.netloc.lower():
+            return PAYME_PRODUCTION_CHECKOUT_URL
+
+    if key == 'PAYME_SUBSCRIBE_BASE_URL':
+        parsed = parse.urlsplit(str(value) if '://' in str(value) else f'https://{value}')
+        if 'test.paycom.uz' in parsed.netloc.lower():
+            return PAYME_PRODUCTION_SUBSCRIBE_URL
+
+    return value
+
+
 def get_config(key, default=None):
+    env_value = os.environ.get(key)
+    if config_value_is_set(env_value):
+        return effective_config_value(key, env_value)
+
+    alias = CONFIG_ALIASES.get(key)
+    if alias:
+        alias_env_value = os.environ.get(alias)
+        if config_value_is_set(alias_env_value):
+            return alias_env_value
+
     try:
         from payments.models import APIConfiguration
         config = APIConfiguration.objects.filter(key=key, is_active=True).first()
         if config and config_value_is_set(config.value):
-            return config.value
+            return effective_config_value(key, config.value)
+        if alias:
+            alias_config = APIConfiguration.objects.filter(key=alias, is_active=True).first()
+            if alias_config and config_value_is_set(alias_config.value):
+                return alias_config.value
     except Exception:
         pass
-    env_value = os.environ.get(key)
-    return env_value if config_value_is_set(env_value) else default
+    return default
 
 
 def env_bool(name, default=False):
@@ -222,7 +269,7 @@ def payme_subscribe_rpc(method, params, backend=False):
         return _payme_subscribe_demo(method, params)
 
     base_url = normalize_payme_subscribe_base_url(
-        get_config('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.test.paycom.uz/api')
+        get_config('PAYME_SUBSCRIBE_BASE_URL', 'https://checkout.paycom.uz/api')
     )
     cashier_id = get_config('PAYME_SUBSCRIBE_ID')
     auth = cashier_id

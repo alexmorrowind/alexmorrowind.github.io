@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Card, Investment, KYCVerification, LegalEntityProfile, Order, Startup, UserProfile
+from .models import Bank, Card, Investment, KYCVerification, LegalEntityProfile, Order, Startup, UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -36,6 +36,37 @@ class CardSerializer(serializers.ModelSerializer):
             'payme_recurrent', 'payme_verified', 'created_at'
         )
         read_only_fields = ('id', 'created_at')
+
+
+class BankSerializer(serializers.ModelSerializer):
+    minDeposit = serializers.DecimalField(source='min_deposit', max_digits=15, decimal_places=2, read_only=True)
+    logo = serializers.CharField(source='abbr', read_only=True)
+    fees = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+    features = serializers.SerializerMethodField()
+    color = serializers.SerializerMethodField()
+    isRecommended = serializers.BooleanField(source='is_recommended', read_only=True)
+
+    class Meta:
+        model = Bank
+        fields = (
+            'id', 'name', 'abbr', 'logo', 'logo_url', 'apy', 'min_deposit',
+            'minDeposit', 'fees', 'rating', 'type', 'features', 'color',
+            'is_recommended', 'isRecommended',
+        )
+
+    def get_fees(self, obj):
+        return 0 if obj.is_recommended else 7000
+
+    def get_type(self, obj):
+        return 'digital' if obj.is_recommended else 'traditional'
+
+    def get_features(self, obj):
+        return ['Deposits', 'Cards', 'Transfers']
+
+    def get_color(self, obj):
+        colors = ['#2563eb', '#059669', '#f59e0b', '#06b6d4', '#7c3aed']
+        return colors[(obj.id - 1) % len(colors)] if obj.id else colors[0]
 
 
 class OrderSerializer(serializers.ModelSerializer):

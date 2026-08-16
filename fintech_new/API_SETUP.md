@@ -40,7 +40,7 @@ In `.env`:
 ```bash
 PAYME_MERCHANT_ID=your_payme_merchant_or_cashbox_id
 PAYME_MERCHANT_KEY=paste_test_key_here
-PAYME_CHECKOUT_URL=https://test.paycom.uz
+PAYME_CHECKOUT_URL=https://checkout.paycom.uz
 PAYME_CALLBACK_URL=http://127.0.0.1:8765/index.html
 PAYME_ACCOUNT_KEY=Bpay
 ```
@@ -79,6 +79,25 @@ Merchant checkout URLs:
 - Test checkout page: `https://test.paycom.uz`
 - Production checkout page: `https://checkout.paycom.uz`
 - Subscribe API test endpoint stays separate: `https://checkout.test.paycom.uz/api`
+- Subscribe API production endpoint: `https://checkout.paycom.uz/api`
+
+## Django Admin password reset / Render admin
+
+Local admin can be reset from the project folder:
+
+```bash
+cd fintech_new/my_payment_project
+python3 manage.py shell -c "from django.contrib.auth.models import User; u,_=User.objects.get_or_create(username='Admin1'); u.is_staff=True; u.is_superuser=True; u.set_password('new-password-here'); u.save()"
+```
+
+Render creates or updates the admin during deploy when these environment
+variables are set:
+
+```bash
+DJANGO_SUPERUSER_USERNAME=Admin1
+DJANGO_SUPERUSER_EMAIL=admin1@b1.local
+DJANGO_SUPERUSER_PASSWORD=your-render-admin-password
+```
 
 ## Payme Subscribe
 
@@ -87,7 +106,7 @@ you only want redirect-based checkout, but keep it ready for real card token
 flows.
 
 ```bash
-PAYME_SUBSCRIBE_BASE_URL=https://checkout.test.paycom.uz/api
+PAYME_SUBSCRIBE_BASE_URL=https://checkout.paycom.uz/api
 PAYME_SUBSCRIBE_ID=your_payme_subscribe_id
 PAYME_SUBSCRIBE_KEY=your_payme_subscribe_key_or_password
 ```

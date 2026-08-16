@@ -5070,7 +5070,7 @@ function updateChartsBasedOnIndicators() {
 
 
 async function fetchRealBankData() {
-    const response = await fetch('/api/banks/'); // Создадим этот эндпоинт
+    const response = await fetch(apiUrl('/banks/'));
     const banks = await response.json();
 
     // Обновляем глобальный массив данных для таблицы

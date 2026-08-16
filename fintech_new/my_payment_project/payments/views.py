@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.utils import timezone
 from .integrations import (
+    effective_config_value,
     generate_sms_code,
     get_myid_status,
     mask_phone,
@@ -22,6 +23,7 @@ from .integrations import (
 from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
 
 from .serializers import (
+    BankSerializer,
     InvestmentSerializer,
     LegalEntityProfileSerializer,
     OrderSerializer,
@@ -91,8 +93,66 @@ PAYME_CHECKOUT_REQUIRED_KEYS = [
     'PAYME_CALLBACK_URL',
     'PAYME_ACCOUNT_KEY',
 ]
+CONFIG_ALIASES = {
+    'PAYME_SUBSCRIBE_ID': 'PAYME_MERCHANT_ID',
+    'PAYME_SUBSCRIBE_KEY': 'PAYME_MERCHANT_KEY',
+}
 PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
+
+DEFAULT_BANKS = [
+    {
+        'name': 'National Bank of Uzbekistan',
+        'abbr': 'NBU',
+        'logo_url': '',
+        'apy': 18.5,
+        'min_deposit': Decimal('100000.00'),
+        'rating': 4.9,
+        'is_recommended': True,
+    },
+    {
+        'name': 'Kapitalbank',
+        'abbr': 'KB',
+        'logo_url': '',
+        'apy': 16.2,
+        'min_deposit': Decimal('500000.00'),
+        'rating': 4.7,
+        'is_recommended': True,
+    },
+    {
+        'name': 'Ipak Yuli Bank',
+        'abbr': 'IY',
+        'logo_url': '',
+        'apy': 15.8,
+        'min_deposit': Decimal('300000.00'),
+        'rating': 4.6,
+        'is_recommended': False,
+    },
+    {
+        'name': 'TBC Uzbekistan',
+        'abbr': 'TBC',
+        'logo_url': '',
+        'apy': 17.1,
+        'min_deposit': Decimal('0.00'),
+        'rating': 4.8,
+        'is_recommended': True,
+    },
+    {
+        'name': 'Anorbank',
+        'abbr': 'AN',
+        'logo_url': '',
+        'apy': 17.3,
+        'min_deposit': Decimal('0.00'),
+        'rating': 4.8,
+        'is_recommended': True,
+    },
+]
+
+
+def ensure_default_banks():
+    if Bank.objects.exists():
+        return
+    Bank.objects.bulk_create(Bank(**bank) for bank in DEFAULT_BANKS)
 
 
 def config_value_is_set(value):
@@ -114,12 +174,25 @@ def mask_config_value(key, value):
 
 
 def config_source(key):
-    db_config = APIConfiguration.objects.filter(key=key, is_active=True).first()
-    if db_config and config_value_is_set(db_config.value):
-        return 'django_admin', db_config.value
     env_value = os.environ.get(key)
     if config_value_is_set(env_value):
-        return 'env', env_value
+        return 'env', effective_config_value(key, env_value)
+
+    alias = CONFIG_ALIASES.get(key)
+    if alias:
+        alias_env_value = os.environ.get(alias)
+        if config_value_is_set(alias_env_value):
+            return f'env:{alias}', alias_env_value
+
+    db_config = APIConfiguration.objects.filter(key=key, is_active=True).first()
+    if db_config and config_value_is_set(db_config.value):
+        return 'django_admin', effective_config_value(key, db_config.value)
+
+    if alias:
+        alias_config = APIConfiguration.objects.filter(key=alias, is_active=True).first()
+        if alias_config and config_value_is_set(alias_config.value):
+            return f'django_admin:{alias}', alias_config.value
+
     return 'missing', ''
 
 
@@ -148,11 +221,11 @@ def get_payme_previous_merchant_key():
 
 def get_payme_merchant_keys():
     candidates = [
+        os.environ.get('PAYME_MERCHANT_KEY'),
+        get_payme_merchant_key(),
         APIConfiguration.objects.filter(key='PAYME_MERCHANT_KEY', is_active=True)
         .values_list('value', flat=True)
         .first(),
-        os.environ.get('PAYME_MERCHANT_KEY'),
-        get_payme_merchant_key(),
     ]
     keys = []
     for candidate in candidates:
@@ -162,10 +235,6 @@ def get_payme_merchant_keys():
 
 
 def get_payme_auth_keys():
-    db_key = APIConfiguration.objects.filter(key='PAYME_MERCHANT_KEY', is_active=True).values_list('value', flat=True).first()
-    if config_value_is_set(db_key):
-        return [str(db_key)]
-
     env_key = os.environ.get('PAYME_MERCHANT_KEY')
     if config_value_is_set(env_key):
         return [str(env_key)]
@@ -173,6 +242,11 @@ def get_payme_auth_keys():
     fallback_key = get_payme_merchant_key()
     if config_value_is_set(fallback_key):
         return [str(fallback_key)]
+
+    db_key = APIConfiguration.objects.filter(key='PAYME_MERCHANT_KEY', is_active=True).values_list('value', flat=True).first()
+    if config_value_is_set(db_key):
+        return [str(db_key)]
+
     return ['test_merchant_secret_key']
 
 
@@ -235,7 +309,7 @@ def build_payme_checkout_url(order):
     amount_tiyin = int(Decimal(order.amount) * 100)
     callback = get_config('PAYME_CALLBACK_URL', 'http://127.0.0.1:8765/index.html')
     base_url = normalize_payme_checkout_url(
-        get_config('PAYME_CHECKOUT_URL', 'https://checkout.test.paycom.uz')
+        get_config('PAYME_CHECKOUT_URL', 'https://checkout.paycom.uz')
     )
     normalized_account_key = str(account_key or '').strip()
     if not normalized_account_key or normalized_account_key.lower() in {'order_id', 'orderid'}:
@@ -707,10 +781,20 @@ class IntegrationStatusView(APIView):
         })
 
 
+class BankListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        ensure_default_banks()
+        banks = Bank.objects.all().order_by('-is_recommended', '-apy', 'name')
+        return Response(BankSerializer(banks, many=True).data)
+
+
 class PaymeDepositRatesView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        ensure_default_banks()
         rates = [
             {
                 'name': bank.name,
@@ -728,7 +812,11 @@ class PaymeDepositRatesView(APIView):
 class RegisterView(APIView):
     def post(self, request):
         myid_session_id = request.data.get('myid_session_id')
-        payme_connect = request.data.get('payme_connect', False) or (request.data.get('phone') and not myid_session_id)
+        payme_connect_value = request.data.get('payme_connect')
+        if payme_connect_value is None:
+            payme_connect = bool(request.data.get('phone') and not myid_session_id)
+        else:
+            payme_connect = payme_connect_value is True or str(payme_connect_value).lower() in ['1', 'true', 'yes', 'on']
         
         allow_without_myid = get_config('ALLOW_REGISTER_WITHOUT_MYID', 'true').lower() in ['1', 'true', 'yes']
         allow_without_phone_sms = get_config('ALLOW_REGISTER_WITHOUT_PHONE_SMS', 'true').lower() in ['1', 'true', 'yes']

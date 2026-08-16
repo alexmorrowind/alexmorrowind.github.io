@@ -13,9 +13,67 @@ from .views import (
     PAYME_SANDBOX_ALIAS_TARGET_ID,
     PaymeWebhookView,
     build_payme_checkout_url,
+    config_group_status,
+    config_source,
     get_payme_merchant_keys,
+    get_payme_auth_keys,
     normalize_payme_checkout_url,
 )
+
+PAYME_ENV_KEYS = [
+    'PAYME_MERCHANT_ID',
+    'PAYME_MERCHANT_KEY',
+    'PAYME_PREVIOUS_MERCHANT_KEY',
+    'PAYME_CHECKOUT_URL',
+    'PAYME_CALLBACK_URL',
+    'PAYME_ACCOUNT_KEY',
+    'PAYME_SUBSCRIBE_ID',
+    'PAYME_SUBSCRIBE_KEY',
+    'PAYME_SUBSCRIBE_BASE_URL',
+]
+
+
+class ClearsPaymeEnvMixin:
+    def setUp(self):
+        super().setUp()
+        self._payme_env_originals = {key: os.environ.get(key) for key in PAYME_ENV_KEYS}
+        for key in PAYME_ENV_KEYS:
+            os.environ.pop(key, None)
+
+    def tearDown(self):
+        for key, value in self._payme_env_originals.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        super().tearDown()
+
+
+class BankApiTests(TestCase):
+    def test_bank_list_seeds_defaults_when_database_is_empty(self):
+        client = APIClient()
+
+        response = client.get('/api/banks/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.data), 1)
+        self.assertIn('minDeposit', response.data[0])
+        self.assertIn('features', response.data[0])
+
+
+class RegistrationApiTests(TestCase):
+    def test_register_respects_explicit_payme_connect_false(self):
+        client = APIClient()
+
+        response = client.post('/api/auth/register/', {
+            'email': 'mobile-user@example.com',
+            'password': 'demo1234',
+            'phone': '+998901234567',
+            'payme_connect': False,
+        }, format='json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertNotIn('payme_checkout_url', response.data)
 
 
 class PaymeCheckoutUrlTests(TestCase):
@@ -59,8 +117,9 @@ class PaymeSubscribeUrlTests(TestCase):
         self.assertEqual(url, 'https://checkout.test.paycom.uz/api')
 
 
-class PaymeWebhookValidationTests(TestCase):
+class PaymeWebhookValidationTests(ClearsPaymeEnvMixin, TestCase):
     def setUp(self):
+        super().setUp()
         self.view = PaymeWebhookView()
 
     def test_check_perform_transaction_rejects_invalid_amount_format(self):
@@ -214,6 +273,81 @@ class PaymeWebhookValidationTests(TestCase):
                 os.environ.pop('PAYME_MERCHANT_KEY', None)
             else:
                 os.environ['PAYME_MERCHANT_KEY'] = original
+
+    def test_payme_auth_key_prefers_environment_over_admin(self):
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_MERCHANT_KEY',
+            defaults={'value': 'old-admin-secret', 'is_active': True},
+        )
+
+        original = os.environ.get('PAYME_MERCHANT_KEY')
+        os.environ['PAYME_MERCHANT_KEY'] = 'render-env-secret'
+        try:
+            self.assertEqual(get_payme_auth_keys(), ['render-env-secret'])
+        finally:
+            if original is None:
+                os.environ.pop('PAYME_MERCHANT_KEY', None)
+            else:
+                os.environ['PAYME_MERCHANT_KEY'] = original
+
+    def test_config_source_prefers_environment_over_admin(self):
+        APIConfiguration.objects.update_or_create(
+            key='PAYME_CHECKOUT_URL',
+            defaults={'value': 'https://test.paycom.uz', 'is_active': True},
+        )
+
+        original = os.environ.get('PAYME_CHECKOUT_URL')
+        os.environ['PAYME_CHECKOUT_URL'] = 'https://checkout.paycom.uz'
+        try:
+            self.assertEqual(config_source('PAYME_CHECKOUT_URL'), ('env', 'https://checkout.paycom.uz'))
+        finally:
+            if original is None:
+                os.environ.pop('PAYME_CHECKOUT_URL', None)
+            else:
+                os.environ['PAYME_CHECKOUT_URL'] = original
+
+    def test_checkout_status_coerces_test_url_to_production_by_default(self):
+        original_url = os.environ.get('PAYME_CHECKOUT_URL')
+        original_mode = os.environ.get('PAYME_TEST_MODE')
+        os.environ['PAYME_CHECKOUT_URL'] = 'https://test.paycom.uz'
+        os.environ.pop('PAYME_TEST_MODE', None)
+        try:
+            self.assertEqual(config_source('PAYME_CHECKOUT_URL'), ('env', 'https://checkout.paycom.uz'))
+        finally:
+            if original_url is None:
+                os.environ.pop('PAYME_CHECKOUT_URL', None)
+            else:
+                os.environ['PAYME_CHECKOUT_URL'] = original_url
+            if original_mode is None:
+                os.environ.pop('PAYME_TEST_MODE', None)
+            else:
+                os.environ['PAYME_TEST_MODE'] = original_mode
+
+    def test_subscribe_status_can_use_merchant_environment_aliases(self):
+        originals = {
+            key: os.environ.get(key)
+            for key in [
+                'PAYME_MERCHANT_ID',
+                'PAYME_MERCHANT_KEY',
+                'PAYME_SUBSCRIBE_ID',
+                'PAYME_SUBSCRIBE_KEY',
+            ]
+        }
+        os.environ['PAYME_MERCHANT_ID'] = 'merchant-id'
+        os.environ['PAYME_MERCHANT_KEY'] = 'merchant-key'
+        os.environ.pop('PAYME_SUBSCRIBE_ID', None)
+        os.environ.pop('PAYME_SUBSCRIBE_KEY', None)
+        try:
+            status = config_group_status(['PAYME_SUBSCRIBE_ID', 'PAYME_SUBSCRIBE_KEY'])
+            self.assertTrue(status['configured'])
+            self.assertEqual(status['items']['PAYME_SUBSCRIBE_ID']['source'], 'env:PAYME_MERCHANT_ID')
+            self.assertEqual(status['items']['PAYME_SUBSCRIBE_KEY']['source'], 'env:PAYME_MERCHANT_KEY')
+        finally:
+            for key, value in originals.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
     def test_check_transaction_always_includes_reason_field(self):
         order = Order.objects.create(amount='1000.00', purpose='card_order')
@@ -396,8 +530,9 @@ class PaymeWebhookValidationTests(TestCase):
         self.assertEqual(order.status, 'canceled')
 
 
-class PaymeMerchantEndpointTests(TestCase):
+class PaymeMerchantEndpointTests(ClearsPaymeEnvMixin, TestCase):
     def setUp(self):
+        super().setUp()
         APIConfiguration.objects.update_or_create(
             key='PAYME_MERCHANT_KEY',
             defaults={'value': 'test_merchant_secret_key', 'is_active': True},

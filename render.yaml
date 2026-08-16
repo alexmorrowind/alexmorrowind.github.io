@@ -13,18 +13,34 @@ services:
         value: "false"
       - key: DJANGO_ALLOWED_HOSTS
         value: alexmorrowind-github-io.onrender.com,b1-fintech-backend.onrender.com,.onrender.com
+      - key: DJANGO_SUPERUSER_USERNAME
+        value: Admin1
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: admin1@b1.local
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "false"
       - key: CORS_ALLOWED_ORIGINS
         value: https://alexmorrowind.github.io
       - key: CSRF_TRUSTED_ORIGINS
         value: https://alexmorrowind.github.io
+      - key: PAYME_MERCHANT_ID
+        sync: false
+      - key: PAYME_MERCHANT_KEY
+        sync: false
       - key: PAYME_CHECKOUT_URL
-        value: https://test.paycom.uz
+        value: https://checkout.paycom.uz
       - key: PAYME_CALLBACK_URL
         value: https://alexmorrowind.github.io/fintech_new/front/index.html
       - key: PAYME_ACCOUNT_KEY
         value: Bpay
+      - key: PAYME_SUBSCRIBE_ID
+        sync: false
+      - key: PAYME_SUBSCRIBE_KEY
+        sync: false
+      - key: PAYME_SUBSCRIBE_BASE_URL
+        value: https://checkout.paycom.uz/api
       - key: DATABASE_URL
         fromDatabase:
           name: b1-fintech-db
