@@ -32,8 +32,8 @@ Secrets are masked in that endpoint.
 
 ## Payme Merchant
 
-Used for registration redirect, card connect redirect, orders, investments,
-reports, and Payme webhook callbacks.
+Used for opt-in card connect redirects, orders, investments, reports, and Payme
+webhook callbacks.
 
 In `.env`:
 
@@ -113,15 +113,17 @@ PAYME_SUBSCRIBE_KEY=your_payme_subscribe_key_or_password
 
 ## Registration
 
-Registration is currently Payme-first:
+Registration is standard email/password by default:
 
 1. User enters name, email, phone and password.
-2. Frontend calls `/api/auth/register/` with `payme_connect=true`.
-3. Backend creates a Payme `card_order` and returns `payme_checkout_url`.
-4. Frontend redirects to Payme.
-5. Payme calls backend webhook `/api/payme/`.
+2. Frontend calls `/api/auth/register/` with `payme_connect=false` or without the Payme flag.
+3. Backend creates the user and returns JWT tokens.
+4. Frontend saves the tokens and opens the platform.
 
-MyID/camera is not used for registration anymore.
+Payme checkout is still available as an opt-in backend flow when a client explicitly
+sends `payme_connect=true`, but it is no longer part of normal registration.
+
+MyID/camera is not used for registration now.
 
 ## SMS and MyID
 

@@ -698,13 +698,6 @@
             <label class="field-label" data-uz="Telefon raqami" data-ru="Номер телефона">Telefon raqami</label>
             <input type="tel" class="field-input" id="regPhone" placeholder="+998 90 123 45 67">
           </div>
-          <label class="checkbox-wrap" style="align-items:flex-start;margin:-4px 0 14px;color:var(--text-muted);font-size:12px">
-            <input type="checkbox" id="regPaymeTerms" checked>
-            <span data-uz="Payme orqali ro'yxatdan o'tish shartlariga roziman."
-              data-ru="Я согласен на регистрацию через Payme.">
-              Payme orqali ro'yxatdan o'tish shartlariga roziman.
-            </span>
-          </label>
           <div class="field">
             <label class="field-label" data-uz="Parol" data-ru="Пароль">Parol</label>
             <div class="field-pw">
@@ -735,8 +728,8 @@
             <div class="field-error" id="regConfirmErr" data-uz="Parollar mos kelmaydi" data-ru="Пароли не совпадают">
               Parollar mos kelmaydi</div>
           </div>
-          <button class="btn-submit" style="margin-top:10px; background: linear-gradient(135deg, #00b8d9, #0069ff); box-shadow: 0 6px 20px rgba(0, 184, 217, 0.25);" onclick="handleRegister(event)" data-uz="Payme ga o'tish"
-            data-ru="Перейти в Payme">Payme ga o'tish</button>
+          <button class="btn-submit" onclick="handleRegister(event)" data-uz="Ro'yxatdan o'tish"
+            data-ru="Зарегистрироваться">Ro'yxatdan o'tish</button>
           <div class="switch-link">
             <span data-uz="Hisob bor?" data-ru="Уже есть аккаунт?">Hisob bor?</span> <a href="#"
               onclick="switchTab('login')" data-uz="Kirish" data-ru="Войти">Kirish</a>
@@ -891,16 +884,14 @@
       const firstName = document.getElementById('regFirst').value.trim();
       const lastName = document.getElementById('regLast').value.trim();
       const phone = document.getElementById('regPhone').value.trim();
-      const paymeTerms = document.getElementById('regPaymeTerms').checked;
       const submitBtn = e ? e.target : null;
-      let keepSubmitLocked = false;
 
       let valid = true;
       if (!email || !email.includes('@')) { showError('regEmailErr', true); valid = false; }
       if (pass.length < 6) { showError('regPassErr', true); valid = false; }
       if (pass !== confirm) { showError('regConfirmErr', true); valid = false; }
-      if (!phone || !paymeTerms) {
-        alert(currentLang === 'uz' ? 'Payme uchun telefon raqami va rozilik kerak.' : 'Для Payme нужен номер телефона и согласие.');
+      if (!phone) {
+        alert(currentLang === 'uz' ? 'Telefon raqamini kiriting.' : 'Введите номер телефона.');
         valid = false;
       }
       if (!valid) return;
@@ -920,7 +911,7 @@
             first_name: firstName,
             last_name: lastName,
             phone: phone,
-            payme_connect: true
+            payme_connect: false
           })
         });
         
@@ -940,40 +931,14 @@
         localStorage.setItem('userLastName', lastName);
         localStorage.setItem('userEmail', email);
 
-        if (data.payme_checkout_url) {
-          const checkoutUrl = data.payme_checkout_url;
-          localStorage.setItem('lastPaymeCheckoutUrl', checkoutUrl);
-          if (data.payme_order_id) {
-            localStorage.setItem('lastPaymeOrderId', data.payme_order_id);
-          }
-          if (data.payme_amount_tiyin) {
-            localStorage.setItem('lastPaymeAmountTiyin', data.payme_amount_tiyin);
-          }
-          keepSubmitLocked = true;
-          if (submitBtn) {
-            submitBtn.textContent = currentLang === 'uz' ? 'Payme sahifasiga o\'tilmoqda...' : 'Перенаправление в Payme...';
-          }
-          window.location.assign(checkoutUrl);
-
-          window.setTimeout(() => {
-            if (!submitBtn) return;
-            submitBtn.disabled = false;
-            submitBtn.textContent = currentLang === 'uz' ? 'Payme ochilmasa, qayta bosing' : 'Если Payme не открылся, нажмите снова';
-            submitBtn.onclick = function (event) {
-              event.preventDefault();
-              window.location.assign(checkoutUrl);
-            };
-          }, 2500);
-        } else {
-          showSuccess('register');
-        }
+        showSuccess('register');
       } catch (error) {
         console.error('Xatolik:', error);
         alert(error.message || (currentLang === 'uz' ? 'Server bilan bog‘lanishda xatolik!' : 'Ошибка соединения с сервером!'));
       } finally {
-        if (submitBtn && !keepSubmitLocked) {
+        if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = currentLang === 'uz' ? "Payme ga o'tish" : 'Перейти в Payme';
+          submitBtn.textContent = currentLang === 'uz' ? "Ro'yxatdan o'tish" : 'Зарегистрироваться';
         }
       }
     }

@@ -745,7 +745,7 @@ class IntegrationStatusView(APIView):
     def get(self, request):
         payme_env_keys = sorted(key for key in os.environ if key.startswith('PAYME_'))
         return Response({
-            'registration_provider': 'payme',
+            'registration_provider': 'standard',
             'runtime': {
                 'host': request.get_host(),
                 'render': bool(os.environ.get('RENDER')),
@@ -785,7 +785,7 @@ class IntegrationStatusView(APIView):
             'notes': [
                 'Secrets are masked and never returned fully.',
                 'Django Admin values override .env values when active.',
-                'Registration currently redirects to Payme checkout, not MyID/camera.',
+                'Registration is standard email/password by default; Payme checkout is opt-in with payme_connect=true.',
             ],
         })
 
@@ -823,7 +823,7 @@ class RegisterView(APIView):
         myid_session_id = request.data.get('myid_session_id')
         payme_connect_value = request.data.get('payme_connect')
         if payme_connect_value is None:
-            payme_connect = bool(request.data.get('phone') and not myid_session_id)
+            payme_connect = False
         else:
             payme_connect = payme_connect_value is True or str(payme_connect_value).lower() in ['1', 'true', 'yes', 'on']
         

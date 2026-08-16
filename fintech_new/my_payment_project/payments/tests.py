@@ -62,6 +62,18 @@ class BankApiTests(TestCase):
 
 
 class RegistrationApiTests(TestCase):
+    def test_register_defaults_to_standard_registration_without_payme(self):
+        client = APIClient()
+
+        response = client.post('/api/auth/register/', {
+            'email': 'standard-user@example.com',
+            'password': 'demo1234',
+            'phone': '+998901234568',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 201)
+        self.assertNotIn('payme_checkout_url', response.data)
+
     def test_register_respects_explicit_payme_connect_false(self):
         client = APIClient()
 
