@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
+from .admin import reset_users_to_temporary_passwords
 from .integrations import normalize_payme_subscribe_base_url
 from .models import APIConfiguration, Card, Investment, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
 from .views import (
@@ -86,6 +87,27 @@ class RegistrationApiTests(TestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertNotIn('payme_checkout_url', response.data)
+
+
+class UserAdminPasswordResetTests(TestCase):
+    def test_reset_users_to_temporary_passwords_changes_password(self):
+        user = User.objects.create_user(
+            username='forgot-password-user',
+            email='forgot-password@example.com',
+            password='Oldpass123',
+        )
+
+        reset_rows = reset_users_to_temporary_passwords(User.objects.filter(pk=user.pk))
+
+        self.assertEqual(len(reset_rows), 1)
+        username, temporary_password = reset_rows[0]
+        self.assertEqual(username, 'forgot-password-user')
+        self.assertEqual(len(temporary_password), 14)
+
+        user.refresh_from_db()
+        self.assertTrue(user.check_password(temporary_password))
+        self.assertFalse(user.check_password('Oldpass123'))
+        self.assertNotEqual(user.password, temporary_password)
 
 
 class PaymeCheckoutUrlTests(TestCase):

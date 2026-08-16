@@ -1,8 +1,62 @@
 import os
+import secrets
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import User
+from django.utils.html import format_html, format_html_join
 from .models import APIConfiguration, Bank, UserProfile, Card, Order, PaymeTransaction, Startup, Investment, KYCVerification
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
+TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+
+
+def generate_temporary_password(length=14):
+    return ''.join(secrets.choice(TEMP_PASSWORD_ALPHABET) for _ in range(length))
+
+
+def reset_users_to_temporary_passwords(users):
+    reset_rows = []
+    for user in users:
+        password = generate_temporary_password()
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        reset_rows.append((user.get_username(), password))
+    return reset_rows
+
+
+class B1UserAdmin(DjangoUserAdmin):
+    list_display = DjangoUserAdmin.list_display + ('password_admin_note',)
+    actions = ['reset_passwords_to_temporary']
+
+    @admin.display(description='Password')
+    def password_admin_note(self, obj):
+        return 'Hidden; use reset action'
+
+    @admin.action(description='Reset selected users to temporary passwords')
+    def reset_passwords_to_temporary(self, request, queryset):
+        reset_rows = reset_users_to_temporary_passwords(queryset.order_by('username'))
+        if not reset_rows:
+            self.message_user(request, 'No users selected.', messages.WARNING)
+            return
+
+        self.message_user(
+            request,
+            format_html(
+                'Temporary passwords were generated. They are shown only once:<br>{}',
+                format_html_join(
+                    '',
+                    '<div><strong>{}</strong>: <code>{}</code></div>',
+                    reset_rows,
+                ),
+            ),
+            messages.WARNING,
+        )
+
+
+if admin.site.is_registered(User):
+    admin.site.unregister(User)
+admin.site.register(User, B1UserAdmin)
 
 
 def value_is_set(value):
