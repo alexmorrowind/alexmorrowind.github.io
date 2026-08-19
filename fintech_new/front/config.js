@@ -1,12 +1,13 @@
-// Public frontend config. Do not put API keys or secrets here.
-// Local frontend uses http://127.0.0.1:8000/api automatically from script.js.
-// GitHub Pages needs the public Render backend URL.
 (function () {
-  const productionApiUrl = 'https://alexmorrowind-github-io.onrender.com/api';
   const host = window.location.hostname;
 
+  if (host === 'b1pay.uz' || host === 'www.b1pay.uz') {
+    window.B1_API_BASE_URL = 'https://api.b1pay.uz/api';
+    return;
+  }
+
   if (host === 'alexmorrowind.github.io') {
-    window.B1_API_BASE_URL = productionApiUrl;
+    window.B1_API_BASE_URL = 'https://alexmorrowind-github-io.onrender.com/api';
     return;
   }
 

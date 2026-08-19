@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export APP_ROOT=$HOME/b1pay_backend
+    - mkdir -p $APP_ROOT
+    - rsync -a --delete --exclude='.env' --exclude='db.sqlite3' --exclude='staticfiles' --exclude='__pycache__' fintech_new/my_payment_project/ $APP_ROOT/
+    - cd $APP_ROOT && python -m pip install --user -r requirements.txt
+    - cd $APP_ROOT && python manage.py collectstatic --no-input
+    - cd $APP_ROOT && python manage.py migrate
+    - cd $APP_ROOT && python manage.py ensure_superuser
