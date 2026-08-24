@@ -16,4 +16,4 @@ deployment:
     - find $PUBLIC_ROOT -name '._*' -type f -delete
     - find $PUBLIC_ROOT -type d -exec chmod 755 {} +
     - find $PUBLIC_ROOT -type f -exec chmod 644 {} +
-    - chmod 750 $PUBLIC_ROOT || true
+    - chmod 755 $PUBLIC_ROOT || true
