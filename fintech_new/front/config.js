@@ -11,5 +11,10 @@
     return;
   }
 
+  if (host === 'localhost' || host === '127.0.0.1') {
+    window.B1_API_BASE_URL = 'http://127.0.0.1:8000/api';
+    return;
+  }
+
   window.B1_API_BASE_URL = window.B1_API_BASE_URL || '';
 })();

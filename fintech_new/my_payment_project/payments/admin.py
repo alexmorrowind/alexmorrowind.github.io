@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html, format_html_join
-from .models import APIConfiguration, Bank, UserProfile, Card, Order, PaymeTransaction, Startup, Investment, KYCVerification
+from .models import APIConfiguration, Bank, UserProfile, Card, NewsArticle, Order, PaymeTransaction, Startup, Investment, KYCVerification
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
@@ -108,9 +108,70 @@ class CardAdmin(admin.ModelAdmin):
 
 @admin.register(Bank)
 class BankAdmin(admin.ModelAdmin):
-    list_display = ('name', 'abbr', 'apy', 'min_deposit', 'rating', 'is_recommended')
-    search_fields = ('name', 'abbr')
-    list_filter = ('is_recommended',)
+    list_display = ('name', 'abbr', 'ownership_type', 'license_number', 'is_catalog', 'data_status', 'updated_at')
+    search_fields = ('name', 'name_uz', 'abbr', 'legal_name', 'license_number', 'address')
+    list_filter = ('ownership_type', 'is_catalog', 'data_status', 'is_recommended')
+    list_editable = ('is_catalog', 'data_status')
+    readonly_fields = ('updated_at',)
+    fieldsets = (
+        ('Каталог', {
+            'fields': (
+                'name', 'name_uz', 'abbr', 'slug', 'logo_url',
+                'is_catalog', 'is_recommended', 'data_status',
+            ),
+        }),
+        ('Описание', {
+            'fields': ('legal_name', 'description', 'description_uz', 'ownership_type'),
+        }),
+        ('Лицензия и реквизиты', {
+            'fields': (
+                'license_number', 'license_date', 'stir', 'swift_code',
+                'bank_code', 'address',
+            ),
+        }),
+        ('Сайт и контакты', {
+            'fields': (
+                'website_url', 'support_phone', 'support_email',
+                'mobile_app_url', 'android_url', 'ios_url',
+            ),
+        }),
+        ('Продукты, сервисы и источники', {
+            'fields': ('products', 'services', 'source_urls', 'data_as_of'),
+        }),
+        ('Карта', {
+            'fields': ('latitude', 'longitude'),
+            'description': 'Координаты главного офиса. Их можно скорректировать вручную.',
+        }),
+        ('Тарифные данные', {
+            'fields': ('apy', 'min_deposit', 'rating', 'apy_source_url', 'fees_verified'),
+        }),
+        ('Служебное', {'fields': ('updated_at',)}),
+    )
+
+
+@admin.register(NewsArticle)
+class NewsArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'source_name', 'published_at', 'is_published', 'is_featured')
+    list_filter = ('category', 'is_published', 'is_featured')
+    search_fields = ('title', 'title_uz', 'excerpt', 'source_name', 'source_url')
+    prepopulated_fields = {'slug': ('title',)}
+    list_editable = ('is_published', 'is_featured')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Основное', {
+            'fields': (
+                'title', 'title_uz', 'slug', 'category',
+                'excerpt', 'excerpt_uz', 'content', 'content_uz',
+            ),
+        }),
+        ('Источник и публикация', {
+            'fields': (
+                'image_url', 'source_name', 'source_url', 'external_id',
+                'published_at', 'is_published', 'is_featured',
+            ),
+        }),
+        ('Служебное', {'fields': ('created_at', 'updated_at')}),
+    )
 
 
 @admin.register(KYCVerification)

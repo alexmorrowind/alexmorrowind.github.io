@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>B1-Doim birinchi bo'ling</title>
+  <title>B1 — Doim birinchi bo'ling</title>
+  <link rel="icon" href="favicon.ico?v=20260820" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20260820">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260820">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
@@ -251,6 +254,30 @@
       line-height: 1.65;
     }
 
+    .news-preview {
+      padding: 80px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .news-heading-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .news-heading-row .section-desc {
+      margin-bottom: 0;
+    }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
     /* CTA */
     .cta-section {
       text-align: center;
@@ -349,7 +376,8 @@
     @media(max-width:900px) {
 
       .features-grid,
-      .steps-grid {
+      .steps-grid,
+      .news-grid {
         grid-template-columns: 1fr;
       }
 
@@ -361,6 +389,14 @@
       .app-section {
         flex-direction: column;
         padding: 36px 28px;
+      }
+
+      .news-preview {
+        padding: 60px 24px;
+      }
+
+      .news-heading-row {
+        display: block;
       }
 
       .cta-box {
@@ -573,6 +609,28 @@
 
   <div class="divider-line"></div>
 
+  <!-- NEWS -->
+  <section class="news-preview" id="news">
+    <div class="news-heading-row">
+      <div>
+        <div class="section-label" data-uz="Yangiliklar" data-ru="Новости">Yangiliklar</div>
+        <h2 class="section-title" data-uz="Moliyaviy yangiliklar bir joyda" data-ru="Финансовые новости в одном месте">
+          Moliyaviy yangiliklar bir joyda
+        </h2>
+        <p class="section-desc" data-uz="Banklar, iqtisodiyot va bozorlar bo'yicha tekshirilgan yangiliklar."
+          data-ru="Проверенные новости банков, экономики и рынков.">
+          Banklar, iqtisodiyot va bozorlar bo'yicha tekshirilgan yangiliklar.
+        </p>
+      </div>
+      <a href="blog.html" class="btn-hero btn-hero-ghost" data-uz="Barcha yangiliklar" data-ru="Все новости">
+        Barcha yangiliklar →
+      </a>
+    </div>
+    <div class="news-grid" id="landingNewsGrid" aria-live="polite"></div>
+  </section>
+
+  <div class="divider-line"></div>
+
   <!-- HOW IT WORKS -->
   <section style="padding:80px 48px; max-width:1200px; margin:0 auto;">
     <div class="section-label" data-uz="Qanday ishlaydi" data-ru="Как работает">Qanday ishlaydi</div>
@@ -691,7 +749,9 @@
     </div>
   </footer>
 
+  <script src="config.js?v=20260823"></script>
   <script src="shared.js"></script>
+  <script src="news.js?v=20260823"></script>
 </body>
 
 </html>

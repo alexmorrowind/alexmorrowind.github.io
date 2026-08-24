@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     ApplicationCreateView,
+    BankDetailView,
     BankListView,
     CardDetailView,
     CardListView,
@@ -11,6 +12,8 @@ from .views import (
     LegalEntitySubmitView,
     MyIDCompleteView,
     MyIDStartView,
+    NewsDetailView,
+    NewsListView,
     PaymeCreateOrderView,
     PaymeDepositRatesView,
     PaymeSubscribeCardCodeView,
@@ -33,6 +36,9 @@ from .views import (
 urlpatterns = [
     path('api/integrations/status/', IntegrationStatusView.as_view(), name='integration_status'),
     path('api/banks/', BankListView.as_view(), name='bank_list'),
+    path('api/banks/<int:pk>/', BankDetailView.as_view(), name='bank_detail'),
+    path('api/news/', NewsListView.as_view(), name='news_list'),
+    path('api/news/<slug:slug>/', NewsDetailView.as_view(), name='news_detail'),
 
     # Payme Webhook
     path('api/payme/', PaymeWebhookView.as_view(), name='payme_webhook'),

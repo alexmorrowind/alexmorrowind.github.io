@@ -509,6 +509,49 @@ function bankLogoHtml(bank, size = 34) {
     return `<div class="blogo" style="background:${bank.color};width:${size}px;height:${size}px;border-radius:${radius};font-size:${fontSize}">${bank.logo}</div>`;
 }
 
+function normalizeBankFromApi(bank) {
+    return {
+        ...bank,
+        id: Number(bank.id),
+        logo: bank.logo || bank.abbr || 'B1',
+        logoUrl: bank.logo_url || '',
+        minDeposit: Number(bank.minDeposit ?? bank.min_deposit ?? 0),
+        fees: bank.fees == null ? null : Number(bank.fees),
+        features: Array.isArray(bank.features) && bank.features.length
+            ? bank.features
+            : ['Профиль банка'],
+        rating: Number(bank.rating || 0),
+        apy: Number(bank.apy || 0),
+        recommended: Boolean(bank.isRecommended ?? bank.is_recommended),
+        products: Array.isArray(bank.products) ? bank.products : [],
+        services: Array.isArray(bank.services) ? bank.services : [],
+        sourceUrls: Array.isArray(bank.officialSources || bank.source_urls)
+            ? (bank.officialSources || bank.source_urls)
+            : [],
+        dataAsOf: bank.dataAsOf || bank.data_as_of || '',
+    };
+}
+
+async function loadCatalogBanks() {
+    if (typeof API_BASE_URL === 'undefined' || !API_BASE_URL) return false;
+
+    try {
+        const response = await fetch(apiUrl('/banks/'));
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const banks = await response.json();
+        if (!Array.isArray(banks) || !banks.length) return false;
+
+        banksData.length = 0;
+        banks.forEach(bank => banksData.push(normalizeBankFromApi(bank)));
+        renderBanks();
+        initCharts('banks');
+        return true;
+    } catch (error) {
+        console.warn('Bank catalog API unavailable, using local fallback.', error);
+        return false;
+    }
+}
+
 const banksData = [
     // === DAVLAT BANKLARI (State Banks) ===
     { id: 1,  name: 'NBU (Milliy Bank)',       type: 'traditional', logo: 'NBU', color: '#1e40af', logoUrl: 'https://cbu.uz/common/img/banks/nbu.png',        apy: 18,   minDeposit: 100000,   fees: 0,     features: ['Davlat kafolati', 'Keng tarmoq', 'Ipoteka'], rating: 4.6, recommended: true },
@@ -1119,8 +1162,8 @@ function renderBanks() {
  </div>
  </td>
  <td><span class="rate-badge ${bank.apy >= 17 ? 'rb-green' : bank.apy >= 15 ? 'rb-amber' : 'rb-blue'}">${bank.apy}%</span></td>
- <td>${bank.minDeposit.toLocaleString()} UZS</td>
- <td>${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees.toLocaleString() + ' UZS'}</td>
+ <td>${bank.minDeposit > 0 ? bank.minDeposit.toLocaleString() + ' UZS' : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не указано')}</td>
+ <td>${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees ? bank.fees.toLocaleString() + ' UZS' : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не указано')}</td>
  <td><span class="tag tag-blue">${bank.features[0]}</span></td>
  <td><span class="stars">${'⭐'.repeat(Math.floor(bank.rating))}${'☆'.repeat(5 - Math.floor(bank.rating))}</span> ${bank.rating}</td>
  <td><button class="btn-primary btn-sm" onclick="event.stopPropagation(); applyBank(${bank.id})">${currentLang === 'uz' ? 'Ochish' : 'Открыть'}</button></td>
@@ -1367,26 +1410,46 @@ function openBankModal(id) {
  <div class="modal-section-title">${currentLang === 'uz' ? "Asosiy ma'lumotlar" : 'Основная информация'}</div>
  <div class="modal-row">
  <span class="modal-key">${currentLang === 'uz' ? 'Depozit foizi (APY)' : 'Депозит (APY)'}</span>
- <span class="modal-val" style="color:var(--green-neon)">${bank.apy}%</span>
+ <span class="modal-val" style="color:${bank.apy ? 'var(--green-neon)' : 'var(--text-muted)'}">${bank.apy ? `${bank.apy}%` : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не подтверждено')}</span>
  </div>
  <div class="modal-row">
  <span class="modal-key">${currentLang === 'uz' ? 'Minimal depozit' : 'Минимальный депозит'}</span>
- <span class="modal-val">${bank.minDeposit.toLocaleString()} UZS</span>
+ <span class="modal-val">${bank.minDeposit ? `${bank.minDeposit.toLocaleString()} UZS` : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не подтверждено')}</span>
  </div>
  <div class="modal-row">
  <span class="modal-key">${currentLang === 'uz' ? 'Oylik xizmat haqi' : 'Ежемесячная плата'}</span>
- <span class="modal-val">${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees.toLocaleString() + ' UZS'}</span>
+ <span class="modal-val">${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees ? bank.fees.toLocaleString() + ' UZS' : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не подтверждено')}</span>
  </div>
  <div class="modal-row">
  <span class="modal-key">${currentLang === 'uz' ? 'Reyting' : 'Рейтинг'}</span>
- <span class="modal-val"><span class="stars">${''.repeat(Math.floor(bank.rating))}</span> ${bank.rating}/5</span>
+ <span class="modal-val">${bank.rating ? `${bank.rating}/5` : (currentLang === 'uz' ? "Hali baholanmagan" : 'Пока не оценён')}</span>
  </div>
+ </div>
+ <div class="modal-section">
+ <div class="modal-section-title">${currentLang === 'uz' ? "Bank haqida" : 'О банке'}</div>
+ <p style="color:var(--text-secondary);line-height:1.65;margin:0">${escapeHtml(currentLang === 'uz' ? (bank.description_uz || bank.description) : bank.description)}</p>
+ <div class="modal-row"><span class="modal-key">${currentLang === 'uz' ? 'Mulkchilik turi' : 'Форма собственности'}</span><span class="modal-val">${escapeHtml(bank.ownership_type || '—')}</span></div>
+ <div class="modal-row"><span class="modal-key">${currentLang === 'uz' ? 'Litsenziya' : 'Лицензия'}</span><span class="modal-val">${escapeHtml(bank.license_number || '—')}${bank.licenseDate || bank.license_date ? ` · ${escapeHtml(bank.licenseDate || bank.license_date)}` : ''}</span></div>
+ <div class="modal-row"><span class="modal-key">${currentLang === 'uz' ? 'Manzil' : 'Адрес'}</span><span class="modal-val">${escapeHtml(bank.address || '—')}</span></div>
  </div>
  <div class="modal-section">
  <div class="modal-section-title">${currentLang === 'uz' ? 'Xususiyatlar' : 'Особенности'}</div>
  <div style="display:flex;gap:8px;flex-wrap:wrap">
  ${bank.features.map(f => `<span class="tag tag-blue">${f}</span>`).join('')}
  </div>
+ </div>
+ <div class="modal-section">
+ <div class="modal-section-title">${currentLang === 'uz' ? 'Mahsulotlar va xizmatlar' : 'Продукты и сервисы'}</div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap">
+ ${(bank.products || []).concat(bank.services || []).map(item => `<span class="tag tag-blue">${escapeHtml(typeof item === 'object' ? (item.name || item.title || '') : item)}</span>`).join('') || `<span style="color:var(--text-muted)">${currentLang === 'uz' ? "Hali kiritilmagan" : 'Пока не заполнено'}</span>`}
+ </div>
+ </div>
+ <div class="modal-section">
+ <div class="modal-section-title">${currentLang === 'uz' ? "Rasmiy manbalar" : 'Официальные источники'}</div>
+ <div style="display:flex;flex-direction:column;gap:6px">
+ ${(bank.sourceUrls || []).map(url => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-neon);word-break:break-all">${escapeHtml(url)}</a>`).join('') || `<span style="color:var(--text-muted)">—</span>`}
+ </div>
+ <div style="font-size:11px;color:var(--text-muted);margin-top:8px">${currentLang === 'uz' ? "Tekshirilgan sana" : 'Дата проверки'}: ${escapeHtml(bank.dataAsOf || '—')}</div>
  </div>
  <div style="display:flex;gap:10px;margin-top:20px">
  <button class="btn-primary" style="flex:1" onclick="applyBank(${bank.id}); closeModal('bankModal')">${currentLang === 'uz' ? 'Hisob ochish' : "Открыть счёт"}</button>
@@ -3792,8 +3855,8 @@ function filterBankType(ev, type) {
       <tr onclick="openBankModal(${bank.id})">
         <td><div class="bname-wrap">${bankLogoHtml(bank, 34)}<div><div class="bname">${bank.name}</div><div class="btype">${bank.type === 'digital' ? (currentLang === 'uz' ? 'Raqamli bank' : 'Цифровой банк') : bank.type === 'traditional' ? (currentLang === 'uz' ? "An'anaviy bank" : 'Традиционный банк') : (currentLang === 'uz' ? 'Xalqaro bank' : 'Международный банк')}</div></div></div></td>
         <td><span class="rate-badge ${bank.apy >= 17 ? 'rb-green' : bank.apy >= 15 ? 'rb-amber' : 'rb-blue'}">${bank.apy}%</span></td>
-        <td>${bank.minDeposit.toLocaleString()} UZS</td>
-        <td>${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees.toLocaleString() + ' UZS'}</td>
+        <td>${bank.minDeposit > 0 ? bank.minDeposit.toLocaleString() + ' UZS' : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не указано')}</td>
+        <td>${bank.fees === 0 ? (currentLang === 'uz' ? 'Bepul' : 'Бесплатно') : bank.fees ? bank.fees.toLocaleString() + ' UZS' : (currentLang === 'uz' ? "Aniqlanmagan" : 'Не указано')}</td>
         <td><span class="tag tag-blue">${bank.features[0]}</span></td>
         <td><span class="stars">${'⭐'.repeat(Math.floor(bank.rating))}${'☆'.repeat(5 - Math.floor(bank.rating))}</span> ${bank.rating}</td>
         <td><button class="btn-primary btn-sm" onclick="event.stopPropagation(); applyBank(${bank.id})">${currentLang === 'uz' ? 'Ochish' : 'Открыть'}</button></td>
@@ -4317,6 +4380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCards();
     renderLoans();
     renderInvestors();
+    loadCatalogBanks();
     if (investorUserMode === 'legal') syncLegalEntityProfile();
     setTimeout(() => initCharts('dashboard'), 100);
     fetchCBURates();

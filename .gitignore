@@ -10,5 +10,6 @@ node_modules/
 dist/
 build/
 staticfiles/
+.deploy-secrets/
 .idea/
 .vscode/

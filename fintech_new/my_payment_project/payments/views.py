@@ -2,6 +2,7 @@ import base64
 import os
 import time
 import uuid
+from datetime import date
 from decimal import Decimal
 from urllib.parse import quote_plus, urlsplit, urlunsplit
 from rest_framework.views import APIView
@@ -20,12 +21,13 @@ from .integrations import (
     start_myid_authentication,
     get_config,
 )
-from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
+from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, PaymeTransaction, Startup, UserProfile
 
 from .serializers import (
     BankSerializer,
     InvestmentSerializer,
     LegalEntityProfileSerializer,
+    NewsArticleSerializer,
     OrderSerializer,
     RegisterSerializer,
     StartupSerializer,
@@ -105,59 +107,211 @@ CONFIG_DEFAULTS = {
 PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
 
+CBU_BANKS_SOURCE = 'https://cbu.uz/en/credit-organizations/banks/head-offices/'
+CATALOG_DATA_DATE = date(2026, 8, 24)
+
+
+def catalog_bank(
+    name,
+    abbr,
+    slug,
+    ownership_type,
+    license_number,
+    license_date,
+    website,
+    address,
+    description,
+    description_uz,
+    products,
+    services,
+    recommended=False,
+    legal_name=None,
+    latitude=None,
+    longitude=None,
+):
+    return {
+        'name': name,
+        'abbr': abbr,
+        'logo_url': '',
+        'apy': 0,
+        'min_deposit': Decimal('0.00'),
+        'rating': 0,
+        'is_recommended': recommended,
+        'is_catalog': True,
+        'slug': slug,
+        'legal_name': legal_name or name,
+        'description': description,
+        'description_uz': description_uz,
+        'ownership_type': ownership_type,
+        'license_number': license_number,
+        'license_date': date.fromisoformat(license_date),
+        'website_url': website,
+        'address': address,
+        'products': products,
+        'services': services,
+        'source_urls': [CBU_BANKS_SOURCE, website],
+        'data_as_of': CATALOG_DATA_DATE,
+        'latitude': latitude,
+        'longitude': longitude,
+    }
+
+
 DEFAULT_BANKS = [
-    {
-        'name': 'National Bank of Uzbekistan',
-        'abbr': 'NBU',
-        'logo_url': '',
-        'apy': 18.5,
-        'min_deposit': Decimal('100000.00'),
-        'rating': 4.9,
-        'is_recommended': True,
-    },
-    {
-        'name': 'Kapitalbank',
-        'abbr': 'KB',
-        'logo_url': '',
-        'apy': 16.2,
-        'min_deposit': Decimal('500000.00'),
-        'rating': 4.7,
-        'is_recommended': True,
-    },
-    {
-        'name': 'Ipak Yuli Bank',
-        'abbr': 'IY',
-        'logo_url': '',
-        'apy': 15.8,
-        'min_deposit': Decimal('300000.00'),
-        'rating': 4.6,
-        'is_recommended': False,
-    },
-    {
-        'name': 'TBC Uzbekistan',
-        'abbr': 'TBC',
-        'logo_url': '',
-        'apy': 17.1,
-        'min_deposit': Decimal('0.00'),
-        'rating': 4.8,
-        'is_recommended': True,
-    },
-    {
-        'name': 'Anorbank',
-        'abbr': 'AN',
-        'logo_url': '',
-        'apy': 17.3,
-        'min_deposit': Decimal('0.00'),
-        'rating': 4.8,
-        'is_recommended': True,
-    },
+    catalog_bank(
+        'National Bank of Uzbekistan', 'NBU', 'nbu', 'state', '22', '1991-10-24',
+        'https://nbu.uz/',
+        '100084, Tashkent, Yunusabad district, Amir Temur Ave., 101',
+        'Крупный государственный банк для физических лиц, бизнеса и корпоративных клиентов.',
+        "Jismoniy shaxslar, biznes va korporativ mijozlar uchun yirik davlat banki.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Переводы'],
+        ['Мобильный банкинг', 'Обмен валюты', 'Для бизнеса'],
+        True,
+        'National Bank for Foreign Economic Activity of the Republic of Uzbekistan',
+        latitude=41.3357749,
+        longitude=69.2835369,
+    ),
+    catalog_bank(
+        'Agrobank', 'AGB', 'agrobank', 'state', '78', '2009-04-30',
+        'https://agrobank.uz/',
+        '100011, Tashkent, Shaxontohur district, Botir Zokirov str., 2A',
+        'Государственный банк с широкой сетью отделений и продуктами для граждан, бизнеса и агросектора.',
+        "Jismoniy shaxslar, biznes va agrosoha uchun keng tarmoqqa ega davlat banki.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Микрозаймы'],
+        ['Agrobank Mobile', 'Переводы', 'Для бизнеса'],
+        True,
+        'Joint-Stock Commercial Bank "Agrobank"',
+        latitude=41.2936116,
+        longitude=69.2193691,
+    ),
+    catalog_bank(
+        'Uzpromstroybank (SQB)', 'SQB', 'sqb', 'state', '17', '1991-06-24',
+        'https://sqb.uz/',
+        '100000, Tashkent, Yunusabad district, Shakhrisabzskaya str., 3',
+        'Государственный банк с сильным присутствием в финансировании промышленности и строительства.',
+        "Sanoat va qurilish loyihalarini moliyalashtirishda faol davlat banki.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Ипотека'],
+        ['Интернет-банкинг', 'Для бизнеса', 'Международные расчёты'],
+        legal_name='Joint-Stock Commercial Bank "Uzpromstroybank"',
+        latitude=41.2901623,
+        longitude=69.2847284,
+    ),
+    catalog_bank(
+        'Asakabank', 'ASK', 'asakabank', 'state', '53', '1996-01-19',
+        'https://asakabank.uz/',
+        '100027, Tashkent city, Shaykhantakhur district, Yangi Tashkent str., 1',
+        'Государственный коммерческий банк с продуктами для граждан, автокредитования и корпоративного сектора.',
+        "Jismoniy shaxslar, avtokreditlash va korporativ sektor uchun xizmatlar.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Автокредиты'],
+        ['Мобильный банкинг', 'Переводы', 'Для бизнеса'],
+        True,
+        'Joint-Stock Company "Asakabank"',
+        latitude=41.2967724,
+        longitude=69.2650479,
+    ),
+    catalog_bank(
+        'Xalq Bank', 'XALQ', 'xalq-bank', 'state', '25', '2021-10-18',
+        'https://xb.uz/',
+        '100096, Tashkent, Chilanzar district, Katartal Street-46',
+        'Государственный банк с широкой региональной сетью и массовыми банковскими услугами.',
+        "Keng hududiy tarmoqqa ega davlat banki va ommaviy bank xizmatlari.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Пенсионные услуги'],
+        ['Переводы', 'Платежи', 'Отделения и банкоматы'],
+        True,
+        'Joint-Stock Commercial People’s Bank of the Republic of Uzbekistan',
+        latitude=41.2915412,
+        longitude=69.2121361,
+    ),
+    catalog_bank(
+        'Kapitalbank', 'KB', 'kapitalbank', 'private', '69', '2001-04-07',
+        'https://kapitalbank.uz/',
+        '100047, Tashkent, Yunusabad district, Sayilgokh str., 7',
+        'Крупный частный банк с розничными, карточными и цифровыми банковскими сервисами.',
+        "Chakana, karta va raqamli bank xizmatlariga ega yirik xususiy bank.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Рассрочка'],
+        ['Мобильный банкинг', 'Переводы', 'Для бизнеса'],
+        True,
+        'Joint-Stock Commercial Bank "Kapitalbank"',
+        latitude=41.3068639,
+        longitude=69.3048509,
+    ),
+    catalog_bank(
+        'Ipoteka Bank OTP', 'IB', 'ipoteka-bank', 'foreign', '74', '2021-12-25',
+        'https://ipotekabank.uz/',
+        '100000, Tashkent, Shahrisabz Street, 30',
+        'Банк с сильной специализацией в ипотеке, жилищном финансировании и розничных продуктах.',
+        "Ipoteka, uy-joy moliyalashtirishi va chakana mahsulotlarga ixtisoslashgan bank.",
+        ['Ипотека', 'Кредиты', 'Депозиты', 'Карты'],
+        ['Мобильный банкинг', 'Переводы', 'Для бизнеса'],
+        True,
+        'Joint-Stock Commercial Mortgage Bank "Ipoteka Bank"',
+        latitude=41.3152183,
+        longitude=69.2843548,
+    ),
+    catalog_bank(
+        'Hamkorbank', 'HMK', 'hamkorbank', 'private', '64', '1991-08-31',
+        'https://hamkorbank.uz/',
+        '170119, Andizhan, Babur Ave., 85',
+        'Частный банк с широкой сетью и продуктами для физических лиц, малого и среднего бизнеса.',
+        "Jismoniy shaxslar, kichik va o'rta biznes uchun keng tarmoqli xususiy bank.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Бизнес-кредиты'],
+        ['Мобильный банкинг', 'Переводы', 'Для бизнеса'],
+        True,
+        'Joint-Stock Commercial Bank with foreign capital "HAMKORBANK"',
+        latitude=40.7696700,
+        longitude=72.3419411,
+    ),
+    catalog_bank(
+        'TBC Bank Uzbekistan', 'TBC', 'tbc-bank', 'private', '86', '2020-04-11',
+        'https://tbcbank.uz/',
+        '100015, Tashkent city, Mirabad district, Fidokor street 10B',
+        'Цифровой банк с дистанционными розничными сервисами и мобильным приложением.',
+        "Masofaviy chakana xizmatlar va mobil ilovaga ega raqamli bank.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Рассрочка'],
+        ['Мобильный банкинг', 'Онлайн-заявка', 'Переводы'],
+        True,
+        'Joint-Stock Commercial Bank "TBC Bank"',
+        latitude=41.2970880,
+        longitude=69.2779790,
+    ),
+    catalog_bank(
+        'Anorbank', 'AN', 'anorbank', 'private', '87', '2020-08-22',
+        'https://anorbank.uz/',
+        '100170, Tashkent, Mirzo Ulugbek district, Sairam 5-passage, 4',
+        'Цифровой частный банк с розничными продуктами и дистанционным обслуживанием.',
+        "Chakana mahsulotlar va masofaviy xizmatlarga ega raqamli xususiy bank.",
+        ['Кредиты', 'Депозиты', 'Карты', 'Рассрочка'],
+        ['Мобильный банкинг', 'Онлайн-заявка', 'Переводы'],
+        True,
+        'Joint-Stock Company "ANOR BANK"',
+        latitude=41.3260000,
+        longitude=69.3360000,
+    ),
 ]
 
 
 def ensure_default_banks():
-    if Bank.objects.exists():
-        return
-    Bank.objects.bulk_create(Bank(**bank) for bank in DEFAULT_BANKS)
+    catalog_abbrs = {bank['abbr'] for bank in DEFAULT_BANKS}
+    for bank_data in DEFAULT_BANKS:
+        bank, created = Bank.objects.get_or_create(
+            abbr=bank_data['abbr'],
+            defaults=bank_data,
+        )
+        if created:
+            continue
+
+        changed_fields = []
+        if bank.data_status == 'draft':
+            for field, value in bank_data.items():
+                if getattr(bank, field, None) != value:
+                    setattr(bank, field, value)
+                    changed_fields.append(field)
+        elif not bank.is_catalog:
+            bank.is_catalog = True
+            changed_fields.append('is_catalog')
+        if changed_fields:
+            bank.save(update_fields=sorted(set(changed_fields + ['updated_at'])))
+
+    Bank.objects.exclude(abbr__in=catalog_abbrs).update(is_catalog=False)
 
 
 def config_value_is_set(value):
@@ -795,8 +949,54 @@ class BankListView(APIView):
 
     def get(self, request):
         ensure_default_banks()
-        banks = Bank.objects.all().order_by('-is_recommended', '-apy', 'name')
+        banks = Bank.objects.filter(is_catalog=True).order_by('-is_recommended', 'name')
         return Response(BankSerializer(banks, many=True).data)
+
+
+class BankDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        ensure_default_banks()
+        try:
+            bank = Bank.objects.get(pk=pk, is_catalog=True)
+        except Bank.DoesNotExist:
+            return Response({'detail': 'Bank not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(BankSerializer(bank).data)
+
+
+class NewsListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        queryset = NewsArticle.objects.filter(is_published=True)
+        category = request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+        if request.query_params.get('featured') in {'1', 'true', 'yes'}:
+            queryset = queryset.filter(is_featured=True)
+
+        try:
+            limit = min(max(int(request.query_params.get('limit', 6)), 1), 30)
+        except (TypeError, ValueError):
+            limit = 6
+
+        return Response(NewsArticleSerializer(
+            queryset.order_by('-published_at', '-created_at')[:limit],
+            many=True,
+            context={'request': request},
+        ).data)
+
+
+class NewsDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+        try:
+            article = NewsArticle.objects.get(slug=slug, is_published=True)
+        except NewsArticle.DoesNotExist:
+            return Response({'detail': 'News article not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(NewsArticleSerializer(article, context={'request': request}).data)
 
 
 class PaymeDepositRatesView(APIView):

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -119,9 +120,78 @@ class Bank(models.Model):
     min_deposit = models.DecimalField(max_digits=15, decimal_places=2)
     rating = models.FloatField(default=5.0)
     is_recommended = models.BooleanField(default=False)
+    is_catalog = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=140, blank=True, default='')
+    legal_name = models.CharField(max_length=220, blank=True, default='')
+    name_uz = models.CharField(max_length=140, blank=True, default='')
+    description = models.TextField(blank=True, default='')
+    description_uz = models.TextField(blank=True, default='')
+    ownership_type = models.CharField(max_length=40, blank=True, default='')
+    license_number = models.CharField(max_length=40, blank=True, default='')
+    license_date = models.DateField(blank=True, null=True)
+    website_url = models.URLField(blank=True, default='')
+    support_phone = models.CharField(max_length=80, blank=True, default='')
+    support_email = models.EmailField(blank=True, default='')
+    address = models.CharField(max_length=300, blank=True, default='')
+    stir = models.CharField(max_length=32, blank=True, default='')
+    swift_code = models.CharField(max_length=32, blank=True, default='')
+    bank_code = models.CharField(max_length=32, blank=True, default='')
+    mobile_app_url = models.URLField(blank=True, default='')
+    android_url = models.URLField(blank=True, default='')
+    ios_url = models.URLField(blank=True, default='')
+    products = models.JSONField(default=list, blank=True)
+    services = models.JSONField(default=list, blank=True)
+    source_urls = models.JSONField(default=list, blank=True)
+    data_as_of = models.DateField(blank=True, null=True)
+    data_status = models.CharField(max_length=24, default='draft')
+    apy_source_url = models.URLField(blank=True, default='')
+    fees_verified = models.BooleanField(default=False)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+
+class NewsArticle(models.Model):
+    CATEGORY_CHOICES = [
+        ('news', 'Новости'),
+        ('analysis', 'Аналитика'),
+        ('banks', 'Банки'),
+        ('markets', 'Рынки'),
+        ('regulation', 'Регулирование'),
+        ('guides', 'Гайды'),
+    ]
+
+    title = models.CharField(max_length=240)
+    title_uz = models.CharField(max_length=240, blank=True)
+    slug = models.SlugField(max_length=260, unique=True)
+    excerpt = models.TextField(blank=True)
+    excerpt_uz = models.TextField(blank=True)
+    content = models.TextField(blank=True)
+    content_uz = models.TextField(blank=True)
+    category = models.CharField(max_length=24, choices=CATEGORY_CHOICES, default='news')
+    image_url = models.URLField(blank=True)
+    source_name = models.CharField(max_length=120, blank=True)
+    source_url = models.URLField(blank=True)
+    external_id = models.CharField(max_length=260, blank=True)
+    published_at = models.DateTimeField(default=timezone.now)
+    is_published = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-published_at', '-created_at')
+        indexes = [
+            models.Index(fields=('is_published', '-published_at')),
+            models.Index(fields=('category', '-published_at')),
+        ]
+
+    def __str__(self):
+        return self.title
+
 
 # Модель заявки (Кредит или Карта)
 class Application(models.Model):

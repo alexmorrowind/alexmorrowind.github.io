@@ -8,6 +8,7 @@ function setLang(lang) {
   const btn = document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`);
   if (btn) btn.classList.add('active');
   localStorage.setItem('bpay_lang', lang);
+  window.dispatchEvent(new CustomEvent('b1:languagechange', { detail: { lang } }));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

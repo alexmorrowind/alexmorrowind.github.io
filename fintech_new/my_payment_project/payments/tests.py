@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 
 from .admin import reset_users_to_temporary_passwords
 from .integrations import normalize_payme_subscribe_base_url
-from .models import APIConfiguration, Card, Investment, LegalEntityProfile, Order, PaymeTransaction, Startup, UserProfile
+from .models import APIConfiguration, Bank, Card, Investment, LegalEntityProfile, NewsArticle, Order, PaymeTransaction, Startup, UserProfile
 from .views import (
     PAYME_SANDBOX_ALIAS_TARGET_ID,
     PaymeWebhookView,
@@ -57,9 +57,76 @@ class BankApiTests(TestCase):
         response = client.get('/api/banks/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertGreaterEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 10)
         self.assertIn('minDeposit', response.data[0])
         self.assertIn('features', response.data[0])
+        self.assertIn('officialSources', response.data[0])
+        self.assertIn('latitude', response.data[0])
+        self.assertIn('longitude', response.data[0])
+        self.assertTrue(all(bank['isCatalog'] for bank in response.data))
+        self.assertTrue(all(bank['latitude'] is not None for bank in response.data))
+        self.assertTrue(all(bank['longitude'] is not None for bank in response.data))
+
+    def test_bank_detail_returns_full_profile(self):
+        list_response = APIClient().get('/api/banks/')
+        bank_id = list_response.data[0]['id']
+
+        response = APIClient().get(f'/api/banks/{bank_id}/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['id'], bank_id)
+        self.assertTrue(response.data['legal_name'])
+        self.assertTrue(response.data['license_number'])
+        self.assertTrue(response.data['website_url'])
+        self.assertTrue(response.data['products'])
+        self.assertTrue(response.data['services'])
+
+    def test_non_catalog_bank_is_hidden(self):
+        Bank.objects.create(
+            name='Temporary bank',
+            abbr='TMP',
+            logo_url='',
+            min_deposit=0,
+            is_catalog=False,
+        )
+
+        response = APIClient().get('/api/banks/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('TMP', [bank['abbr'] for bank in response.data])
+
+
+class NewsApiTests(TestCase):
+    def test_unpublished_news_is_hidden(self):
+        NewsArticle.objects.create(
+            title='Hidden article',
+            slug='hidden-article',
+            is_published=False,
+        )
+
+        response = APIClient().get('/api/news/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+    def test_published_news_returns_localized_fields(self):
+        article = NewsArticle.objects.create(
+            title='Новости банка',
+            title_uz='Bank yangiliklari',
+            slug='bank-yangiliklari',
+            excerpt='Короткое описание',
+            excerpt_uz='Qisqa tavsif',
+            category='banks',
+            source_name='B1',
+            is_published=True,
+        )
+
+        response = APIClient().get('/api/news/?lang=uz')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['id'], article.id)
+        self.assertEqual(response.data[0]['display_title'], 'Bank yangiliklari')
+        self.assertEqual(response.data[0]['display_excerpt'], 'Qisqa tavsif')
 
 
 class RegistrationApiTests(TestCase):

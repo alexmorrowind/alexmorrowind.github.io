@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Bank, Card, Investment, KYCVerification, LegalEntityProfile, Order, Startup, UserProfile
+from .models import Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, Startup, UserProfile
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -46,27 +46,97 @@ class BankSerializer(serializers.ModelSerializer):
     features = serializers.SerializerMethodField()
     color = serializers.SerializerMethodField()
     isRecommended = serializers.BooleanField(source='is_recommended', read_only=True)
+    profileComplete = serializers.SerializerMethodField()
+    officialSources = serializers.ListField(source='source_urls', read_only=True)
+    dataAsOf = serializers.DateField(source='data_as_of', read_only=True)
+    licenseDate = serializers.DateField(source='license_date', read_only=True)
+    isCatalog = serializers.BooleanField(source='is_catalog', read_only=True)
 
     class Meta:
         model = Bank
         fields = (
             'id', 'name', 'abbr', 'logo', 'logo_url', 'apy', 'min_deposit',
             'minDeposit', 'fees', 'rating', 'type', 'features', 'color',
-            'is_recommended', 'isRecommended',
+            'is_recommended', 'isRecommended', 'is_catalog', 'isCatalog',
+            'slug', 'legal_name', 'name_uz', 'description', 'description_uz',
+            'ownership_type', 'license_number', 'license_date', 'licenseDate',
+            'website_url', 'support_phone', 'support_email', 'address', 'stir',
+            'swift_code', 'bank_code', 'mobile_app_url', 'android_url', 'ios_url',
+            'products', 'services', 'source_urls', 'officialSources',
+            'data_as_of', 'dataAsOf', 'data_status', 'apy_source_url',
+            'fees_verified', 'latitude', 'longitude', 'profileComplete', 'updated_at',
         )
 
     def get_fees(self, obj):
-        return 0 if obj.is_recommended else 7000
+        return 0 if obj.fees_verified else None
 
     def get_type(self, obj):
-        return 'digital' if obj.is_recommended else 'traditional'
+        if obj.ownership_type == 'foreign':
+            return 'international'
+        if obj.name.lower().startswith(('tbc', 'anor')):
+            return 'digital'
+        return 'traditional'
 
     def get_features(self, obj):
-        return ['Deposits', 'Cards', 'Transfers']
+        values = []
+        for item in (obj.products or []) + (obj.services or []):
+            if isinstance(item, dict):
+                label = item.get('name') or item.get('name_uz') or item.get('title')
+            else:
+                label = item
+            if label and label not in values:
+                values.append(label)
+        return values[:5] or ['Профиль банка']
 
     def get_color(self, obj):
         colors = ['#2563eb', '#059669', '#f59e0b', '#06b6d4', '#7c3aed']
         return colors[(obj.id - 1) % len(colors)] if obj.id else colors[0]
+
+    def get_profileComplete(self, obj):
+        required = (
+            obj.legal_name,
+            obj.address,
+            obj.website_url,
+            obj.license_number,
+            obj.description,
+            obj.products,
+            obj.services,
+            obj.source_urls,
+        )
+        return sum(bool(value) for value in required) >= 7
+
+
+class NewsArticleSerializer(serializers.ModelSerializer):
+    category_label = serializers.CharField(source='get_category_display', read_only=True)
+    display_title = serializers.SerializerMethodField()
+    display_excerpt = serializers.SerializerMethodField()
+    display_content = serializers.SerializerMethodField()
+
+    class Meta:
+        model = NewsArticle
+        fields = (
+            'id', 'title', 'title_uz', 'slug', 'excerpt', 'excerpt_uz',
+            'content', 'content_uz', 'display_title', 'display_excerpt',
+            'display_content', 'category', 'category_label', 'image_url',
+            'source_name', 'source_url', 'published_at', 'is_featured',
+        )
+
+    def _language(self):
+        request = self.context.get('request')
+        return (request.query_params.get('lang') if request else '') or 'ru'
+
+    def get_display_title(self, obj):
+        return obj.title_uz if self._language() == 'uz' and obj.title_uz else obj.title
+
+    def get_display_excerpt(self, obj):
+        if self._language() == 'uz' and obj.excerpt_uz:
+            return obj.excerpt_uz
+        return obj.excerpt
+
+    def get_display_content(self, obj):
+        if self._language() == 'uz' and obj.content_uz:
+            return obj.content_uz
+        return obj.content
 
 
 class OrderSerializer(serializers.ModelSerializer):
