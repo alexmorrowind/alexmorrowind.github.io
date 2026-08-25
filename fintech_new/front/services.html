@@ -27,13 +27,15 @@
     }
 
     .service-card {
+      display: flex;
       background: #fff;
       border: 1.5px solid rgba(59, 130, 246, 0.1);
       border-radius: 18px;
       padding: 28px 32px;
-      display: flex;
       align-items: flex-start;
       gap: 20px;
+      color: inherit;
+      text-decoration: none;
       transition: all 0.28s;
       box-shadow: 0 2px 10px rgba(59, 130, 246, 0.06);
     }
@@ -106,6 +108,8 @@
       <a href="features.html" class="nav-link">Imkoniyatlar</a>
       <a href="services.html" class="nav-link active">Xizmatlar</a>
       <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="cards.html" class="nav-link">Kartalar</a>
+      <a href="startups.html" class="nav-link">Startups</a>
       <a href="help.html" class="nav-link">Yordam</a>
       <div class="lang-switcher">
         <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
@@ -127,7 +131,7 @@
 
   <div class="services-section">
     <div class="services-grid">
-      <div class="service-card" id="kredit">
+      <a class="service-card" id="kredit" href="banks.html?service=credits">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.03));border:1px solid rgba(59,130,246,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8">
@@ -144,8 +148,8 @@
           <div class="service-tags"><span class="tag">Onlayn ariza</span><span class="tag">Past foiz</span><span
               class="tag">Tez qabul</span></div>
         </div>
-      </div>
-      <div class="service-card" id="mikrozaym">
+      </a>
+      <a class="service-card" id="mikrozaym" href="banks.html?service=credits">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(124,58,237,0.03));border:1px solid rgba(124,58,237,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8">
@@ -161,8 +165,8 @@
             hujjatlar va tezkor ko'rib chiqish.</div>
           <div class="service-tags"><span class="tag">5 daqiqada</span><span class="tag">Minimal hujjat</span></div>
         </div>
-      </div>
-      <div class="service-card" id="tranzaksiyalar">
+      </a>
+      <a class="service-card" id="tranzaksiyalar" href="index.html">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(5,150,105,0.12),rgba(5,150,105,0.03));border:1px solid rgba(5,150,105,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8">
@@ -177,8 +181,8 @@
           <div class="service-tags"><span class="tag">Real vaqt</span><span class="tag">Xavfsiz</span><span
               class="tag">24/7</span></div>
         </div>
-      </div>
-      <div class="service-card" id="sugurta">
+      </a>
+      <a class="service-card" id="sugurta" href="banks.html?service=insurance">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(8,145,178,0.12),rgba(8,145,178,0.03));border:1px solid rgba(8,145,178,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.8">
@@ -193,8 +197,8 @@
           <div class="service-tags"><span class="tag">Hayot</span><span class="tag">Avto</span><span
               class="tag">Mulk</span></div>
         </div>
-      </div>
-      <div class="service-card" id="investitsiyalar">
+      </a>
+      <a class="service-card" id="investitsiyalar" href="startups.html">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(217,119,6,0.12),rgba(217,119,6,0.03));border:1px solid rgba(217,119,6,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.8">
@@ -210,8 +214,8 @@
           <div class="service-tags"><span class="tag">Fondlar</span><span class="tag">Startaplar</span><span
               class="tag">Ko'chmas mulk</span></div>
         </div>
-      </div>
-      <div class="service-card" id="hamyon">
+      </a>
+      <a class="service-card" id="hamyon" href="index.html">
         <div class="service-icon"
           style="background:linear-gradient(135deg,rgba(225,29,72,0.12),rgba(225,29,72,0.03));border:1px solid rgba(225,29,72,0.15)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="1.8">
@@ -227,7 +231,7 @@
           <div class="service-tags"><span class="tag">To'ldirish</span><span class="tag">To'lov</span><span
               class="tag">Bepul</span></div>
         </div>
-      </div>
+      </a>
     </div>
   </div>
 

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karta — B1</title>
+  <link rel="icon" href="favicon.ico?v=20250825" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20250825">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="cards-catalog.css">
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link">Xizmatlar</a>
+      <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="cards.html" class="nav-link active">Kartalar</a>
+      <a href="startups.html" class="nav-link">Startups</a>
+      <a href="help.html" class="nav-link">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta">Boshlash</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-label">Karta tafsilotlari</div>
+    <h1 id="cardDetailTitle" class="page-hero-title">Karta</h1>
+    <p class="page-hero-desc">
+      <span data-uz="Bank:" data-ru="Банк:">Bank:</span>
+      <strong id="cardDetailBankName">—</strong>
+    </p>
+  </div>
+
+  <main id="cardDetailRoot" class="cards-detail">
+    <section class="cards-detail-hero">
+      <div class="cards-detail-brand">
+        <div id="cardDetailBankLogo" aria-hidden="true"></div>
+        <div>
+          <div id="cardDetailType" class="cards-detail-kicker">Karta</div>
+          <p id="cardDetailDescription" class="cards-detail-description">Karta haqida ma'lumot yuklanmoqda.</p>
+        </div>
+      </div>
+      <div class="cards-detail-actions">
+        <a id="cardDetailOfficial" class="btn-hero btn-hero-primary" href="#" target="_blank"
+          rel="noopener noreferrer" hidden>
+          <span data-uz="Rasmiy saytga o'tish" data-ru="Перейти на официальный сайт">Rasmiy saytga o'tish</span> ↗
+        </a>
+        <a class="btn-hero btn-hero-ghost" href="cards.html">
+          <span data-uz="Kartalar katalogi" data-ru="Каталог карт">Kartalar katalogi</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="cards-detail-meta">
+      <div class="cards-detail-meta-item">
+        <span data-uz="Tizim" data-ru="Система">Tizim</span>
+        <strong id="cardDetailNetwork">—</strong>
+      </div>
+      <div class="cards-detail-meta-item">
+        <span data-uz="Mavjudligi" data-ru="Доступность">Mavjudligi</span>
+        <strong id="cardDetailAvailability">—</strong>
+      </div>
+      <div class="cards-detail-meta-item">
+        <span data-uz="Keyingi qadam" data-ru="Следующий шаг">Keyingi qadam</span>
+        <strong data-uz="Bank saytida tekshirish" data-ru="Проверить на сайте банка">Bank saytida tekshirish</strong>
+      </div>
+    </section>
+
+    <section class="cards-detail-section">
+      <h2 data-uz="Asosiy imkoniyatlar" data-ru="Основные возможности">Asosiy imkoniyatlar</h2>
+      <ul id="cardDetailFeatures" class="cards-detail-features"></ul>
+      <p class="cards-detail-note"
+        data-uz="Tarif, limit, chiqarish va ariza shartlari o'zgarishi mumkin. Yakuniy ma'lumotni bankning rasmiy sahifasida tekshiring."
+        data-ru="Тарифы, лимиты и условия выпуска могут измениться. Финальные условия проверяйте на официальной странице банка.">
+        Tarif, limit, chiqarish va ariza shartlari o'zgarishi mumkin. Yakuniy ma'lumotni bankning rasmiy sahifasida tekshiring.
+      </p>
+    </section>
+
+    <section class="cards-detail-section">
+      <h2 data-uz="Qanday olish mumkin" data-ru="Как оформить">Qanday olish mumkin</h2>
+      <div class="cards-detail-steps">
+        <div class="cards-detail-step" data-uz="Kartani tanlang" data-ru="Выберите карту">Kartani tanlang</div>
+        <div class="cards-detail-step" data-uz="Rasmiy shartlarni tekshiring" data-ru="Проверьте официальные условия">Rasmiy shartlarni tekshiring</div>
+        <div class="cards-detail-step" data-uz="Bank saytida ariza bering" data-ru="Подайте заявку на сайте банка">Bank saytida ariza bering</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="public-data.js?v=20250825"></script>
+  <script src="cards-catalog.js?v=20250825"></script>
+</body>
+
+</html>

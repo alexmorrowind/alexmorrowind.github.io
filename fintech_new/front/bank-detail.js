@@ -2,6 +2,8 @@
   const apiBase = (window.B1_API_BASE_URL || '').replace(/\/$/, '');
   const params = new URLSearchParams(window.location.search);
   const bankId = params.get('id');
+  const bankSlug = params.get('slug');
+  const requestedService = params.get('service');
   let bankMap = null;
 
   function escapeHtml(value) {
@@ -51,10 +53,19 @@
   }
 
   function bankLogo(bank) {
-    if (bank.logo_url) {
-      return `<img src="${escapeHtml(bank.logo_url)}" alt="" onerror="this.parentElement.classList.add('bank-logo-fallback');this.remove()">`;
+    let favicon = '';
+    try {
+      const website = new URL(bank.website_url);
+      favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(website.hostname)}&sz=128`;
+    } catch (error) {
+      favicon = '';
     }
-    return escapeHtml(bank.logo || bank.abbr || 'B1');
+    const source = bank.logo_url || favicon;
+    const fallback = escapeHtml(bank.logo || bank.abbr || 'B1');
+    const color = escapeHtml(bank.color || '#2563eb');
+    return `${source
+      ? `<img src="${escapeHtml(source)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`
+      : ''}<span style="display:${source ? 'none' : 'grid'};background:${color}">${fallback}</span>`;
   }
 
   function officialLink(bank, label) {
@@ -65,7 +76,7 @@
     return `<a class="bank-detail-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label} <span aria-hidden="true">↗</span></a>`;
   }
 
-  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords) {
+  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords, internalHref) {
     const values = uniqueItems(bank);
     const matched = values.filter(value => keywords.some(keyword => value.toLowerCase().includes(keyword)));
     const list = matched.length ? matched : [
@@ -80,7 +91,8 @@
           <p>${text(descriptionUz, descriptionRu)}</p>
           <ul>${list.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
           <div class="bank-product-actions">
-            ${officialLink(bank, text('Bank saytida ko‘rish', 'Открыть сайт банка'))}
+            ${internalHref ? `<a class="bank-detail-button bank-detail-button-secondary" href="${escapeHtml(internalHref)}">${text('Bank kartalarini ko‘rish', 'Смотреть карты банка')} <span aria-hidden="true">→</span></a>` : ''}
+            ${officialLink(bank, text('Rasmiy saytga o‘tish', 'Перейти на официальный сайт'))}
           </div>
         </div>
       </article>
@@ -152,7 +164,7 @@
     if (sections) {
       sections.innerHTML = [
         categoryCard(bank, 'credits', '↗', 'Kreditlar', 'Кредиты', 'Iste’mol, mikro va boshqa kredit takliflarini bankning rasmiy sahifasida ko‘ring.', 'Потребительские, микрокредитные и другие предложения смотрите на официальной странице банка.', ['kredit', 'credit', 'qarz', 'loan']),
-        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard']),
+        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard'], `bank-cards.html?bank=${encodeURIComponent(bank.slug || bank.id)}`),
         categoryCard(bank, 'mortgage', '⌂', 'Ipoteka', 'Ипотека', 'Uy-joy moliyalashtirish va ipoteka yo‘nalishlarini tekshiring.', 'Проверьте ипотечные программы и финансирование жилья.', ['ipoteka', 'ипотек', 'mortgage']),
         categoryCard(bank, 'insurance', '◇', 'Sug‘urta', 'Страхование', 'Sug‘urta mahsulotlari va hamkorlik takliflari bank saytida tekshiriladi.', 'Страховые продукты и партнёрские предложения проверяются на сайте банка.', ['sug', 'страх', 'insurance']),
         categoryCard(bank, 'business', '◫', 'Biznes kreditlari', 'Бизнес-кредиты', 'Tadbirkorlar va kompaniyalar uchun moliyalashtirish yo‘nalishlari.', 'Финансирование для предпринимателей и компаний.', ['biznes', 'business', 'korpor', 'предпри', 'business']),
@@ -168,17 +180,26 @@
     }
 
     renderMap(bank);
+    if (requestedService) {
+      window.setTimeout(() => {
+        const target = document.getElementById(requestedService);
+        if (!target) return;
+        target.classList.add('is-requested');
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
     document.body.classList.remove('bank-detail-loading');
   }
 
   async function loadBank() {
     const state = document.getElementById('bankDetailState');
-    if (!apiBase || !bankId) {
+    if (!bankId && !bankSlug) {
       if (state) state.textContent = text('Bank topilmadi.', 'Банк не найден.');
       return;
     }
 
     try {
+      if (!apiBase || !bankId) throw new Error('Public API is unavailable');
       const response = await fetch(`${apiBase}/banks/${encodeURIComponent(bankId)}/`, {
         headers: { Accept: 'application/json' },
       });
@@ -186,11 +207,19 @@
       renderBank(await response.json());
       if (state) state.remove();
     } catch (error) {
-      console.warn('Bank detail API unavailable.', error);
-      if (state) state.textContent = text(
-        'Bank profilini yuklab bo‘lmadi.',
-        'Не удалось загрузить профиль банка.'
+      console.warn('Bank detail API unavailable. Using the published fallback.', error);
+      const fallback = (window.B1_PUBLIC_BANKS || []).find(bank =>
+        String(bank.id) === String(bankId) || bank.slug === bankSlug || bank.abbr === bankSlug
       );
+      if (fallback) {
+        renderBank(fallback);
+        if (state) state.remove();
+      } else if (state) {
+        state.textContent = text(
+          'Bank profilini yuklab bo‘lmadi.',
+          'Не удалось загрузить профиль банка.'
+        );
+      }
     }
   }
 

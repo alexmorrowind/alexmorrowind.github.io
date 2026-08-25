@@ -129,6 +129,80 @@ class NewsApiTests(TestCase):
         self.assertEqual(response.data[0]['display_excerpt'], 'Qisqa tavsif')
 
 
+class StartupPublicApiTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            username='startup-owner@example.com',
+            email='startup-owner@example.com',
+            password='Testpass123',
+        )
+        self.legal_profile = LegalEntityProfile.objects.create(
+            user=self.owner,
+            company_name='B1 Startup LLC',
+            status='verified',
+            accepted_terms=True,
+            accepted_investment_risk=True,
+        )
+        self.active_startup = Startup.objects.create(
+            owner=self.owner,
+            legal_entity=self.legal_profile,
+            name='Public Startup',
+            domain='fintech',
+            stage='mvp',
+            funding_goal='1000000.00',
+            min_investment='100000.00',
+            amount_raised='250000.00',
+            roi=20,
+            description='A public startup profile.',
+            contact_email='private@example.com',
+            status='active',
+        )
+        self.draft_startup = Startup.objects.create(
+            owner=self.owner,
+            legal_entity=self.legal_profile,
+            name='Draft Startup',
+            domain='fintech',
+            stage='idea',
+            funding_goal='1000000.00',
+            min_investment='100000.00',
+            description='A draft startup profile.',
+            contact_email='draft@example.com',
+            status='draft',
+        )
+
+    def test_public_catalog_hides_private_fields_and_drafts(self):
+        response = APIClient().get('/api/startups/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], self.active_startup.id)
+        self.assertNotIn('contact_email', response.data[0])
+        self.assertNotIn('owner_email', response.data[0])
+
+    def test_public_startup_detail_hides_draft(self):
+        client = APIClient()
+
+        active_response = client.get(f'/api/startups/{self.active_startup.id}/')
+        draft_response = client.get(f'/api/startups/{self.draft_startup.id}/')
+
+        self.assertEqual(active_response.status_code, 200)
+        self.assertNotIn('contact_email', active_response.data)
+        self.assertEqual(draft_response.status_code, 404)
+
+    def test_anonymous_startup_create_is_rejected(self):
+        response = APIClient().post('/api/startups/', {
+            'name': 'Anonymous startup',
+            'domain': 'fintech',
+            'stage': 'mvp',
+            'funding_goal': 100000,
+            'min_investment': 10000,
+            'roi': 20,
+            'description': 'Must not be created.',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 401)
+
+
 class RegistrationApiTests(TestCase):
     def test_register_defaults_to_standard_registration_without_payme(self):
         client = APIClient()

@@ -48,6 +48,68 @@
       font-size: 24px;
     }
 
+    .bank-catalog-controls {
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      padding: 0 48px;
+    }
+
+    .bank-search-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .bank-search {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 14px;
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      border-radius: 9px;
+      background: #f8fbff;
+      color: var(--text-primary);
+      font: inherit;
+      outline: none;
+    }
+
+    .bank-search:focus {
+      border-color: var(--blue-neon);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .bank-filter-list {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .bank-filter {
+      min-height: 36px;
+      padding: 0 11px;
+      border: 1px solid rgba(59, 130, 246, 0.14);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bank-filter:hover,
+    .bank-filter.active {
+      border-color: var(--blue-neon);
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+    }
+
     .banks-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -65,7 +127,7 @@
       border-radius: 16px;
       background: #fff;
       color: inherit;
-      text-align: center;
+      text-align: left;
       text-decoration: none;
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.05);
       transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s;
@@ -85,9 +147,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 14px;
+      margin: 0;
       overflow: hidden;
       border-radius: 16px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      background: #fff !important;
       color: #fff;
       font-family: var(--font-display);
       font-size: 14px;
@@ -97,16 +161,26 @@
     .bank-logo img {
       width: 100%;
       height: 100%;
+      padding: 10px;
       object-fit: contain;
       background: #fff;
     }
 
-    .bank-logo-fallback img {
-      display: none;
+    .bank-logo > span {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+      background: var(--blue-neon);
+      color: #fff;
     }
 
-    .bank-logo-fallback::after {
-      content: 'B1';
+    .bank-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
     }
 
     .bank-abbr {
@@ -125,9 +199,26 @@
     }
 
     .bank-catalog-type {
-      margin-top: 8px;
       color: var(--text-muted);
       font-size: 11px;
+      text-align: right;
+    }
+
+    .bank-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 47px;
+      margin-top: 14px;
+    }
+
+    .bank-tags span {
+      padding: 5px 7px;
+      border-radius: 6px;
+      background: rgba(37, 99, 235, 0.07);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 700;
     }
 
     .bank-catalog-more {
@@ -143,6 +234,20 @@
     .bank-catalog-state {
       grid-column: 1 / -1;
       padding: 36px;
+      border: 1.5px dashed rgba(59, 130, 246, 0.2);
+      border-radius: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .bank-catalog-empty {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 0 48px;
+    }
+
+    .bank-catalog-empty div {
+      padding: 34px;
       border: 1.5px dashed rgba(59, 130, 246, 0.2);
       border-radius: 14px;
       color: var(--text-secondary);
@@ -165,6 +270,19 @@
       .banks-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         padding-inline: 24px;
+      }
+
+      .bank-catalog-controls,
+      .bank-catalog-empty {
+        padding-inline: 24px;
+      }
+
+      .bank-search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-filter-list {
+        justify-content: flex-start;
       }
     }
 
@@ -215,11 +333,36 @@
     </div>
     <div class="bank-catalog-counter">
       <strong id="bankCount">10</strong>
-      <span data-uz="katalogdagi bank" data-ru="банков в каталоге">katalogdagi bank</span>
+      <span><span id="bankTotalCount">10</span> <span data-uz="bankdan tanlandi" data-ru="банков выбрано">bankdan tanlandi</span></span>
+    </div>
+  </section>
+
+  <section class="bank-catalog-controls" aria-label="Bank catalogue controls">
+    <div class="bank-search-row">
+      <input id="bankSearch" class="bank-search" type="search" autocomplete="off"
+        placeholder="Bank yoki xizmatni qidiring" data-uz-placeholder="Bank yoki xizmatni qidiring"
+        data-ru-placeholder="Найти банк или услугу">
+      <div class="bank-filter-list">
+        <button class="bank-filter active" type="button" data-bank-filter="all">Barchasi</button>
+        <button class="bank-filter" type="button" data-bank-filter="recommended">Top</button>
+        <button class="bank-filter" type="button" data-bank-filter="digital">Raqamli</button>
+        <button class="bank-filter" type="button" data-bank-filter="credits">Kreditlar</button>
+        <button class="bank-filter" type="button" data-bank-filter="cards">Kartalar</button>
+        <button class="bank-filter" type="button" data-bank-filter="mortgage">Ipoteka</button>
+        <button class="bank-filter" type="button" data-bank-filter="business">Biznes</button>
+        <button class="bank-filter" type="button" data-bank-filter="deposits">Depozitlar</button>
+        <button class="bank-filter" type="button" data-bank-filter="insurance">Sug'urta</button>
+      </div>
     </div>
   </section>
 
   <main class="banks-grid" aria-live="polite"></main>
+  <section id="bankCatalogEmpty" class="bank-catalog-empty" hidden>
+    <div data-uz="Bu qidiruv bo'yicha bank topilmadi. Boshqa so'z yoki bo'limni tanlang."
+      data-ru="По этому запросу банки не найдены. Попробуйте другое слово или раздел.">
+      Bu qidiruv bo'yicha bank topilmadi. Boshqa so'z yoki bo'limni tanlang.
+    </div>
+  </section>
 
   <footer>
     <div class="footer-top">
@@ -261,6 +404,7 @@
 
   <script src="config.js?v=20260825"></script>
   <script src="shared.js"></script>
+  <script src="public-data.js?v=20260825"></script>
   <script src="bank-catalog.js?v=20260825"></script>
 </body>
 

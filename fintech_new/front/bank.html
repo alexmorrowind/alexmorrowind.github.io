@@ -59,6 +59,8 @@
       flex: 0 0 auto;
       overflow: hidden;
       border-radius: 20px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      background: #fff !important;
       color: #fff;
       font-family: var(--font-display);
       font-size: 18px;
@@ -68,12 +70,18 @@
     .bank-detail-logo img {
       width: 100%;
       height: 100%;
+      padding: 12px;
       object-fit: contain;
       background: #fff;
     }
 
-    .bank-detail-logo-fallback img {
-      display: none;
+    .bank-detail-logo > span {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+      background: var(--blue-neon);
+      color: #fff;
     }
 
     .bank-detail-name {
@@ -192,6 +200,11 @@
       scroll-margin-top: 150px;
     }
 
+    .bank-product-card.is-requested {
+      border-color: var(--blue-neon);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.09);
+    }
+
     .bank-product-icon {
       width: 46px;
       height: 46px;
@@ -252,6 +265,12 @@
       font-size: 12px;
       font-weight: 700;
       text-decoration: none;
+    }
+
+    .bank-detail-button-secondary {
+      margin-right: 8px;
+      background: #eef4ff;
+      color: var(--blue-neon);
     }
 
     .bank-detail-button-muted {
@@ -315,10 +334,6 @@
       border-radius: 14px;
       color: var(--text-secondary);
       text-align: center;
-    }
-
-    .bank-detail-loading .bank-detail-content {
-      opacity: 0.58;
     }
 
     @media (max-width: 900px) {
@@ -496,6 +511,7 @@
 
   <script src="config.js?v=20260825"></script>
   <script src="shared.js"></script>
+  <script src="public-data.js?v=20260825"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="bank-detail.js?v=20260825"></script>
 </body>

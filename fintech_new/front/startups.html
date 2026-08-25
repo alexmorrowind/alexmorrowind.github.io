@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B1 Startups</title>
+  <link rel="icon" href="favicon.ico?v=20260825" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20260825">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260825">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .startup-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 118px 48px 90px;
+    }
+
+    .startup-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 28px;
+      padding: clamp(26px, 5vw, 52px);
+      border: 1px solid rgba(59, 130, 246, 0.14);
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+    }
+
+    .startup-hero h1 {
+      max-width: 680px;
+      margin-bottom: 16px;
+      font-family: var(--font-display);
+      font-size: clamp(38px, 6vw, 70px);
+      line-height: 1;
+      letter-spacing: -0.035em;
+    }
+
+    .startup-hero p {
+      max-width: 680px;
+      color: var(--text-secondary);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .startup-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .startup-hero-note {
+      padding: 22px;
+      border-radius: 16px;
+      background: var(--grad-soft);
+    }
+
+    .startup-hero-note strong {
+      display: block;
+      margin-bottom: 9px;
+      font-family: var(--font-display);
+      font-size: 22px;
+    }
+
+    .startup-hero-note p {
+      font-size: 13px;
+    }
+
+    .startup-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .startup-stat {
+      padding: 20px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .startup-stat strong {
+      display: block;
+      overflow: hidden;
+      margin-bottom: 7px;
+      color: var(--blue-neon);
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3vw, 34px);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .startup-stat span {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .startup-section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .startup-section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 4vw, 40px);
+    }
+
+    .startup-filter-list {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .startup-filter {
+      min-height: 36px;
+      padding: 0 11px;
+      border: 1px solid rgba(59, 130, 246, 0.14);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .startup-filter.active,
+    .startup-filter:hover {
+      border-color: var(--blue-neon);
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+    }
+
+    .startup-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .startup-card,
+    .startup-panel {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .startup-card {
+      display: flex;
+      min-height: 390px;
+      flex-direction: column;
+    }
+
+    .startup-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .startup-stage,
+    .startup-domain {
+      padding: 6px 8px;
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .startup-stage {
+      background: rgba(124, 58, 237, 0.1);
+      color: #7c3aed;
+    }
+
+    .startup-domain {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+    }
+
+    .startup-card h2,
+    .startup-panel h2 {
+      margin-bottom: 7px;
+      font-family: var(--font-display);
+      font-size: 23px;
+      line-height: 1.12;
+    }
+
+    .startup-company {
+      margin-bottom: 14px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .startup-card p,
+    .startup-panel p {
+      margin-bottom: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .startup-progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .startup-progress-meta strong {
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    .startup-progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e9eef8;
+    }
+
+    .startup-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--grad-primary);
+    }
+
+    .startup-facts {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .startup-facts div {
+      min-width: 0;
+      padding: 10px;
+      border-radius: 10px;
+      background: #f8fbff;
+    }
+
+    .startup-facts span,
+    .startup-round span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .startup-facts strong {
+      display: block;
+      overflow: hidden;
+      color: var(--text-primary);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .startup-card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      color: var(--blue-neon);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .startup-state,
+    .startup-empty {
+      grid-column: 1 / -1;
+      padding: 36px;
+      border: 1.5px dashed rgba(59, 130, 246, 0.2);
+      border-radius: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .startup-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 56px;
+    }
+
+    .startup-step {
+      padding: 18px;
+      border-top: 3px solid var(--blue-neon);
+      background: #fff;
+    }
+
+    .startup-step strong {
+      display: block;
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 17px;
+    }
+
+    .startup-step span {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .startup-page {
+        padding-inline: 24px;
+      }
+
+      .startup-hero,
+      .startup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .startup-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .startup-page {
+        padding: 96px 20px 60px;
+      }
+
+      .startup-stats,
+      .startup-facts,
+      .startup-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .startup-section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .startup-filter-list {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" alt="B1" style="width:70px;height:70px;object-fit:contain;">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="banks.html" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="startups.html" class="nav-link active">Startups</a>
+      <a href="help.html" class="nav-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+    </div>
+  </nav>
+
+  <main class="startup-page">
+    <section class="startup-hero">
+      <div>
+        <div class="section-label">B1 Startups</div>
+        <h1 data-uz="G‘oyadan investitsiyagacha bitta tizim" data-ru="Одна система: от идеи до инвестиций">G‘oyadan investitsiyagacha bitta tizim</h1>
+        <p data-uz="Startaplar uchun loyiha vitrinasini, bank va to‘lov integratsiyalari yo‘l xaritasini, hamda investor arizalarini bitta mahsulotga birlashtiramiz."
+          data-ru="Объединяем витрину проектов, дорожную карту банковских и платёжных интеграций и заявки инвесторов в одном продукте.">
+          Startaplar uchun loyiha vitrinasini, bank va to‘lov integratsiyalari yo‘l xaritasini, hamda investor arizalarini bitta mahsulotga birlashtiramiz.
+        </p>
+        <div class="startup-hero-actions">
+          <a class="btn-hero btn-hero-primary" href="startup-create.html" data-uz="Startap qo‘shish" data-ru="Добавить стартап">Startap qo‘shish</a>
+          <a class="btn-hero btn-hero-ghost" href="#projects" data-uz="Loyihalarni ko‘rish" data-ru="Смотреть проекты">Loyihalarni ko‘rish</a>
+        </div>
+      </div>
+      <aside class="startup-hero-note">
+        <strong data-uz="Ochiq va ehtiyotkor" data-ru="Открыто и ответственно">Ochiq va ehtiyotkor</strong>
+        <p data-uz="Faqat faol hamda tekshiruvdan o‘tgan loyiha profillari katalogga chiqadi. Daromad kafolatlanmaydi."
+          data-ru="В каталог выходят только активные и проверенные профили проектов. Доходность не гарантируется.">
+          Faqat faol hamda tekshiruvdan o‘tgan loyiha profillari katalogga chiqadi. Daromad kafolatlanmaydi.
+        </p>
+      </aside>
+    </section>
+
+    <section class="startup-stats" aria-label="B1 Startups statistics">
+      <div class="startup-stat"><strong id="startupCount">0</strong><span data-uz="faol loyiha" data-ru="активных проектов">faol loyiha</span></div>
+      <div class="startup-stat"><strong id="startupGoal">0 so‘m</strong><span data-uz="jami moliyalashtirish maqsadi" data-ru="общая цель финансирования">jami moliyalashtirish maqsadi</span></div>
+      <div class="startup-stat"><strong id="startupRaised">0 so‘m</strong><span data-uz="loyihalar yig‘gan mablag‘" data-ru="собрано проектами">loyihalar yig‘gan mablag‘</span></div>
+    </section>
+
+    <section id="projects">
+      <div class="startup-section-head">
+        <div>
+          <div class="section-label" data-uz="Loyihalar" data-ru="Проекты">Loyihalar</div>
+          <h2 data-uz="Faol startaplar" data-ru="Активные стартапы">Faol startaplar</h2>
+        </div>
+        <div class="startup-filter-list">
+          <button class="startup-filter active" type="button" data-startup-filter="all">Barchasi</button>
+          <button class="startup-filter" type="button" data-startup-filter="idea">G‘oya</button>
+          <button class="startup-filter" type="button" data-startup-filter="mvp">MVP</button>
+          <button class="startup-filter" type="button" data-startup-filter="growth">O‘sish</button>
+          <button class="startup-filter" type="button" data-startup-filter="fintech">Fintech</button>
+          <button class="startup-filter" type="button" data-startup-filter="education">Ta’lim</button>
+        </div>
+      </div>
+      <div id="startupGrid" class="startup-grid" aria-live="polite"></div>
+      <div id="startupEmpty" class="startup-empty" hidden data-uz="Hozircha katalogda faol loyiha yo‘q. Yuridik profilni tekshiruvdan o‘tkazgandan keyin birinchi startapni qo‘shish mumkin."
+        data-ru="Пока в каталоге нет активных проектов. Первый стартап можно добавить после проверки юридического профиля.">
+        Hozircha katalogda faol loyiha yo‘q. Yuridik profilni tekshiruvdan o‘tkazgandan keyin birinchi startapni qo‘shish mumkin.
+      </div>
+    </section>
+
+    <section class="startup-steps">
+      <article class="startup-step"><strong data-uz="1. G‘oya va bozor" data-ru="1. Идея и рынок">1. G‘oya va bozor</strong><span data-uz="Muammo, mijoz va monetizatsiyani aniq yozing." data-ru="Зафиксируйте проблему, клиента и монетизацию.">Muammo, mijoz va monetizatsiyani aniq yozing.</span></article>
+      <article class="startup-step"><strong data-uz="2. Hujjatlar" data-ru="2. Документы">2. Hujjatlar</strong><span data-uz="Yuridik profil, tashkilot ma’lumotlari va risk roziligi." data-ru="Юридический профиль, данные компании и согласие с рисками.">Yuridik profil, tashkilot ma’lumotlari va risk roziligi.</span></article>
+      <article class="startup-step"><strong data-uz="3. Bank va to‘lovlar" data-ru="3. Банк и платежи">3. Bank va to‘lovlar</strong><span data-uz="Hamkor bank yoki provayder bilan rasmiy integratsiyani ulang." data-ru="Подключите официальную интеграцию с банком или провайдером.">Hamkor bank yoki provayder bilan rasmiy integratsiyani ulang.</span></article>
+      <article class="startup-step"><strong data-uz="4. Investor profili" data-ru="4. Профиль для инвесторов">4. Investor profili</strong><span data-uz="Maqsad, minimal ishtirok va risklarni shaffof ko‘rsating." data-ru="Прозрачно покажите цель, минимальную сумму и риски.">Maqsad, minimal ishtirok va risklarni shaffof ko‘rsating.</span></article>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-bottom">
+      <span>© 2025–2026. B1-Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+
+  <script src="config.js?v=20260825"></script>
+  <script src="shared.js"></script>
+  <script src="startup.js?v=20260825"></script>
+</body>
+
+</html>

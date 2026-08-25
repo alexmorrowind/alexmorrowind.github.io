@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank kartalari — B1</title>
+  <link rel="icon" href="favicon.ico?v=20250825" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20250825">
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="cards-catalog.css">
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link">Xizmatlar</a>
+      <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="cards.html" class="nav-link active">Kartalar</a>
+      <a href="startups.html" class="nav-link">Startups</a>
+      <a href="help.html" class="nav-link">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta">Boshlash</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-label">Bank kartalari</div>
+    <h1 id="bankCardsTitle" class="page-hero-title">Bank kartalari</h1>
+    <p id="bankCardsDescription" class="page-hero-desc">Bankning karta mahsulotlari bitta katalogda.</p>
+  </div>
+
+  <main class="cards-detail">
+    <section class="cards-detail-hero">
+      <div class="cards-detail-brand">
+        <div id="bankCardsBrand" aria-hidden="true"></div>
+        <div>
+          <div class="cards-detail-kicker" data-uz="Bank profili" data-ru="Профиль банка">Bank profili</div>
+          <p data-uz="Karta mahsulotlari va rasmiy yo'nalish" data-ru="Карточные продукты и официальный путь">
+            Karta mahsulotlari va rasmiy yo'nalish
+          </p>
+        </div>
+      </div>
+      <div class="cards-detail-actions">
+        <a id="bankCardsOfficial" class="btn-hero btn-hero-primary" href="#" target="_blank"
+          rel="noopener noreferrer" hidden>
+          <span data-uz="Bank saytiga o'tish" data-ru="На сайт банка">Bank saytiga o'tish</span> ↗
+        </a>
+        <a class="btn-hero btn-hero-ghost" href="cards.html">
+          <span data-uz="Barcha banklar" data-ru="Все банки">Barcha banklar</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="cards-detail-section">
+      <div id="bankCardsRoot" class="cards-product-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="public-data.js?v=20250825"></script>
+  <script src="cards-catalog.js?v=20250825"></script>
+</body>
+
+</html>

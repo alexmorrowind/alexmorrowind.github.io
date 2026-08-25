@@ -194,6 +194,19 @@ class StartupSerializer(serializers.ModelSerializer):
         )
 
 
+class StartupPublicSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='legal_entity.company_name', read_only=True)
+
+    class Meta:
+        model = Startup
+        fields = (
+            'id', 'name', 'domain', 'stage', 'funding_goal',
+            'min_investment', 'amount_raised', 'roi', 'description',
+            'status', 'company_name', 'created_at', 'updated_at',
+        )
+        read_only_fields = fields
+
+
 class InvestmentSerializer(serializers.ModelSerializer):
     startup_name = serializers.CharField(source='startup.name', read_only=True)
     checkout_url = serializers.CharField(source='order.checkout_url', read_only=True)

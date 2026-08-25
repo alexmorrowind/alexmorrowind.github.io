@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.utils import timezone
+from django.db.models import Q
 from .integrations import (
     effective_config_value,
     generate_sms_code,
@@ -30,6 +31,7 @@ from .serializers import (
     NewsArticleSerializer,
     OrderSerializer,
     RegisterSerializer,
+    StartupPublicSerializer,
     StartupSerializer,
 )
 
@@ -1624,22 +1626,27 @@ class MyIDCompleteView(APIView):
 
 
 class StartupListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         mine = request.query_params.get('mine') == '1'
+        if mine and not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
         queryset = Startup.objects.select_related('legal_entity', 'owner').all()
         if mine:
             queryset = queryset.filter(owner=request.user)
         else:
             queryset = queryset.filter(status='active')
-        return Response(StartupSerializer(queryset.order_by('-created_at'), many=True).data)
+        serializer = StartupSerializer if mine else StartupPublicSerializer
+        return Response(serializer(queryset.order_by('-created_at'), many=True).data)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
         legal_profile = LegalEntityProfile.objects.filter(user=request.user).first()
         if not legal_profile:
             return Response({"detail": "Create legal entity profile first"}, status=status.HTTP_400_BAD_REQUEST)
-        if legal_profile.status not in ['verified', 'pending_review']:
+        if legal_profile.status != 'verified':
             return Response({"detail": "Legal entity must pass verification before publishing startups"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = StartupSerializer(data=request.data)
@@ -1654,13 +1661,19 @@ class StartupListCreateView(APIView):
 
 
 class StartupDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
-        startup = Startup.objects.filter(pk=pk).first()
+        queryset = Startup.objects.select_related('legal_entity', 'owner').filter(pk=pk)
+        if request.user.is_authenticated:
+            queryset = queryset.filter(Q(status='active') | Q(owner=request.user))
+        else:
+            queryset = queryset.filter(status='active')
+        startup = queryset.first()
         if not startup:
             return Response({"detail": "Startup not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(StartupSerializer(startup).data)
+        serializer = StartupSerializer if request.user.is_authenticated and startup.owner_id == request.user.id else StartupPublicSerializer
+        return Response(serializer(startup).data)
 
 
 class InvestmentListCreateView(APIView):
@@ -1674,10 +1687,18 @@ class InvestmentListCreateView(APIView):
         if missing_payme_checkout_config():
             return payme_config_error_response()
 
-        startup = Startup.objects.filter(pk=request.data.get('startup')).first()
+        startup = Startup.objects.filter(pk=request.data.get('startup'), status='active').first()
         if not startup:
             return Response({"startup": "Startup not found"}, status=status.HTTP_404_NOT_FOUND)
-        amount = Decimal(str(request.data.get('amount', startup.min_investment)))
+        try:
+            amount = Decimal(str(request.data.get('amount', startup.min_investment)))
+        except Exception:
+            return Response({"amount": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
+        if amount < startup.min_investment:
+            return Response({
+                "amount": f"Minimum investment is {startup.min_investment}",
+                "min_investment": str(startup.min_investment),
+            }, status=status.HTTP_400_BAD_REQUEST)
         order = Order.objects.create(
             user=request.user,
             amount=amount,

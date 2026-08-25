@@ -24,10 +24,13 @@
     }
 
     .feature-card {
+      display: block;
       background: #fff;
       border: 1.5px solid rgba(59, 130, 246, 0.1);
       border-radius: 18px;
       padding: 28px;
+      color: inherit;
+      text-decoration: none;
       transition: all 0.28s;
       box-shadow: 0 2px 12px rgba(59, 130, 246, 0.06);
     }
@@ -80,6 +83,8 @@
       <a href="features.html" class="nav-link active">Imkoniyatlar</a>
       <a href="services.html" class="nav-link">Xizmatlar</a>
       <a href="banks.html" class="nav-link">Banklar</a>
+      <a href="cards.html" class="nav-link">Kartalar</a>
+      <a href="startups.html" class="nav-link">Startups</a>
       <a href="help.html" class="nav-link">Yordam</a>
       <div class="lang-switcher">
         <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
@@ -98,7 +103,7 @@
   </div>
 
   <div class="features-grid">
-    <div class="feature-card">
+    <a href="banks.html" class="feature-card">
       <div class="feature-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
           <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
@@ -108,8 +113,8 @@
         data-uz="O'zbekistondagi barcha yirik banklarning depozit foizlari va shartlarini bir joyda solishtiring."
         data-ru="Сравнивайте депозитные ставки и условия всех крупных банков в одном месте.">O'zbekistondagi barcha
         yirik banklarning depozit foizlari va shartlarini bir joyda solishtiring.</div>
-    </div>
-    <div class="feature-card">
+    </a>
+    <a href="cards.html" class="feature-card">
       <div class="feature-icon" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
           <rect x="2" y="5" width="20" height="14" rx="2" />
@@ -119,8 +124,8 @@
       <div class="feature-text" data-uz="Cashback, travel miles va boshqa imtiyozlarga ega kartalarni solishtiring."
         data-ru="Сравните карты с кэшбэком, travel miles и другими льготами.">Cashback, travel miles va boshqa
         imtiyozlarga ega kartalarni solishtiring.</div>
-    </div>
-    <div class="feature-card">
+    </a>
+    <a href="services.html#kredit" class="feature-card">
       <div class="feature-icon" style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
           <circle cx="12" cy="12" r="10" />
@@ -130,8 +135,8 @@
       <div class="feature-text" data-uz="Oylik to'lovni hisoblang va eng qulay kredit variantni tanlang."
         data-ru="Рассчитайте ежемесячный платёж и выберите лучший кредит.">Oylik to'lovni hisoblang va eng qulay kredit
         variantni tanlang.</div>
-    </div>
-    <div class="feature-card">
+    </a>
+    <a href="startups.html" class="feature-card">
       <div class="feature-icon" style="background:rgba(217,119,6,0.1);border:1px solid rgba(217,119,6,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -143,8 +148,8 @@
       <div class="feature-text" data-uz="Texnologiya, ko'chmas mulk va startap loyihalariga investitsiya qiling."
         data-ru="Инвестируйте в технологии, недвижимость и стартапы.">Texnologiya, ko'chmas mulk va startap loyihalariga
         investitsiya qiling.</div>
-    </div>
-    <div class="feature-card">
+    </a>
+    <a href="index.html" class="feature-card">
       <div class="feature-icon" style="background:rgba(8,145,178,0.1);border:1px solid rgba(8,145,178,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2">
           <path d="M3 3v18h18" />
@@ -155,8 +160,8 @@
         data-uz="Daromad va xarajatlaringizni kuzating, sof boyligingizni grafik ko'rinishda koring."
         data-ru="Отслеживайте доходы и расходы в графическом виде.">Daromad va xarajatlaringizni kuzating, grafik
         ko'rinishda koring.</div>
-    </div>
-    <div class="feature-card">
+    </a>
+    <a href="privacy.html" class="feature-card">
       <div class="feature-icon" style="background:rgba(225,29,72,0.1);border:1px solid rgba(225,29,72,0.2)"><svg
           width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -166,7 +171,7 @@
         data-uz="Barcha ma'lumotlar 256-bit AES shifrlash bilan himoyalangan. Ikki bosqichli autentifikatsiya."
         data-ru="Все данные защищены 256-битным AES шифрованием и двухфакторной аутентификацией.">Barcha ma'lumotlar
         256-bit AES shifrlash bilan himoyalangan.</div>
-    </div>
+    </a>
   </div>
 
   <footer>
