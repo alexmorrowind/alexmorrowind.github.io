@@ -275,6 +275,52 @@
       line-height: 1.5;
     }
 
+    .market-snapshot {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px 78px;
+    }
+
+    .market-snapshot-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .market-snapshot-head .section-desc {
+      margin-bottom: 0;
+    }
+
+    .market-snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .market-snapshot-card {
+      padding: 22px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.05);
+    }
+
+    .market-snapshot-value {
+      margin-bottom: 7px;
+      color: var(--blue-neon);
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .market-snapshot-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     /* APP SECTION */
     .app-section {
       background: linear-gradient(135deg, #f0f6ff, #f5f0ff);
@@ -535,7 +581,8 @@
       .news-grid,
       .hero-signal-grid,
       .priority-grid,
-      .startup-track {
+      .startup-track,
+      .market-snapshot-grid {
         grid-template-columns: 1fr;
       }
 
@@ -558,6 +605,14 @@
       }
 
       .news-heading-row {
+        display: block;
+      }
+
+      .market-snapshot {
+        padding-inline: 24px;
+      }
+
+      .market-snapshot-head {
         display: block;
       }
 
@@ -883,22 +938,59 @@
   <section style="padding: 0 48px 80px; max-width: 1200px; margin: 0 auto;">
     <div class="stats-banner">
       <div class="stat-item">
-        <div class="stat-num">10</div>
+        <div class="stat-num" id="landingBankCount">10</div>
         <div class="stat-label-lg" data-uz="Asosiy banklar katalogi" data-ru="Ключевых банков в каталоге">Asosiy banklar katalogi</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">100%</div>
-        <div class="stat-label-lg" data-uz="Xavfsiz shifrlangan" data-ru="Все данные зашифрованы">Xavfsiz shifrlangan
-        </div>
+        <div class="stat-num" id="landingProductCount">24+</div>
+        <div class="stat-label-lg" data-uz="Bank mahsulotlari va xizmatlari" data-ru="Продукты и сервисы банков">Bank mahsulotlari va xizmatlari</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">3 min</div>
-        <div class="stat-label-lg" data-uz="Ariza topshirish vaqti" data-ru="Время подачи заявки">Ariza topshirish vaqti
-        </div>
+        <div class="stat-num" id="landingMappedCount">10</div>
+        <div class="stat-label-lg" data-uz="Xaritada ko'rsatilgan bank" data-ru="Банков на карте">Xaritada ko'rsatilgan bank</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">24/7</div>
-        <div class="stat-label-lg" data-uz="Platform ishlaydi" data-ru="Платформа работает">Platform ishlaydi</div>
+        <div class="stat-num" id="landingNewsCount">0</div>
+        <div class="stat-label-lg" data-uz="Yangiliklar" data-ru="Новостей">Yangiliklar</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-line"></div>
+
+  <!-- MARKET SNAPSHOT -->
+  <section class="market-snapshot">
+    <div class="market-snapshot-head">
+      <div>
+        <div class="section-label" data-uz="Bozor ko'rinishi" data-ru="Снимок рынка">Bozor ko'rinishi</div>
+        <h2 class="section-title" data-uz="Raqamlar bilan tushunarli moliya" data-ru="Финансы, которые видны в цифрах">Raqamlar bilan tushunarli moliya</h2>
+        <p class="section-desc" data-uz="B1 bank profillari, mahsulotlar va yangiliklarni bitta joyga jamlaydi. Ko'rsatkichlar API orqali yangilanadi."
+          data-ru="B1 собирает профили банков, продукты и новости в одном месте. Показатели обновляются через API.">
+          B1 bank profillari, mahsulotlar va yangiliklarni bitta joyga jamlaydi. Ko'rsatkichlar API orqali yangilanadi.
+        </p>
+      </div>
+      <a href="banks.html" class="btn-hero btn-hero-ghost" data-uz="Banklarni ko'rish" data-ru="Смотреть банки">Banklarni ko'rish →</a>
+    </div>
+    <div class="market-snapshot-grid">
+      <div class="market-snapshot-card">
+        <div class="market-snapshot-value">6</div>
+        <div class="market-snapshot-label" data-uz="Asosiy yo'nalish: kredit, karta, ipoteka, sug'urta, biznes, depozit"
+          data-ru="Ключевых направлений: кредиты, карты, ипотека, страхование, бизнес, депозиты">Asosiy yo'nalish: kredit, karta, ipoteka, sug'urta, biznes, depozit</div>
+      </div>
+      <div class="market-snapshot-card">
+        <div class="market-snapshot-value">1</div>
+        <div class="market-snapshot-label" data-uz="Bitta profil: bank, rasmiy sayt, manzil va mahsulotlar"
+          data-ru="Один профиль: банк, официальный сайт, адрес и продукты">Bitta profil: bank, rasmiy sayt, manzil va mahsulotlar</div>
+      </div>
+      <div class="market-snapshot-card">
+        <div class="market-snapshot-value">API</div>
+        <div class="market-snapshot-label" data-uz="Banklar va yangiliklar serverdan keladi"
+          data-ru="Банки и новости приходят с сервера">Banklar va yangiliklar serverdan keladi</div>
+      </div>
+      <div class="market-snapshot-card">
+        <div class="market-snapshot-value">B1</div>
+        <div class="market-snapshot-label" data-uz="Qaror qabul qilish uchun yagona boshlang'ich nuqta"
+          data-ru="Единая стартовая точка для финансового решения">Qaror qabul qilish uchun yagona boshlang'ich nuqta</div>
       </div>
     </div>
   </section>
@@ -1095,6 +1187,7 @@
 
   <script src="config.js?v=20260823"></script>
   <script src="shared.js"></script>
+  <script src="landing-data.js?v=20260825"></script>
   <script src="news.js?v=20260823"></script>
 </body>
 

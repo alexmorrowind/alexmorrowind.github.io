@@ -83,6 +83,12 @@
         <span>${page
           ? (language() === 'ru' ? 'Публикуем проверенные материалы и официальные обновления.' : 'Tekshirilgan materiallar va rasmiy yangilanishlar e’lon qilinadi.')
           : (language() === 'ru' ? 'Следите за обновлениями B1.' : 'B1 yangiliklarini kuzatib boring.')}</span>
+        <span>
+          ${language() === 'ru' ? 'Пока можно открыть официальные ленты:' : 'Hozircha rasmiy manbalarni ochishingiz mumkin:'}
+          <a href="https://cbu.uz/ru/press_center/news/" target="_blank" rel="noopener noreferrer">Центральный банк</a>
+          ·
+          <a href="https://www.spot.uz/ru/" target="_blank" rel="noopener noreferrer">Spot</a>
+        </span>
       </div>
     `;
   }
