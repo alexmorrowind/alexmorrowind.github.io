@@ -76,7 +76,7 @@
     return `<a class="bank-detail-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label} <span aria-hidden="true">↗</span></a>`;
   }
 
-  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords, internalHref) {
+  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords, internalHref, internalLabelUz, internalLabelRu) {
     const values = uniqueItems(bank);
     const matched = values.filter(value => keywords.some(keyword => value.toLowerCase().includes(keyword)));
     const list = matched.length ? matched : [
@@ -91,7 +91,7 @@
           <p>${text(descriptionUz, descriptionRu)}</p>
           <ul>${list.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
           <div class="bank-product-actions">
-            ${internalHref ? `<a class="bank-detail-button bank-detail-button-secondary" href="${escapeHtml(internalHref)}">${text('Bank kartalarini ko‘rish', 'Смотреть карты банка')} <span aria-hidden="true">→</span></a>` : ''}
+            ${internalHref ? `<a class="bank-detail-button bank-detail-button-secondary" href="${escapeHtml(internalHref)}">${text(internalLabelUz || 'Ko‘rish', internalLabelRu || 'Смотреть')} <span aria-hidden="true">→</span></a>` : ''}
             ${officialLink(bank, text('Rasmiy saytga o‘tish', 'Перейти на официальный сайт'))}
           </div>
         </div>
@@ -163,8 +163,8 @@
     const sections = document.getElementById('bankProductSections');
     if (sections) {
       sections.innerHTML = [
-        categoryCard(bank, 'credits', '↗', 'Kreditlar', 'Кредиты', 'Iste’mol, mikro va boshqa kredit takliflarini bankning rasmiy sahifasida ko‘ring.', 'Потребительские, микрокредитные и другие предложения смотрите на официальной странице банка.', ['kredit', 'credit', 'qarz', 'loan']),
-        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard'], `bank-cards.html?bank=${encodeURIComponent(bank.slug || bank.id)}`),
+        categoryCard(bank, 'credits', '↗', 'Kreditlar', 'Кредиты', 'Iste’mol, mikro va boshqa kredit takliflarini bankning rasmiy sahifasida ko‘ring.', 'Потребительские, микрокредитные и другие предложения смотрите на официальной странице банка.', ['kredit', 'credit', 'qarz', 'loan'], `calculator.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Kalkulyatorda hisoblash', 'Посчитать в калькуляторе'),
+        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard'], `bank-cards.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Bank kartalarini ko‘rish', 'Смотреть карты банка'),
         categoryCard(bank, 'mortgage', '⌂', 'Ipoteka', 'Ипотека', 'Uy-joy moliyalashtirish va ipoteka yo‘nalishlarini tekshiring.', 'Проверьте ипотечные программы и финансирование жилья.', ['ipoteka', 'ипотек', 'mortgage']),
         categoryCard(bank, 'insurance', '◇', 'Sug‘urta', 'Страхование', 'Sug‘urta mahsulotlari va hamkorlik takliflari bank saytida tekshiriladi.', 'Страховые продукты и партнёрские предложения проверяются на сайте банка.', ['sug', 'страх', 'insurance']),
         categoryCard(bank, 'business', '◫', 'Biznes kreditlari', 'Бизнес-кредиты', 'Tadbirkorlar va kompaniyalar uchun moliyalashtirish yo‘nalishlari.', 'Финансирование для предпринимателей и компаний.', ['biznes', 'business', 'korpor', 'предпри', 'business']),

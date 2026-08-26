@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kredit tarixi — B1</title>
+  <link rel="icon" href="favicon.ico?v=20260826" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20260826">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260826">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .history-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px 88px;
+    }
+
+    .history-hero-panel,
+    .history-card,
+    .history-note {
+      border: 1.5px solid rgba(59, 130, 246, 0.12);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .history-hero-panel {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 28px;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 30px;
+    }
+
+    .history-score-ring {
+      width: 190px;
+      height: 190px;
+      margin: 0 auto;
+      border: 12px solid rgba(37, 99, 235, 0.14);
+      background: conic-gradient(#2563eb 0 77%, #e8f0ff 77% 100%);
+    }
+
+    .history-score-ring span {
+      display: grid;
+      width: 134px;
+      height: 134px;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 800;
+    }
+
+    .history-hero-panel h2 {
+      margin-bottom: 12px;
+      font-family: var(--font-display);
+      font-size: 42px;
+    }
+
+    .history-hero-panel p {
+      max-width: 700px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .history-card {
+      padding: 20px;
+    }
+
+    .history-card-label {
+      margin-bottom: 10px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .history-card strong {
+      display: block;
+      color: var(--blue-neon);
+      font-family: var(--font-display);
+      font-size: 28px;
+      line-height: 1.05;
+    }
+
+    .history-card span {
+      display: block;
+      margin-top: 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .history-detail-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .history-card h2 {
+      margin-bottom: 16px;
+      font-family: var(--font-display);
+      font-size: 22px;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+      text-align: left;
+    }
+
+    .history-table th {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .history-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(5, 150, 105, 0.08);
+      color: #059669;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .history-timeline {
+      display: grid;
+      gap: 14px;
+    }
+
+    .history-event {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .history-event-dot {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+      font-weight: 800;
+    }
+
+    .history-event strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .history-event span {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .history-note {
+      margin-top: 18px;
+      padding: 24px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .history-note strong {
+      color: var(--text-primary);
+    }
+
+    @media(max-width:980px) {
+      .history-shell {
+        padding-inline: 24px;
+      }
+
+      .history-hero-panel,
+      .history-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media(max-width:560px) {
+      .history-shell {
+        width: 100%;
+        max-width: 100vw;
+        padding-inline: 18px;
+      }
+
+      .history-card,
+      .history-note,
+      .history-hero-panel {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .history-hero-panel {
+        padding: 22px;
+      }
+
+      .history-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .history-hero-panel h2 {
+        font-size: 32px;
+      }
+
+      .history-hero-panel p {
+        max-width: 290px;
+      }
+
+      .history-actions .btn-hero {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="banks.html" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="cards.html" class="nav-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
+      <a href="startups.html" class="nav-link" data-uz="Startap" data-ru="Стартап">Startap</a>
+      <a href="help.html" class="nav-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <div class="page-hero-label" data-uz="Profil va scoring" data-ru="Профиль и скоринг">Profil va scoring</div>
+    <h1 class="page-hero-title" data-uz="Kredit tarixi" data-ru="Кредитная история">Kredit tarixi</h1>
+    <p class="page-hero-desc"
+      data-uz="Qarz yuklamasi, to'lov intizomi va kredit holatini bitta kabinet ko'rinishida kuzating."
+      data-ru="Следите за долговой нагрузкой, дисциплиной платежей и статусом кредитов в одном кабинете.">
+      Qarz yuklamasi, to'lov intizomi va kredit holatini bitta kabinet ko'rinishida kuzating.
+    </p>
+  </header>
+
+  <main class="history-shell">
+    <section class="history-hero-panel">
+      <div class="history-score-ring" aria-label="Kredit bali">
+        <span id="historyScoreValue">742</span>
+      </div>
+      <div>
+        <div class="section-label" data-uz="Demo kabinet" data-ru="Демо-кабинет">Demo kabinet</div>
+        <h2 id="historyScoreTitle">Yaxshi kredit profili</h2>
+        <p id="historyScoreText">
+          To'lov intizomi yaxshi, qarz yuklamasi nazoratda. Real ma'lumot uchun foydalanuvchi roziligi va rasmiy integratsiya kerak.
+        </p>
+        <div class="history-actions">
+          <a href="calculator.html" class="btn-hero btn-hero-primary" data-uz="Kreditni hisoblash" data-ru="Рассчитать кредит">Kreditni hisoblash</a>
+          <a href="login.html" class="btn-hero btn-hero-ghost" data-uz="Kabinetga kirish" data-ru="Войти в кабинет">Kabinetga kirish</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="historyMetrics" class="history-grid" aria-live="polite"></section>
+
+    <section class="history-detail-grid">
+      <article class="history-card">
+        <h2 data-uz="Faol kreditlar" data-ru="Активные кредиты">Faol kreditlar</h2>
+        <div id="historyLoans"></div>
+      </article>
+      <article class="history-card">
+        <h2 data-uz="Oxirgi harakatlar" data-ru="Последние события">Oxirgi harakatlar</h2>
+        <div id="historyTimeline" class="history-timeline"></div>
+      </article>
+    </section>
+
+    <section class="history-note">
+      <strong data-uz="Muhim:" data-ru="Важно:">Muhim:</strong>
+      <span data-uz="bu sahifa hozircha B1 dizaynidagi demo kredit profili. Rasmiy kredit tarixini ko'rsatish uchun foydalanuvchi roziligi, identifikatsiya, bank yoki kredit byurosi API integratsiyasi va audit jurnali kerak bo'ladi."
+        data-ru="эта страница сейчас показывает демо-кредитный профиль в дизайне B1. Для официальной кредитной истории нужны согласие пользователя, идентификация, интеграция с банком или кредитным бюро и журнал аудита.">
+        bu sahifa hozircha B1 dizaynidagi demo kredit profili. Rasmiy kredit tarixini ko'rsatish uchun foydalanuvchi roziligi, identifikatsiya, bank yoki kredit byurosi API integratsiyasi va audit jurnali kerak bo'ladi.
+      </span>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma"
+          data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="XIZMATLAR" data-ru="УСЛУГИ">XIZMATLAR</div>
+        <a href="calculator.html" class="footer-link" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</a>
+        <a href="credit-history.html" class="footer-link" data-uz="Kredit tarixi" data-ru="Кредитная история">Kredit tarixi</a>
+        <a href="banks.html" class="footer-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+        <a href="cards.html" class="footer-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="PROFIL" data-ru="ПРОФИЛЬ">PROFIL</div>
+        <a href="login.html" class="footer-link" data-uz="Kabinetga kirish" data-ru="Войти в кабинет">Kabinetga kirish</a>
+        <a href="startups.html" class="footer-link" data-uz="Startaplar" data-ru="Стартапы">Startaplar</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="HUQUQIY" data-ru="ПРАВОВАЯ">HUQUQIY</div>
+        <a href="privacy.html" class="footer-link" data-uz="Maxfiylik siyosati" data-ru="Политика конфиденциальности">Maxfiylik siyosati</a>
+        <a href="terms.html" class="footer-link" data-uz="Foydalanish shartlari" data-ru="Условия использования">Foydalanish shartlari</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025-2026. B1 — Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script src="credit-history.js?v=20260826"></script>
+</body>
+
+</html>

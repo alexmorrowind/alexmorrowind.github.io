@@ -22,8 +22,28 @@
       line-height: 1.8;
       margin-bottom: 20px;
     }
+    .sitemap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .sitemap-link {
+      padding: 16px 18px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text-primary);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .sitemap-link:hover {
+      border-color: var(--blue-neon);
+      color: var(--blue-neon);
+    }
     @media(max-width:900px) {
       .content-section { padding: 0 24px 60px; }
+      .sitemap-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -51,7 +71,19 @@
     <p class="page-hero-desc" data-uz="Saytning to'liq sahifalar ro'yxati" data-ru="Полный список страниц сайта">Saytning to'liq sahifalar ro'yxati</p>
   </div>
   <div class="content-section">
-    <p data-uz="Ushbu bo'lim hozirda tayyorlanmoqda. Tez orada to'liq ma'lumot qo'shiladi." data-ru="Этот раздел находится в разработке. Полная информация появится в ближайшее время.">Ushbu bo'lim hozirda tayyorlanmoqda. Tez orada to'liq ma'lumot qo'shiladi.</p>
+    <p data-uz="B1 sahifalari va asosiy moliyaviy bo'limlar ro'yxati." data-ru="Список страниц B1 и ключевых финансовых разделов.">B1 sahifalari va asosiy moliyaviy bo'limlar ro'yxati.</p>
+    <div class="sitemap-grid">
+      <a href="landing.html" class="sitemap-link" data-uz="Bosh sahifa" data-ru="Главная">Bosh sahifa</a>
+      <a href="features.html" class="sitemap-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="services.html" class="sitemap-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="calculator.html" class="sitemap-link" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</a>
+      <a href="credit-history.html" class="sitemap-link" data-uz="Kredit tarixi" data-ru="Кредитная история">Kredit tarixi</a>
+      <a href="banks.html" class="sitemap-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="cards.html" class="sitemap-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
+      <a href="startups.html" class="sitemap-link" data-uz="Startaplar" data-ru="Стартапы">Startaplar</a>
+      <a href="blog.html" class="sitemap-link" data-uz="Yangiliklar" data-ru="Новости">Yangiliklar</a>
+      <a href="help.html" class="sitemap-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+    </div>
     <p data-uz="Savollar uchun bizga murojaat qiling: <strong>+998 50 909 72 97</strong>" data-ru="По вопросам обращайтесь: <strong>+998 50 909 72 97</strong>">Savollar uchun bizga murojaat qiling: <strong>+998 50 909 72 97</strong></p>
   </div>
   <footer>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kredit kalkulyator — B1</title>
+  <link rel="icon" href="favicon.ico?v=20260826" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png?v=20260826">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260826">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .calculator-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px 88px;
+    }
+
+    .calculator-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 22px;
+      padding: 8px;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.04);
+    }
+
+    .calculator-tab {
+      min-height: 46px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    .calculator-tab.active {
+      background: #fff;
+      color: var(--text-primary);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .calculator-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .calculator-panel,
+    .calculator-results,
+    .calculator-help,
+    .bank-rate-strip {
+      border: 1.5px solid rgba(59, 130, 246, 0.12);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .calculator-panel {
+      padding: 28px;
+    }
+
+    .calculator-field {
+      margin-bottom: 22px;
+    }
+
+    .calculator-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .calculator-label span:last-child {
+      color: #ef4444;
+    }
+
+    .calculator-input,
+    .calculator-select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid rgba(59, 130, 246, 0.18);
+      border-radius: 10px;
+      background: #f8fbff;
+      color: var(--text-primary);
+      font: inherit;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .calculator-input:focus,
+    .calculator-select:focus {
+      border-color: var(--blue-neon);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .term-row,
+    .method-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .term-row {
+      grid-template-columns: minmax(90px, 1fr) 1fr 0.8fr;
+    }
+
+    .method-row {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .choice-button {
+      min-height: 48px;
+      border: 1px solid rgba(59, 130, 246, 0.16);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    .choice-button.active {
+      border-color: var(--blue-neon);
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+    }
+
+    .calculator-submit {
+      display: inline-flex;
+      width: 100%;
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--grad-primary);
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+    }
+
+    .calculator-results {
+      min-height: 100%;
+      padding: 28px;
+    }
+
+    .result-empty {
+      display: grid;
+      min-height: 420px;
+      place-items: center;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .result-empty-icon,
+    .history-score-ring {
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--blue-neon);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .result-empty-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .result-metric {
+      padding: 16px;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .result-metric strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--blue-neon);
+      font-family: var(--font-display);
+      font-size: 24px;
+      line-height: 1.05;
+    }
+
+    .result-metric span {
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .income-note {
+      margin-bottom: 22px;
+      padding: 16px;
+      border: 1px solid rgba(5, 150, 105, 0.16);
+      border-radius: 12px;
+      background: rgba(5, 150, 105, 0.06);
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .income-note strong {
+      color: #059669;
+    }
+
+    .schedule-bars {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      min-height: 150px;
+      margin-bottom: 22px;
+      padding: 18px 14px 12px;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #f8fbff, #fff);
+    }
+
+    .schedule-bar {
+      display: grid;
+      gap: 8px;
+      align-items: end;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .schedule-bar-fill {
+      min-height: 18px;
+      border-radius: 8px 8px 4px 4px;
+      background: var(--grad-primary);
+    }
+
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+      padding: 11px 8px;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+      text-align: right;
+    }
+
+    .schedule-table th:first-child,
+    .schedule-table td:first-child {
+      text-align: left;
+    }
+
+    .schedule-table th {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .bank-rate-strip {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .bank-rate-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .bank-rate-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 22px;
+    }
+
+    .bank-rate-head p {
+      max-width: 520px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .bank-rate-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .bank-rate-chip {
+      min-width: 130px;
+      padding: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.14);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text-primary);
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+    }
+
+    .bank-rate-chip.active {
+      border-color: var(--blue-neon);
+      background: rgba(37, 99, 235, 0.07);
+    }
+
+    .bank-rate-chip strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--blue-neon);
+      font-size: 15px;
+    }
+
+    .bank-rate-chip span {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .calculator-help {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+      padding: 24px;
+    }
+
+    .calculator-help h2 {
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 20px;
+    }
+
+    .calculator-help p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    @media(max-width:980px) {
+      .calculator-shell {
+        padding-inline: 24px;
+      }
+
+      .calculator-layout,
+      .calculator-help {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:620px) {
+      .calculator-shell {
+        width: 100%;
+        max-width: 100vw;
+        padding-inline: 18px;
+      }
+
+      .calculator-panel,
+      .calculator-results,
+      .calculator-help,
+      .bank-rate-strip {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .calculator-panel,
+      .calculator-results {
+        padding: 20px;
+      }
+
+      .calculator-tabs,
+      .result-grid,
+      .term-row,
+      .method-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-rate-head {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="landing.html" class="nav-logo">
+      <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+      <span class="nav-logo-text">Doim birinchi bo'ling</span>
+    </a>
+    <div class="nav-links">
+      <a href="features.html" class="nav-link" data-uz="Imkoniyatlar" data-ru="Возможности">Imkoniyatlar</a>
+      <a href="services.html" class="nav-link" data-uz="Xizmatlar" data-ru="Услуги">Xizmatlar</a>
+      <a href="banks.html" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+      <a href="cards.html" class="nav-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
+      <a href="startups.html" class="nav-link" data-uz="Startap" data-ru="Стартап">Startap</a>
+      <a href="help.html" class="nav-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
+      <div class="lang-switcher">
+        <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
+        <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      </div>
+      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <div class="page-hero-label" data-uz="Kredit vositasi" data-ru="Кредитный инструмент">Kredit vositasi</div>
+    <h1 class="page-hero-title" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</h1>
+    <p class="page-hero-desc"
+      data-uz="Bank yoki MFI kreditini hisoblang: oylik to'lov, jami to'lov, ortiqcha to'lov va daromad bo'yicha tavsiya."
+      data-ru="Рассчитайте банковский или MFI-кредит: ежемесячный платёж, общую сумму, переплату и рекомендуемый доход.">
+      Bank yoki MFI kreditini hisoblang: oylik to'lov, jami to'lov, ortiqcha to'lov va daromad bo'yicha tavsiya.
+    </p>
+  </header>
+
+  <main class="calculator-shell">
+    <div class="calculator-tabs" role="tablist" aria-label="Kredit turi">
+      <button type="button" class="calculator-tab active" data-loan-kind="bank" data-uz="Bank kalkulyator"
+        data-ru="Банковский калькулятор">Bank kalkulyator</button>
+      <button type="button" class="calculator-tab" data-loan-kind="mfi" data-uz="MFI kalkulyator"
+        data-ru="MFI калькулятор">MFI kalkulyator</button>
+    </div>
+
+    <section class="calculator-layout">
+      <form id="loanCalculatorForm" class="calculator-panel">
+        <div class="calculator-field">
+          <label class="calculator-label" for="loanBank">
+            <span data-uz="Bank" data-ru="Банк">Bank</span>
+            <span>*</span>
+          </label>
+          <select id="loanBank" class="calculator-select"></select>
+        </div>
+
+        <div class="calculator-field">
+          <label class="calculator-label" for="loanAmount">
+            <span data-uz="Kredit summasi (UZS)" data-ru="Сумма кредита (UZS)">Kredit summasi (UZS)</span>
+            <span>*</span>
+          </label>
+          <input id="loanAmount" class="calculator-input" inputmode="numeric" value="10000000" autocomplete="off">
+        </div>
+
+        <div class="calculator-field">
+          <label class="calculator-label" for="loanRate">
+            <span data-uz="Yillik foiz stavkasi" data-ru="Годовая ставка">Yillik foiz stavkasi</span>
+            <span>*</span>
+          </label>
+          <input id="loanRate" class="calculator-input" type="number" min="0" step="0.1" value="24">
+        </div>
+
+        <div class="calculator-field">
+          <label class="calculator-label" for="loanTerm">
+            <span data-uz="Muddat" data-ru="Срок">Muddat</span>
+            <span>*</span>
+          </label>
+          <div class="term-row">
+            <input id="loanTerm" class="calculator-input" type="number" min="1" value="12">
+            <button type="button" class="choice-button active" data-term-unit="months" data-uz="oy" data-ru="месяцев">oy</button>
+            <button type="button" class="choice-button" data-term-unit="years" data-uz="yil" data-ru="лет">yil</button>
+          </div>
+        </div>
+
+        <div class="calculator-field">
+          <label class="calculator-label">
+            <span data-uz="Hisoblash usuli" data-ru="Метод расчёта">Hisoblash usuli</span>
+            <span>*</span>
+          </label>
+          <div class="method-row">
+            <button type="button" class="choice-button active" data-method="annuity" data-uz="Annuitet" data-ru="Аннуитетный">Annuitet</button>
+            <button type="button" class="choice-button" data-method="differentiated" data-uz="Differensial" data-ru="Дифференцированный">Differensial</button>
+          </div>
+        </div>
+
+        <button type="submit" class="calculator-submit">
+          <span aria-hidden="true">▦</span>
+          <span data-uz="Hisoblash" data-ru="Рассчитать">Hisoblash</span>
+        </button>
+      </form>
+
+      <section id="calculatorResults" class="calculator-results" aria-live="polite">
+        <div class="result-empty">
+          <div>
+            <div class="result-empty-icon">▦</div>
+            <h2 data-uz="Hisoblashga tayyor" data-ru="Готовы к расчёту">Hisoblashga tayyor</h2>
+            <p data-uz="Parametrlarni kiriting va natijani ko'ring."
+              data-ru="Введите параметры и посмотрите результат.">Parametrlarni kiriting va natijani ko'ring.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="bank-rate-strip">
+      <div class="bank-rate-head">
+        <div>
+          <h2 data-uz="10 bank bo'yicha tez tanlov" data-ru="Быстрый выбор по 10 банкам">10 bank bo'yicha tez tanlov</h2>
+          <p data-uz="Bu stavkalar demo hisoblash uchun taxminiy preset. Rasmiy shartni bank saytida tekshiring."
+            data-ru="Это примерные пресеты для демо-расчёта. Официальные условия проверяйте на сайте банка.">
+            Bu stavkalar demo hisoblash uchun taxminiy preset. Rasmiy shartni bank saytida tekshiring.
+          </p>
+        </div>
+        <a href="banks.html" class="news-card-link" data-uz="Bank katalogi" data-ru="Каталог банков">Bank katalogi →</a>
+      </div>
+      <div id="bankRateList" class="bank-rate-list" aria-label="Bank rate presets"></div>
+    </section>
+
+    <section class="calculator-help">
+      <div>
+        <h2 data-uz="Kredit tarixi bilan bog'lang" data-ru="Свяжите с кредитной историей">Kredit tarixi bilan bog'lang</h2>
+        <p data-uz="Kredit yuki va to'lov intizomini ko'rish uchun B1 kredit tarixi sahifasini oching. Hozircha bu demo ko'rinish, real ma'lumot uchun rasmiy integratsiya va rozilik kerak."
+          data-ru="Откройте страницу кредитной истории, чтобы увидеть нагрузку и дисциплину платежей. Сейчас это демо, для реальных данных нужна официальная интеграция и согласие.">
+          Kredit yuki va to'lov intizomini ko'rish uchun B1 kredit tarixi sahifasini oching. Hozircha bu demo ko'rinish, real ma'lumot uchun rasmiy integratsiya va rozilik kerak.
+        </p>
+      </div>
+      <div>
+        <h2 data-uz="Bank qarori alohida" data-ru="Решение принимает банк">Bank qarori alohida</h2>
+        <p data-uz="Kalkulyator sizga taxminiy jadval beradi. Kreditni tasdiqlash, limit, hujjatlar va komissiyalar bank yoki MFI tomonida belgilanadi."
+          data-ru="Калькулятор даёт ориентировочный график. Одобрение, лимит, документы и комиссии определяет банк или MFI.">
+          Kalkulyator sizga taxminiy jadval beradi. Kreditni tasdiqlash, limit, hujjatlar va komissiyalar bank yoki MFI tomonida belgilanadi.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo">
+          <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
+          <span class="footer-logo-text">Doim birinchi bo'ling</span>
+        </div>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma"
+          data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="XIZMATLAR" data-ru="УСЛУГИ">XIZMATLAR</div>
+        <a href="calculator.html" class="footer-link" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</a>
+        <a href="credit-history.html" class="footer-link" data-uz="Kredit tarixi" data-ru="Кредитная история">Kredit tarixi</a>
+        <a href="banks.html" class="footer-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
+        <a href="cards.html" class="footer-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="STARTAP" data-ru="СТАРТАП">STARTAP</div>
+        <a href="startups.html" class="footer-link" data-uz="Startaplar" data-ru="Стартапы">Startaplar</a>
+        <a href="startup-create.html" class="footer-link" data-uz="Startap qo'shish" data-ru="Добавить стартап">Startap qo'shish</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-uz="HUQUQIY" data-ru="ПРАВОВАЯ">HUQUQIY</div>
+        <a href="privacy.html" class="footer-link" data-uz="Maxfiylik siyosati" data-ru="Политика конфиденциальности">Maxfiylik siyosati</a>
+        <a href="terms.html" class="footer-link" data-uz="Foydalanish shartlari" data-ru="Условия использования">Foydalanish shartlari</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025-2026. B1 — Doim birinchi bo'ling</span>
+      <div class="footer-address" data-uz="Toshkent, Yunusobod" data-ru="Ташкент, Юнусабад">Toshkent, Yunusobod</div>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script src="public-data.js?v=20260826"></script>
+  <script src="calculator.js?v=20260826"></script>
+</body>
+
+</html>
