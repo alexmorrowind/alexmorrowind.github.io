@@ -1,4 +1,11 @@
 (function () {
+  const newsImage = {
+    credit: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=1200&q=80',
+    startup: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1200&q=80',
+    payments: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=80',
+    map: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80',
+  };
+
   const banks = [
     {
       id: 'nbu',
@@ -245,6 +252,7 @@
       content_uz: 'B1 bankni profil sifatida ko‘rsatadi: rasmiy sayt, manzil, mahsulotlar va manbalar. Yakuniy qaror bank tomonida qabul qilinadi, foydalanuvchi esa qayerga o‘tayotganini aniq ko‘radi.',
       category: 'guides',
       category_label: 'Qo‘llanma',
+      image_url: newsImage.credit,
       source_name: 'B1 tahlili',
       source_url: 'https://cbu.uz/en/credit-organizations/banks/head-offices/',
       published_at: '2026-08-25T09:00:00+05:00',
@@ -263,6 +271,7 @@
       content_uz: 'Startap bo‘limi loyihalar katalogi va loyiha sahifasidan boshlanadi. Keyingi bosqich: yuridik tekshiruv, hujjatlar, to‘lov integratsiyasi va investor arizalari.',
       category: 'analysis',
       category_label: 'Startap',
+      image_url: newsImage.startup,
       source_name: 'B1 roadmap',
       source_url: 'startups.html',
       published_at: '2026-08-25T08:30:00+05:00',
@@ -281,6 +290,7 @@
       content_uz: 'B1 allaqachon to‘lov buyurtmasini yaratishi mumkin. Foydalanuvchilar orasidagi o‘tkazmalar uchun Payme/Click hamkorlik ruxsati yoki bank API, limitlar, KYC va operatsiyalar jurnali kerak.',
       category: 'banks',
       category_label: 'Integratsiya',
+      image_url: newsImage.payments,
       source_name: 'B1 tahlili',
       source_url: 'services.html#tranzaksiyalar',
       published_at: '2026-08-24T18:20:00+05:00',
@@ -299,6 +309,7 @@
       content_uz: 'Bank sahifasida xarita asosiy ofisni ko‘rsatadi. Keyin filiallar, bankomatlar va xizmat bo‘yicha filtrlar qo‘shiladi.',
       category: 'banks',
       category_label: 'Banklar',
+      image_url: newsImage.map,
       source_name: 'B1 katalog',
       source_url: 'banks.html',
       published_at: '2026-08-24T12:00:00+05:00',

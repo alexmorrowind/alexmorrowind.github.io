@@ -38,12 +38,82 @@
       : String(item || '');
   }
 
+  function safeUrl(value) {
+    try {
+      const url = new URL(value);
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function hostFromUrl(value) {
+    try {
+      return new URL(value).hostname.replace(/^www\./, '');
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function logoSources(bank) {
+    const website = safeUrl(bank.website_url);
+    const host = hostFromUrl(website);
+    return [
+      bank.logo_url,
+      bank.logoUrl,
+      host ? `https://${host}/favicon.ico` : '',
+      host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '',
+    ].map(safeUrl).filter((value, index, list) => value && list.indexOf(value) === index);
+  }
+
+  function bindLogoFallbacks(root) {
+    root.querySelectorAll('img[data-logo-sources]').forEach(img => {
+      img.addEventListener('error', () => {
+        let sources = [];
+        try {
+          sources = JSON.parse(img.dataset.logoSources || '[]');
+        } catch (error) {
+          sources = [];
+        }
+        const nextIndex = Number(img.dataset.logoIndex || 0) + 1;
+        if (sources[nextIndex]) {
+          img.dataset.logoIndex = String(nextIndex);
+          img.src = sources[nextIndex];
+          return;
+        }
+        img.style.display = 'none';
+        if (img.nextElementSibling) img.nextElementSibling.style.display = 'grid';
+      });
+    });
+  }
+
+  function normalizeBank(bank) {
+    return {
+      ...bank,
+      id: bank.id ?? bank.slug ?? bank.abbr,
+      name: bank.name || bank.name_uz || bank.abbr || 'B1 Bank',
+      name_uz: bank.name_uz || bank.name || bank.abbr || 'B1 Bank',
+      abbr: bank.abbr || bank.logo || 'B1',
+      type: bank.type || (bank.ownership_type === 'foreign' ? 'international' : 'traditional'),
+      products: Array.isArray(bank.products) ? bank.products : [],
+      services: Array.isArray(bank.services) ? bank.services : [],
+      isRecommended: Boolean(bank.isRecommended || bank.is_recommended),
+    };
+  }
+
+  function normalizeBanks(list) {
+    return Array.isArray(list) ? list.map(normalizeBank) : [];
+  }
+
   function bankValues(bank) {
     return [
       bank.name,
       bank.name_uz,
       bank.abbr,
       bank.type,
+      bank.ownership_type,
+      bank.description,
+      bank.description_uz,
       ...(bank.products || []).map(itemText),
       ...(bank.services || []).map(itemText),
     ].filter(Boolean).join(' ').toLocaleLowerCase();
@@ -56,18 +126,12 @@
   }
 
   function bankLogo(bank) {
-    let favicon = '';
-    try {
-      const website = new URL(bank.website_url);
-      favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(website.hostname)}&sz=128`;
-    } catch (error) {
-      favicon = '';
-    }
-    const source = bank.logo_url || favicon;
+    const sources = logoSources(bank);
+    const source = sources[0] || '';
     const fallback = escapeHtml(bank.logo || bank.abbr || 'B1');
     const color = escapeHtml(bank.color || '#2563eb');
     return `${source
-      ? `<img src="${escapeHtml(source)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`
+      ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(bank.name)} logo" loading="lazy" data-logo-index="0" data-logo-sources="${escapeHtml(JSON.stringify(sources))}">`
       : ''}<span style="display:${source ? 'none' : 'grid'};background:${color}">${fallback}</span>`;
   }
 
@@ -124,6 +188,7 @@
       </a>
     `;
     }).join('');
+    bindLogoFallbacks(grid);
 
     if (empty) empty.hidden = Boolean(banks.length);
   }
@@ -158,11 +223,12 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const banks = await response.json();
       if (!Array.isArray(banks) || !banks.length) throw new Error('Empty bank catalogue');
-      allBanks = banks;
+      allBanks = normalizeBanks(banks);
     } catch (error) {
       console.warn('Public bank catalog API unavailable. Using the published fallback.', error);
-      allBanks = Array.isArray(window.B1_PUBLIC_BANKS) ? window.B1_PUBLIC_BANKS : [];
+      allBanks = normalizeBanks(window.B1_PUBLIC_BANKS);
     }
+    if (!allBanks.length) allBanks = normalizeBanks(window.B1_PUBLIC_BANKS);
     renderBanks();
   }
 

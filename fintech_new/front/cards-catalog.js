@@ -27,6 +27,14 @@
     }
   }
 
+  function hostFromUrl(value) {
+    try {
+      return new URL(value).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  }
+
   function banks() {
     return Array.isArray(window.B1_PUBLIC_BANKS) ? window.B1_PUBLIC_BANKS : [];
   }
@@ -50,16 +58,51 @@
   function faviconUrl(bank) {
     const website = safeUrl(bank?.website_url);
     if (!website) return '';
-    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(website).hostname)}&sz=128`;
+    const host = hostFromUrl(website);
+    return host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '';
+  }
+
+  function logoSources(bank) {
+    const website = safeUrl(bank?.website_url);
+    const host = hostFromUrl(website);
+    return [
+      bank?.logo_url,
+      bank?.logoUrl,
+      host ? `https://${host}/favicon.ico` : '',
+      faviconUrl(bank),
+    ].map(safeUrl).filter((value, index, list) => value && list.indexOf(value) === index);
+  }
+
+  function bindLogoFallbacks(root) {
+    if (!root) return;
+    root.querySelectorAll('img[data-logo-sources]').forEach(img => {
+      img.addEventListener('error', () => {
+        let sources = [];
+        try {
+          sources = JSON.parse(img.dataset.logoSources || '[]');
+        } catch {
+          sources = [];
+        }
+        const nextIndex = Number(img.dataset.logoIndex || 0) + 1;
+        if (sources[nextIndex]) {
+          img.dataset.logoIndex = String(nextIndex);
+          img.src = sources[nextIndex];
+          return;
+        }
+        img.style.display = 'none';
+        if (img.nextElementSibling) img.nextElementSibling.style.display = 'grid';
+      });
+    });
   }
 
   function logoMarkup(bank, className) {
-    const source = safeUrl(bank?.logo_url) || faviconUrl(bank);
+    const sources = logoSources(bank);
+    const source = sources[0] || '';
     const fallback = escapeHtml(bank?.logo || bank?.abbr || 'B1');
     const color = escapeHtml(bank?.color || '#2563eb');
     return `
       <span class="${className}" style="background:${color}">
-        ${source ? `<img src="${escapeHtml(source)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">` : ''}
+        ${source ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(bank?.name || 'Bank')} logo" loading="lazy" data-logo-index="0" data-logo-sources="${escapeHtml(JSON.stringify(sources))}">` : ''}
         <span style="display:${source ? 'none' : 'grid'}">${fallback}</span>
       </span>
     `;
@@ -120,6 +163,7 @@
         </a>
       `;
     }).join('') : `<div class="cards-state">${text('Bank topilmadi.', 'Банк не найден.')}</div>`;
+    bindLogoFallbacks(root);
   }
 
   function renderBankCardsPage() {
@@ -139,6 +183,7 @@
       ? (bank.description || 'Карточные продукты банка собраны в одном каталоге.')
       : (bank.description_uz || bank.description || 'Bankning karta mahsulotlari bitta katalogda jamlandi.');
     document.getElementById('bankCardsBrand').innerHTML = logoMarkup(bank, 'cards-detail-bank-logo');
+    bindLogoFallbacks(document.getElementById('bankCardsBrand'));
     const official = document.getElementById('bankCardsOfficial');
     if (official && website) {
       official.href = website;
@@ -180,6 +225,7 @@
     document.getElementById('cardDetailAvailability').textContent = text('Bank bilan tekshiriladi', 'Уточняется у банка');
     document.getElementById('cardDetailDescription').textContent = localized(card, 'description');
     document.getElementById('cardDetailBankLogo').innerHTML = logoMarkup(bank, 'cards-detail-bank-logo');
+    bindLogoFallbacks(document.getElementById('cardDetailBankLogo'));
     document.getElementById('cardDetailFeatures').innerHTML = (card.features || []).map(feature => `<li>${escapeHtml(feature)}</li>`).join('');
     const official = document.getElementById('cardDetailOfficial');
     if (official && website) {

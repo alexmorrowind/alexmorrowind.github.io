@@ -12,31 +12,49 @@
       : String(item || '');
   }
 
+  async function loadJson(path) {
+    if (!apiBase) return null;
+    const response = await fetch(`${apiBase}${path}`, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`${path} request failed: ${response.status}`);
+    return response.json();
+  }
+
+  function fallbackBanks() {
+    return Array.isArray(window.B1_PUBLIC_BANKS) ? window.B1_PUBLIC_BANKS : [];
+  }
+
+  function fallbackNews() {
+    return Array.isArray(window.B1_PUBLIC_NEWS) ? window.B1_PUBLIC_NEWS : [];
+  }
+
+  function renderSnapshot(banks, news) {
+    const values = new Set();
+    let mapped = 0;
+    banks.forEach(bank => {
+      [...(bank.products || []), ...(bank.services || [])].forEach(item => {
+        const value = itemText(item);
+        if (value) values.add(value);
+      });
+      if (Number.isFinite(Number(bank.latitude)) && Number.isFinite(Number(bank.longitude))) mapped += 1;
+    });
+    setValue('landingBankCount', banks.length);
+    setValue('landingProductCount', `${values.size}+`);
+    setValue('landingMappedCount', mapped);
+    setValue('landingNewsCount', Array.isArray(news) ? news.length : 0);
+  }
+
   async function loadSnapshot() {
-    if (!apiBase) return;
     try {
       const [banksResponse, newsResponse] = await Promise.all([
-        fetch(`${apiBase}/banks/`, { headers: { Accept: 'application/json' } }),
-        fetch(`${apiBase}/news/?limit=30`, { headers: { Accept: 'application/json' } }),
+        loadJson('/banks/'),
+        loadJson('/news/?limit=30'),
       ]);
-      if (!banksResponse.ok) throw new Error(`Banks request failed: ${banksResponse.status}`);
-      const banks = await banksResponse.json();
-      const news = newsResponse.ok ? await newsResponse.json() : [];
-      const values = new Set();
-      let mapped = 0;
-      banks.forEach(bank => {
-        [...(bank.products || []), ...(bank.services || [])].forEach(item => {
-          const value = itemText(item);
-          if (value) values.add(value);
-        });
-        if (Number.isFinite(Number(bank.latitude)) && Number.isFinite(Number(bank.longitude))) mapped += 1;
-      });
-      setValue('landingBankCount', banks.length);
-      setValue('landingProductCount', `${values.size}+`);
-      setValue('landingMappedCount', mapped);
-      setValue('landingNewsCount', Array.isArray(news) ? news.length : 0);
+      const banks = Array.isArray(banksResponse) && banksResponse.length ? banksResponse : fallbackBanks();
+      const news = Array.isArray(newsResponse) && newsResponse.length ? newsResponse : fallbackNews();
+      renderSnapshot(banks, news);
     } catch (error) {
       console.warn('B1 landing snapshot unavailable:', error);
+      renderSnapshot(fallbackBanks(), fallbackNews());
     }
   }
 

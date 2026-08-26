@@ -348,6 +348,10 @@ footer {
   transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
 }
 
+.news-card a {
+  text-decoration: none;
+}
+
 .news-card:hover {
   transform: translateY(-3px);
   border-color: var(--border-glow);
@@ -358,7 +362,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 170px;
+  height: 156px;
   overflow: hidden;
   background: linear-gradient(135deg, #e7f0ff, #f4f0ff);
   text-decoration: none;
@@ -454,8 +458,13 @@ footer {
 
 .news-source {
   overflow: hidden;
-  color: var(--text-muted);
-  font-size: 12px;
+  max-width: 42%;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--blue-neon);
+  font-size: 11px;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

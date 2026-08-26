@@ -47,24 +47,58 @@
     }
   }
 
+  function hostFromUrl(value) {
+    try {
+      return new URL(value).hostname.replace(/^www\./, '');
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function logoSources(bank) {
+    const website = safeUrl(bank.website_url);
+    const host = hostFromUrl(website);
+    return [
+      bank.logo_url,
+      bank.logoUrl,
+      host ? `https://${host}/favicon.ico` : '',
+      host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '',
+    ].map(safeUrl).filter((value, index, list) => value && list.indexOf(value) === index);
+  }
+
+  function bindLogoFallbacks(root) {
+    root.querySelectorAll('img[data-logo-sources]').forEach(img => {
+      img.addEventListener('error', () => {
+        let sources = [];
+        try {
+          sources = JSON.parse(img.dataset.logoSources || '[]');
+        } catch (error) {
+          sources = [];
+        }
+        const nextIndex = Number(img.dataset.logoIndex || 0) + 1;
+        if (sources[nextIndex]) {
+          img.dataset.logoIndex = String(nextIndex);
+          img.src = sources[nextIndex];
+          return;
+        }
+        img.style.display = 'none';
+        if (img.nextElementSibling) img.nextElementSibling.style.display = 'grid';
+      });
+    });
+  }
+
   function setText(selector, value) {
     const node = document.querySelector(selector);
     if (node) node.textContent = value;
   }
 
   function bankLogo(bank) {
-    let favicon = '';
-    try {
-      const website = new URL(bank.website_url);
-      favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(website.hostname)}&sz=128`;
-    } catch (error) {
-      favicon = '';
-    }
-    const source = bank.logo_url || favicon;
+    const sources = logoSources(bank);
+    const source = sources[0] || '';
     const fallback = escapeHtml(bank.logo || bank.abbr || 'B1');
     const color = escapeHtml(bank.color || '#2563eb');
     return `${source
-      ? `<img src="${escapeHtml(source)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">`
+      ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(bank.name)} logo" data-logo-index="0" data-logo-sources="${escapeHtml(JSON.stringify(sources))}">`
       : ''}<span style="display:${source ? 'none' : 'grid'};background:${color}">${fallback}</span>`;
   }
 
@@ -151,6 +185,7 @@
     if (logo) {
       logo.style.background = bank.color || '#2563eb';
       logo.innerHTML = bankLogo(bank);
+      bindLogoFallbacks(logo);
     }
 
     const primaryAction = document.getElementById('bankDetailPrimaryAction');

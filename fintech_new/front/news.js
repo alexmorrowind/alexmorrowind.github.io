@@ -1,4 +1,15 @@
 (function () {
+  const NEWS_IMAGES = {
+    guides: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=1200&q=80',
+    analysis: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1200&q=80',
+    banks: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=80',
+    markets: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
+    regulation: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80',
+    news: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+    startups: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=80',
+    payments: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1200&q=80',
+  };
+
   function apiBaseUrl() {
     if (window.B1_API_BASE_URL) return window.B1_API_BASE_URL.replace(/\/$/, '');
     const host = window.location.hostname;
@@ -35,6 +46,27 @@
     }
   }
 
+  function categoryLabel(article) {
+    const labels = {
+      guides: ['Qo‘llanma', 'Гайд'],
+      analysis: ['Tahlil', 'Аналитика'],
+      banks: ['Banklar', 'Банки'],
+      markets: ['Bozor', 'Рынки'],
+      regulation: ['Tartibga solish', 'Регулирование'],
+      news: ['Yangiliklar', 'Новости'],
+    };
+    const fallback = language() === 'ru' ? 'Новости' : 'Yangiliklar';
+    return labels[article.category]?.[language() === 'ru' ? 1 : 0] || article.category_label || fallback;
+  }
+
+  function imageForArticle(article) {
+    if (article.image_url) return article.image_url;
+    const slug = String(article.slug || article.id || '').toLowerCase();
+    if (slug.includes('startup')) return NEWS_IMAGES.startups;
+    if (slug.includes('payme') || slug.includes('click') || slug.includes('transfer')) return NEWS_IMAGES.payments;
+    return NEWS_IMAGES[article.category] || NEWS_IMAGES.news;
+  }
+
   function articleHref(article) {
     return article.slug ? `news-article.html?slug=${encodeURIComponent(article.slug)}` : 'blog.html';
   }
@@ -61,8 +93,9 @@
   function articleCard(article, compact) {
     const title = escapeHtml(article.display_title || article.title);
     const excerpt = escapeHtml(article.display_excerpt || article.excerpt);
-    const image = article.image_url
-      ? `<img src="${escapeHtml(article.image_url)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('news-media-empty');this.remove()">`
+    const imageSrc = imageForArticle(article);
+    const image = imageSrc
+      ? `<img src="${escapeHtml(imageSrc)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('news-media-empty');this.remove()">`
       : '';
     const source = escapeHtml(article.source_name || 'B1');
     const href = articleHref(article);
@@ -74,7 +107,7 @@
         </a>
         <div class="news-card-body">
           <div class="news-card-meta">
-            <span>${escapeHtml(article.category_label || (language() === 'ru' ? 'Новости' : 'Yangiliklar'))}</span>
+            <span>${escapeHtml(categoryLabel(article))}</span>
             <time datetime="${escapeHtml(article.published_at || '')}">${formatDate(article.published_at)}</time>
           </div>
           <h3><a href="${href}">${title}</a></h3>
@@ -167,8 +200,9 @@
       ? (article.display_content || article.content || article.display_excerpt || article.excerpt)
       : (article.display_excerpt || article.excerpt);
     const content = escapeHtml(readerText);
-    const image = article.image_url
-      ? `<img class="news-article-image" src="${escapeHtml(article.image_url)}" alt="" onerror="this.remove()">`
+    const imageSrc = imageForArticle(article);
+    const image = imageSrc
+      ? `<img class="news-article-image" src="${escapeHtml(imageSrc)}" alt="" onerror="this.remove()">`
       : '<div class="news-article-fallback">B1</div>';
     const href = sourceHref(article);
     const external = /^https?:\/\//i.test(href);
@@ -178,7 +212,7 @@
       <a class="news-article-back" href="blog.html">← ${language() === 'ru' ? 'Все новости' : 'Barcha yangiliklar'}</a>
       <article class="news-article-card">
         <div class="news-article-meta">
-          <span>${escapeHtml(article.category_label || (language() === 'ru' ? 'Новости' : 'Yangiliklar'))}</span>
+          <span>${escapeHtml(categoryLabel(article))}</span>
           <time datetime="${escapeHtml(article.published_at || '')}">${formatDate(article.published_at)}</time>
           <span>${escapeHtml(article.source_name || 'B1')}</span>
         </div>
