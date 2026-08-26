@@ -20,9 +20,11 @@ from .integrations import (
     payme_subscribe_rpc,
     send_registration_sms,
     start_myid_authentication,
+    octo_p2p_status,
+    submit_octo_p2p_transfer,
     get_config,
 )
-from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, PaymeTransaction, Startup, UserProfile
+from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, UserProfile
 
 from .serializers import (
     BankSerializer,
@@ -30,9 +32,13 @@ from .serializers import (
     LegalEntityProfileSerializer,
     NewsArticleSerializer,
     OrderSerializer,
+    P2PTransferCreateSerializer,
+    P2PTransferSerializer,
     RegisterSerializer,
     StartupPublicSerializer,
     StartupSerializer,
+    mask_card_or_phone,
+    recipient_type_for,
 )
 
 PAYME_ERRORS = {
@@ -89,6 +95,7 @@ SECRET_CONFIG_KEYS = {
     'MYID_PASSWORD',
     'SMS_PROVIDER_TOKEN',
     'DJANGO_SECRET_KEY',
+    'OCTO_SECRET_KEY',
 }
 PAYME_CHECKOUT_REQUIRED_KEYS = [
     'PAYME_MERCHANT_ID',
@@ -105,6 +112,8 @@ CONFIG_DEFAULTS = {
     'PAYME_CHECKOUT_URL': 'https://checkout.paycom.uz',
     'PAYME_SUBSCRIBE_BASE_URL': 'https://checkout.paycom.uz/api',
     'PAYME_ACCOUNT_KEY': 'Bpay',
+    'OCTO_API_BASE_URL': 'https://secure.octo.uz',
+    'OCTO_P2P_ENABLED': 'false',
 }
 PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
@@ -922,6 +931,17 @@ class IntegrationStatusView(APIView):
                 'PAYME_SUBSCRIBE_KEY',
                 'PAYME_SUBSCRIBE_BASE_URL',
             ]),
+            'octo_p2p': {
+                **config_group_status([
+                    'OCTO_P2P_ENABLED',
+                    'OCTO_SECRET_KEY',
+                    'OCTO_SHOP_ID',
+                    'OCTO_P2P_ENDPOINT',
+                    'OCTO_API_BASE_URL',
+                ]),
+                'runtime': octo_p2p_status(),
+                'note': 'Public Octo docs cover merchant acquiring; P2P requires OCTO Money Transfer activation.',
+            },
             'sms': config_group_status([
                 'SMS_DEMO_MODE',
                 'SMS_DEMO_CODE',
@@ -1382,6 +1402,59 @@ class CardDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Card.DoesNotExist:
             return Response({"error": "Card not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class OctoP2PTransferView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        transfers = P2PTransfer.objects.filter(user=request.user).order_by('-created_at')[:50]
+        return Response(P2PTransferSerializer(transfers, many=True).data)
+
+    def post(self, request):
+        serializer = P2PTransferCreateSerializer(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        source_card = serializer.validated_data.get('source_card_id')
+        recipient = serializer.validated_data['recipient']
+        transfer = P2PTransfer.objects.create(
+            user=request.user,
+            source_card=source_card,
+            source_card_mask=mask_card_or_phone(source_card.number) if source_card else '',
+            recipient_mask=mask_card_or_phone(recipient),
+            recipient_type=recipient_type_for(recipient),
+            amount=serializer.validated_data['amount'],
+            currency=serializer.validated_data.get('currency', 'UZS'),
+            note=serializer.validated_data.get('note', ''),
+        )
+
+        try:
+            provider_result = submit_octo_p2p_transfer(transfer, recipient, source_card)
+        except Exception as exc:
+            transfer.status = 'failed'
+            transfer.provider_status = 'request_error'
+            transfer.error_message = str(exc)[:500]
+            transfer.provider_payload = {'error': str(exc)[:500]}
+            transfer.save(update_fields=['status', 'provider_status', 'error_message', 'provider_payload', 'updated_at'])
+            return Response(P2PTransferSerializer(transfer).data, status=status.HTTP_502_BAD_GATEWAY)
+
+        transfer.status = provider_result.get('status') or 'provider_not_connected'
+        transfer.provider_status = provider_result.get('provider_status', '')
+        transfer.provider_reference = provider_result.get('provider_reference', '')
+        transfer.provider_payload = provider_result.get('payload', {})
+        transfer.error_message = provider_result.get('message', '')
+        transfer.save(update_fields=[
+            'status',
+            'provider_status',
+            'provider_reference',
+            'provider_payload',
+            'error_message',
+            'updated_at',
+        ])
+
+        response_status = status.HTTP_201_CREATED if provider_result.get('sent') else status.HTTP_202_ACCEPTED
+        return Response(P2PTransferSerializer(transfer).data, status=response_status)
 
 
 class PaymeSubscribeCardCreateView(APIView):

@@ -1795,7 +1795,49 @@ function calculateLoan() {
     if (pctIntEl) pctIntEl.textContent = intPct + '%';
 }
 
+function transferCardLabel(card) {
+    const number = String(card?.number || '').trim();
+    const last4 = number.replace(/\D/g, '').slice(-4) || number.slice(-4) || 'B1';
+    return `${card?.name || card?.bank || 'B1 karta'} • ${last4}`;
+}
+
+function populateTransferSources() {
+    const select = document.getElementById('transferFrom');
+    if (!select) return;
+
+    const isUz = currentLang === 'uz';
+    const realCards = Array.isArray(globalUserCards) ? globalUserCards : [];
+    const realOptions = realCards.map(card => (
+        `<option value="card:${card.id}">${transferCardLabel(card)}</option>`
+    ));
+    const demoOptions = cardsData.slice(0, 3).map(card => (
+        `<option value="demo:${card.id}">${card.bank} ${card.name}</option>`
+    ));
+
+    select.innerHTML = [
+        `<option value="">${isUz ? 'B1 asosiy hisob' : 'Основной счёт B1'}</option>`,
+        ...realOptions,
+        ...demoOptions,
+    ].join('');
+}
+
+function setTransferResult(message = '', success = false) {
+    const result = document.getElementById('transferResult');
+    if (!result) return;
+    result.style.display = message ? 'block' : 'none';
+    result.classList.toggle('success', Boolean(success));
+    result.textContent = message;
+}
+
 function openTransferModal() {
+    populateTransferSources();
+    setTransferResult('');
+    const providerNote = document.getElementById('transferProviderNote');
+    if (providerNote) {
+        providerNote.textContent = currentLang === 'uz'
+            ? 'OCTO Money Transfer P2P orqali'
+            : 'Через OCTO Money Transfer P2P';
+    }
     openModal('transferModal');
 }
 
@@ -2060,21 +2102,68 @@ function investNow(id) { openApplicationModal('investor', id); }
 async function processTransfer() {
     const isUz = currentLang === 'uz';
     const to = document.getElementById('transferTo')?.value.trim();
-    const amount = Number(document.getElementById('transferAmount')?.value || 0);
+    const amount = parseUzsAmount(document.getElementById('transferAmount')?.value, 0);
+    const sourceValue = document.getElementById('transferFrom')?.value || '';
+    const sourceCardId = sourceValue.startsWith('card:') ? Number(sourceValue.slice(5)) : null;
+    const submitBtn = document.getElementById('transferSubmitBtn');
+    const originalText = submitBtn?.textContent || (isUz ? "O'tkazish" : 'Перевести');
 
     if (!to || amount <= 0) {
         showToast(isUz ? "Qabul qiluvchi va summani kiriting" : 'Введите получателя и сумму');
         return;
     }
 
-    const order = await createPaymeOrder({
-        purpose: 'transfer',
-        targetId: to,
-        amount: normalizePaymeAmount(amount),
-        description: `${isUz ? "O'tkazma" : 'Перевод'}: ${to}`,
-    });
-    showToast(isUz ? `✅ O'tkazma Payme order #${order.id}` : `✅ Перевод Payme order #${order.id}`);
-    closeModal('transferModal');
+    if (amount < 1000) {
+        showToast(isUz ? 'Minimal summa 1 000 UZS' : 'Минимальная сумма 1 000 UZS');
+        return;
+    }
+
+    try {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = isUz ? 'Yuborilmoqda...' : 'Отправляем...';
+        }
+        setTransferResult('');
+
+        const payload = {
+            recipient: to,
+            amount,
+            currency: 'UZS',
+            note: isUz ? "B1 P2P o'tkazmasi" : 'B1 P2P перевод',
+        };
+        if (sourceCardId) payload.source_card_id = sourceCardId;
+
+        const transfer = await apiRequest('/octo/p2p/transfers/', {
+            method: 'POST',
+            body: payload,
+        });
+
+        if (transfer.status === 'provider_not_connected') {
+            const message = isUz
+                ? `P2P so'rov #${transfer.id} saqlandi. Octo Money Transfer alohida aktivatsiya talab qiladi, shuning uchun pul hali yuborilmadi.`
+                : `P2P-заявка #${transfer.id} сохранена. Octo Money Transfer требует отдельной активации, поэтому деньги пока не отправлены.`;
+            setTransferResult(message, false);
+            showToast(isUz ? "So'rov saqlandi, Octo P2P aktivatsiya kerak" : 'Заявка сохранена, нужна активация Octo P2P');
+            return;
+        }
+
+        setTransferResult(isUz ? "P2P so'rov Octo'ga yuborildi" : 'P2P-заявка отправлена в Octo', true);
+        showToast(isUz ? "✅ O'tkazma yuborildi" : '✅ Перевод отправлен');
+        setTimeout(() => closeModal('transferModal'), 900);
+    } catch (error) {
+        console.error('P2P transfer error:', error);
+        const loginMissing = String(error?.message || '').includes('Auth token');
+        const message = loginMissing
+            ? (isUz ? "Avval tizimga kiring" : 'Сначала войдите в аккаунт')
+            : (isUz ? "P2P o'tkazmada xatolik yuz berdi" : 'Ошибка P2P-перевода');
+        setTransferResult(message, false);
+        showToast(message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
 }
 
 function openCardOffer() {

@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 
 from .admin import reset_users_to_temporary_passwords
 from .integrations import normalize_payme_subscribe_base_url
-from .models import APIConfiguration, Bank, Card, Investment, LegalEntityProfile, NewsArticle, Order, PaymeTransaction, Startup, UserProfile
+from .models import APIConfiguration, Bank, Card, Investment, LegalEntityProfile, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, UserProfile
 from .views import (
     PAYME_SANDBOX_ALIAS_TARGET_ID,
     PaymeWebhookView,
@@ -33,6 +33,15 @@ PAYME_ENV_KEYS = [
     'PAYME_SUBSCRIBE_BASE_URL',
 ]
 
+OCTO_ENV_KEYS = [
+    'OCTO_API_BASE_URL',
+    'OCTO_SECRET_KEY',
+    'OCTO_SHOP_ID',
+    'OCTO_MERCHANT_ID',
+    'OCTO_P2P_ENDPOINT',
+    'OCTO_P2P_ENABLED',
+]
+
 
 class ClearsPaymeEnvMixin:
     def setUp(self):
@@ -43,6 +52,22 @@ class ClearsPaymeEnvMixin:
 
     def tearDown(self):
         for key, value in self._payme_env_originals.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        super().tearDown()
+
+
+class ClearsOctoEnvMixin:
+    def setUp(self):
+        super().setUp()
+        self._octo_env_originals = {key: os.environ.get(key) for key in OCTO_ENV_KEYS}
+        for key in OCTO_ENV_KEYS:
+            os.environ.pop(key, None)
+
+    def tearDown(self):
+        for key, value in self._octo_env_originals.items():
             if value is None:
                 os.environ.pop(key, None)
             else:
@@ -249,6 +274,61 @@ class UserAdminPasswordResetTests(TestCase):
         self.assertTrue(user.check_password(temporary_password))
         self.assertFalse(user.check_password('Oldpass123'))
         self.assertNotEqual(user.password, temporary_password)
+
+
+class OctoP2PTransferApiTests(ClearsOctoEnvMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.create_user(
+            username='p2p-user@example.com',
+            email='p2p-user@example.com',
+            password='Testpass123',
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def test_transfer_is_saved_as_not_connected_without_p2p_contract(self):
+        card = Card.objects.create(
+            user=self.user,
+            number='8600123412345678',
+            expiry='12/28',
+            name='Kapitalbank test',
+        )
+
+        response = self.client.post('/api/octo/p2p/transfers/', {
+            'source_card_id': card.id,
+            'recipient': '8600111122223333',
+            'amount': 50000,
+            'currency': 'UZS',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['status'], 'provider_not_connected')
+        self.assertEqual(response.data['source_card_mask'], '860012******5678')
+        self.assertEqual(response.data['recipient_mask'], '860011******3333')
+        self.assertNotIn('recipient', response.data)
+        self.assertEqual(P2PTransfer.objects.count(), 1)
+
+    def test_transfer_requires_authentication(self):
+        client = APIClient()
+
+        response = client.post('/api/octo/p2p/transfers/', {
+            'recipient': '8600111122223333',
+            'amount': 50000,
+            'currency': 'UZS',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_transfer_rejects_invalid_recipient(self):
+        response = self.client.post('/api/octo/p2p/transfers/', {
+            'recipient': 'abc',
+            'amount': 50000,
+            'currency': 'UZS',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('recipient', response.data)
 
 
 class PaymeCheckoutUrlTests(TestCase):

@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -105,6 +107,50 @@ class PaymeTransaction(models.Model):
 
     def __str__(self):
         return f"Транзакция Payme {self.payme_id} (Cтатус: {self.state})"
+
+
+class P2PTransfer(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Черновик'),
+        ('provider_not_connected', 'Провайдер не подключен'),
+        ('pending', 'В обработке'),
+        ('success', 'Успешно'),
+        ('failed', 'Ошибка'),
+        ('canceled', 'Отменено'),
+    ]
+    RECIPIENT_TYPE_CHOICES = [
+        ('card', 'Карта'),
+        ('phone', 'Телефон'),
+        ('unknown', 'Неизвестно'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='p2p_transfers')
+    source_card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True, related_name='outgoing_transfers')
+    source_card_mask = models.CharField(max_length=32, blank=True, default='')
+    recipient_mask = models.CharField(max_length=32)
+    recipient_type = models.CharField(max_length=12, choices=RECIPIENT_TYPE_CHOICES, default='unknown')
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    currency = models.CharField(max_length=3, default='UZS')
+    provider = models.CharField(max_length=30, default='octo')
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default='provider_not_connected')
+    shop_transaction_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    provider_reference = models.CharField(max_length=120, blank=True, default='')
+    provider_status = models.CharField(max_length=60, blank=True, default='')
+    provider_payload = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True, default='')
+    note = models.CharField(max_length=180, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=('user', '-created_at')),
+            models.Index(fields=('status', '-created_at')),
+        ]
+
+    def __str__(self):
+        return f"P2P {self.provider} #{self.id or 'new'} — {self.amount} {self.currency} ({self.status})"
 
 
 
@@ -306,6 +352,13 @@ class APIConfiguration(models.Model):
         ('PAYME_SUBSCRIBE_ID', 'Payme Subscribe ID'),
         ('PAYME_SUBSCRIBE_KEY', 'Payme Subscribe Key'),
         ('PAYME_SUBSCRIBE_BASE_URL', 'Payme Subscribe Base URL'),
+        # Octo Money Transfer / P2P
+        ('OCTO_API_BASE_URL', 'Octo API Base URL'),
+        ('OCTO_SECRET_KEY', 'Octo Secret Key'),
+        ('OCTO_SHOP_ID', 'Octo Shop ID'),
+        ('OCTO_MERCHANT_ID', 'Octo Merchant ID'),
+        ('OCTO_P2P_ENDPOINT', 'Octo P2P Endpoint'),
+        ('OCTO_P2P_ENABLED', 'Octo P2P Enabled (true/false)'),
         # MyID
         ('MYID_BASE_URL', 'MyID Base URL'),
         ('MYID_CLIENT_ID', 'MyID Client ID'),

@@ -16,6 +16,8 @@ CONFIG_DEFAULTS = {
     'PAYME_CHECKOUT_URL': PAYME_PRODUCTION_CHECKOUT_URL,
     'PAYME_SUBSCRIBE_BASE_URL': PAYME_PRODUCTION_SUBSCRIBE_URL,
     'PAYME_ACCOUNT_KEY': 'Bpay',
+    'OCTO_API_BASE_URL': 'https://secure.octo.uz',
+    'OCTO_P2P_ENABLED': 'false',
 }
 
 
@@ -296,6 +298,74 @@ def _mask_card(number):
     if len(digits) < 10:
         return '****'
     return f"{digits[:6]}******{digits[-4:]}"
+
+
+def octo_p2p_status():
+    enabled = env_bool('OCTO_P2P_ENABLED', default=False)
+    has_secret = bool(get_config('OCTO_SECRET_KEY'))
+    has_endpoint = bool(get_config('OCTO_P2P_ENDPOINT'))
+    has_merchant = bool(get_config('OCTO_SHOP_ID') or get_config('OCTO_MERCHANT_ID'))
+    return {
+        'enabled': enabled,
+        'configured': enabled and has_secret and has_endpoint and has_merchant,
+        'missing': [
+            key for key, present in [
+                ('OCTO_P2P_ENABLED', enabled),
+                ('OCTO_SECRET_KEY', has_secret),
+                ('OCTO_P2P_ENDPOINT', has_endpoint),
+                ('OCTO_SHOP_ID', has_merchant),
+            ] if not present
+        ],
+        'product': 'OCTO Money Transfer',
+    }
+
+
+def create_octo_p2p_transfer_payload(transfer, recipient, source_card=None):
+    merchant_id = get_config('OCTO_SHOP_ID') or get_config('OCTO_MERCHANT_ID')
+    payload = {
+        'shop_transaction_id': str(transfer.shop_transaction_id),
+        'amount': str(transfer.amount),
+        'currency': transfer.currency,
+        'recipient': ''.join(ch for ch in str(recipient or '') if ch.isdigit()),
+        'merchant_id': merchant_id,
+        'description': transfer.note or 'B1 P2P transfer',
+    }
+    if source_card:
+        payload['source_card_id'] = source_card.id
+    return payload
+
+
+def submit_octo_p2p_transfer(transfer, recipient, source_card=None):
+    status_payload = octo_p2p_status()
+    if not status_payload['configured']:
+        return {
+            'sent': False,
+            'status': 'provider_not_connected',
+            'provider_status': 'not_configured',
+            'payload': status_payload,
+            'message': (
+                'OCTO Money Transfer needs a separate P2P contract/API endpoint. '
+                'The transfer request was saved but not sent to Octo.'
+            ),
+        }
+
+    endpoint = get_config('OCTO_P2P_ENDPOINT')
+    secret_key = get_config('OCTO_SECRET_KEY')
+    payload = create_octo_p2p_transfer_payload(transfer, recipient, source_card)
+    response = _post_json(
+        endpoint,
+        payload,
+        headers={'Authorization': f'Bearer {secret_key}'},
+        timeout=20,
+    )
+    return {
+        'sent': True,
+        'status': 'pending',
+        'provider_status': str(response.get('status') or response.get('state') or 'sent'),
+        'provider_reference': str(response.get('id') or response.get('transaction_id') or response.get('uuid') or ''),
+        'payload': response,
+        'message': 'Transfer request sent to Octo.',
+    }
 
 
 def _payme_subscribe_demo(method, params):

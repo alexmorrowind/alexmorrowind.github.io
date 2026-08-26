@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html, format_html_join
-from .models import APIConfiguration, Bank, UserProfile, Card, NewsArticle, Order, PaymeTransaction, Startup, Investment, KYCVerification
+from .models import APIConfiguration, Bank, UserProfile, Card, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, Investment, KYCVerification
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
@@ -193,6 +193,19 @@ class PaymeTransactionAdmin(admin.ModelAdmin):
     list_display = ('payme_id', 'order', 'amount', 'state', 'perform_time')
     search_fields = ('payme_id', 'order__id')
     list_filter = ('state',)
+
+
+@admin.register(P2PTransfer)
+class P2PTransferAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipient_mask', 'amount', 'currency', 'provider', 'status', 'created_at')
+    search_fields = ('user__username', 'recipient_mask', 'provider_reference', 'shop_transaction_id')
+    list_filter = ('provider', 'status', 'recipient_type')
+    readonly_fields = (
+        'user', 'source_card', 'source_card_mask', 'recipient_mask',
+        'recipient_type', 'amount', 'currency', 'provider', 'status',
+        'shop_transaction_id', 'provider_reference', 'provider_status',
+        'provider_payload', 'error_message', 'note', 'created_at', 'updated_at',
+    )
 
 
 @admin.register(Startup)

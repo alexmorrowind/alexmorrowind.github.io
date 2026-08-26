@@ -14,6 +14,7 @@ from .views import (
     MyIDStartView,
     NewsDetailView,
     NewsListView,
+    OctoP2PTransferView,
     PaymeCreateOrderView,
     PaymeDepositRatesView,
     PaymeSubscribeCardCodeView,
@@ -63,6 +64,7 @@ urlpatterns = [
     path('api/user/cards/', CardListView.as_view(), name='user_cards'),
     path('api/user/cards/<int:pk>/', CardDetailView.as_view(), name='user_card_detail'),
     path('api/user/orders/', UserOrdersView.as_view(), name='user_orders'),
+    path('api/octo/p2p/transfers/', OctoP2PTransferView.as_view(), name='octo_p2p_transfers'),
 
     # Юридическое лицо + MyID
     path('api/legal-entity/profile/', LegalEntityProfileView.as_view(), name='legal_entity_profile'),

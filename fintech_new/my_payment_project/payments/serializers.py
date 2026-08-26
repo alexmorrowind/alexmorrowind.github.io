@@ -1,6 +1,31 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, Startup, UserProfile
+from .models import Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, P2PTransfer, Startup, UserProfile
+
+P2P_MIN_AMOUNT_UZS = 1000
+P2P_MAX_AMOUNT_UZS = 50000000
+
+
+def digits_only(value):
+    return ''.join(ch for ch in str(value or '') if ch.isdigit())
+
+
+def mask_card_or_phone(value):
+    digits = digits_only(value)
+    if len(digits) >= 16:
+        return f"{digits[:6]}******{digits[-4:]}"
+    if len(digits) >= 9:
+        return f"{digits[:5]}***{digits[-2:]}"
+    return '****'
+
+
+def recipient_type_for(value):
+    digits = digits_only(value)
+    if 16 <= len(digits) <= 19:
+        return 'card'
+    if 9 <= len(digits) <= 15:
+        return 'phone'
+    return 'unknown'
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -36,6 +61,44 @@ class CardSerializer(serializers.ModelSerializer):
             'payme_recurrent', 'payme_verified', 'created_at'
         )
         read_only_fields = ('id', 'created_at')
+
+
+class P2PTransferCreateSerializer(serializers.Serializer):
+    source_card_id = serializers.IntegerField(required=False, allow_null=True)
+    recipient = serializers.CharField(max_length=40)
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2, min_value=P2P_MIN_AMOUNT_UZS, max_value=P2P_MAX_AMOUNT_UZS)
+    currency = serializers.ChoiceField(choices=['UZS'], default='UZS')
+    note = serializers.CharField(max_length=180, required=False, allow_blank=True)
+
+    def validate_source_card_id(self, value):
+        if value in [None, '']:
+            return None
+        user = self.context['request'].user
+        try:
+            return Card.objects.get(pk=value, user=user)
+        except Card.DoesNotExist:
+            raise serializers.ValidationError("Source card was not found.")
+
+    def validate_recipient(self, value):
+        recipient_type = recipient_type_for(value)
+        if recipient_type == 'unknown':
+            raise serializers.ValidationError("Enter a valid card number or phone number.")
+        return value
+
+
+class P2PTransferSerializer(serializers.ModelSerializer):
+    source_card_id = serializers.IntegerField(source='source_card.id', read_only=True)
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = P2PTransfer
+        fields = (
+            'id', 'source_card_id', 'source_card_mask', 'recipient_mask',
+            'recipient_type', 'amount', 'currency', 'provider', 'status',
+            'shop_transaction_id', 'provider_reference', 'provider_status',
+            'error_message', 'note', 'created_at', 'updated_at',
+        )
+        read_only_fields = fields
 
 
 class BankSerializer(serializers.ModelSerializer):

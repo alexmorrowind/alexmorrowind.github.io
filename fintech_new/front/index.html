@@ -1060,11 +1060,14 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('transferModal')">×</button>
             <div class="modal-title" data-lang-key="transfer_title">Pul O'tkazish</div>
+            <div class="provider-note" id="transferProviderNote">
+                OCTO Money Transfer P2P
+            </div>
+            <div class="transfer-result" id="transferResult" style="display:none"></div>
             <div class="modal-section">
                 <label class="modal-section-title" data-lang-key="transfer_from">Qayerdan</label>
                 <select class="q-input" id="transferFrom" style="min-height:auto;resize:none">
-                    <option>Asosiy hisob - $142,780</option>
-                    <option>Jamg'arma hisob - $98,420</option>
+                    <option value="">Asosiy hisob - B1</option>
                 </select>
             </div>
             <div class="modal-section">
@@ -1076,7 +1079,7 @@
                 <label class="modal-section-title" data-lang-key="transfer_amount">Summa</label>
                 <input type="number" class="q-input" id="transferAmount" style="min-height:auto;resize:none" placeholder="0 UZS">
             </div>
-            <button class="btn-primary" style="width:100%" onclick="processTransfer()"
+            <button class="btn-primary" id="transferSubmitBtn" style="width:100%" onclick="processTransfer()"
                 data-lang-key="transfer_btn">O'tkazish</button>
         </div>
     </div>
