@@ -22,8 +22,20 @@
     .policy-toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 34px; }
     .policy-toc a { color: var(--blue-neon); text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 999px; background: rgba(37,99,235,.08); }
     .policy-toc a:hover { background: rgba(37,99,235,.14); }
-    .policy-lang { display: none; }
-    .policy-lang.active { display: block; }
+    /* The policy must remain readable even when a hosting editor strips scripts. */
+    .policy-lang { display: block; }
+    .policy-lang + .policy-lang { margin-top: 56px; padding-top: 38px; border-top: 1px solid rgba(59,130,246,.18); }
+    .policy-lang-label { display: inline-block; margin: 0 0 12px; padding: 6px 10px; border-radius: 999px; background: rgba(37,99,235,.08); color: var(--blue-neon); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .policy-consent { margin: 0 0 42px; padding: 26px 28px; border: 2px solid rgba(37,99,235,.2); border-radius: 20px; background: linear-gradient(135deg, rgba(239,246,255,.98), rgba(248,250,252,.98)); box-shadow: 0 14px 34px rgba(15,23,42,.07); }
+    .policy-consent h2 { margin-top: 0; }
+    .policy-consent-intro { margin-bottom: 20px !important; }
+    .policy-consent-list { display: grid; gap: 10px; margin: 0 0 20px; }
+    .policy-consent-list label { display: flex; gap: 10px; align-items: flex-start; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+    .policy-consent-list input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; accent-color: var(--blue-neon); }
+    .policy-consent-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+    .policy-consent-fields label { display: grid; gap: 6px; color: var(--text-primary); font-size: 13px; font-weight: 700; }
+    .policy-consent-fields input { width: 100%; box-sizing: border-box; padding: 12px 13px; border: 1px solid rgba(100,116,139,.32); border-radius: 10px; background: #fff; color: var(--text-primary); font: inherit; }
+    .policy-consent-note { margin: 18px 0 0 !important; padding-top: 16px; border-top: 1px solid rgba(59,130,246,.16); font-size: 13px !important; }
     .policy-content h2 { font-family: var(--font-display); font-size: 25px; line-height: 1.25; margin: 34px 0 12px; color: var(--text-primary); scroll-margin-top: 92px; }
     .policy-content h3 { font-size: 17px; line-height: 1.35; margin: 24px 0 8px; color: var(--text-primary); }
     .policy-content p, .policy-content li { color: var(--text-secondary); font-size: 16px; line-height: 1.78; }
@@ -47,6 +59,8 @@
       .policy-notice { grid-template-columns: 1fr; }
       .policy-content h2 { font-size: 22px; }
       .policy-content p, .policy-content li { font-size: 15px; }
+      .policy-consent { padding: 22px 18px; }
+      .policy-consent-fields { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -87,6 +101,7 @@
     </div>
 
     <div class="policy-toc">
+      <a href="#consent" data-uz="Rozilik" data-ru="Согласие">Согласие</a>
       <a href="#data" data-uz="Ma'lumotlar" data-ru="Данные">Данные</a>
       <a href="#purposes" data-uz="Maqsadlar" data-ru="Цели">Цели</a>
       <a href="#sharing" data-uz="Uchinchi tomonlar" data-ru="Передача">Передача</a>
@@ -94,7 +109,25 @@
       <a href="#deletion" data-uz="O‘chirish" data-ru="Удаление аккаунта">Удаление аккаунта</a>
     </div>
 
+    <section class="policy-consent" id="consent" aria-labelledby="consent-title">
+      <h2 id="consent-title" data-uz="Maxfiylik siyosatiga rozilik" data-ru="Согласие с политикой конфиденциальности">Согласие с политикой конфиденциальности</h2>
+      <p class="policy-consent-intro" data-uz="Xizmatdan foydalanishdan oldin foydalanuvchi ushbu siyosatni o‘qib chiqadi va quyidagi roziliklarni beradi." data-ru="Перед использованием сервиса пользователь знакомится с этой политикой и подтверждает следующие согласия.">Перед использованием сервиса пользователь знакомится с этой политикой и подтверждает следующие согласия.</p>
+      <div class="policy-consent-list">
+        <label><input type="checkbox" name="privacy_read" required><span data-uz="Maxfiylik siyosatini o‘qidim va uning shartlarini tushundim." data-ru="Я прочитал(а) политику конфиденциальности и понял(а) её условия.">Я прочитал(а) политику конфиденциальности и понял(а) её условия.</span></label>
+        <label><input type="checkbox" name="data_processing_consent" required><span data-uz="Telefon, aloqa, MyID, QR-kod, kamera, qurilma va to‘lov tokeni ma'lumotlarimni ushbu hujjatda ko‘rsatilgan maqsadlarda qayta ishlashga roziman." data-ru="Я согласен(на) на обработку моих контактных, MyID-, QR-, камерных, технических и платёжных токенизированных данных для целей, указанных в этой политике.">Я согласен(на) на обработку моих контактных, MyID-, QR-, камерных, технических и платёжных токенизированных данных для целей, указанных в этой политике.</span></label>
+        <label><input type="checkbox" name="third_party_sharing_consent" required><span data-uz="Zarur bo‘lganda ma'lumotlar MyID, to‘lov provayderi, hosting va qonuniy vakolatga ega tashkilotlarga berilishi mumkinligini tushundim." data-ru="Я понимаю, что необходимые данные могут передаваться MyID, платёжному провайдеру, хостингу и уполномоченным законом организациям.">Я понимаю, что необходимые данные могут передаваться MyID, платёжному провайдеру, хостингу и уполномоченным законом организациям.</span></label>
+      </div>
+      <div class="policy-consent-fields">
+        <label><span data-uz="F.I.Sh. (ixtiyoriy tasdiqlash maydoni)" data-ru="ФИО (поле подтверждения)">ФИО (поле подтверждения)</span><input type="text" name="consent_name" autocomplete="name" placeholder="Ваше имя и фамилия"></label>
+        <label><span data-uz="Telefon raqami" data-ru="Номер телефона">Номер телефона</span><input type="tel" name="consent_phone" autocomplete="tel" placeholder="+998 __ ___ __ __"></label>
+        <label><span data-uz="Sana" data-ru="Дата">Дата</span><input type="date" name="consent_date" value="2026-09-08"></label>
+        <label><span data-uz="Elektron imzo / tasdiqlash" data-ru="Электронная подпись / подтверждение">Электронная подпись / подтверждение</span><input type="text" name="consent_signature" placeholder="Введите ФИО как подпись"></label>
+      </div>
+      <p class="policy-consent-note" data-uz="Muhim: ushbu sahifadagi maydonlar foydalanuvchiga rozilik mazmunini ko‘rsatadi. Haqiqiy audit izi uchun ilova yoki server checkboxlar holati, foydalanuvchi identifikatori, sana-vaqt va siyosat versiyasini saqlashi kerak." data-ru="Важно: поля на этой странице показывают пользователю содержание согласия. Для настоящего аудита приложение или сервер должны сохранить состояние чекбоксов, идентификатор пользователя, дату и время, а также версию политики.">Важно: поля на этой странице показывают пользователю содержание согласия. Для настоящего аудита приложение или сервер должны сохранить состояние чекбоксов, идентификатор пользователя, дату и время, а также версию политики.</p>
+    </section>
+
     <section class="policy-lang policy-content" data-policy-lang="ru">
+      <div class="policy-lang-label">Русская версия</div>
       <h2 id="scope">1. Кто отвечает за данные</h2>
       <p>BPay (бренд B1, далее — «BPay», «мы» или «Сервис») предоставляет сайт <a href="https://b1pay.uz">b1pay.uz</a> и мобильное приложение BPay. Настоящая политика описывает обработку данных, которую мы выполняем для работы аккаунта, идентификации, входа через QR-код и связанных финансовых функций.</p>
       <p>Контакт по вопросам конфиденциальности: <a href="tel:+998509097297">+998 50 909 72 97</a>. Адрес для обращений: Ташкент, Юнусабад, Узбекистан.</p>
@@ -164,6 +197,7 @@
     </section>
 
     <section class="policy-lang policy-content" data-policy-lang="uz">
+      <div class="policy-lang-label">O‘zbekcha versiya</div>
       <h2 id="scope-uz">1. Ma'lumotlar uchun kim javob beradi</h2>
       <p>BPay (B1 brendi, bundan keyin — «BPay», «biz» yoki «Xizmat») <a href="https://b1pay.uz">b1pay.uz</a> sayti va BPay mobil ilovasini taqdim etadi. Ushbu siyosat hisob, identifikatsiya, QR-kod orqali kirish va moliyaviy funksiyalar uchun ma'lumotlar qayta ishlanishini tushuntiradi.</p>
       <p>Maxfiylik bo‘yicha aloqa: <a href="tel:+998509097297">+998 50 909 72 97</a>. Manzil: Toshkent, Yunusobod, O‘zbekiston.</p>
@@ -267,20 +301,6 @@
     </div>
   </footer>
 
-  <script src="shared.js"></script>
-  <script>
-    function setPolicyLanguage(lang) {
-      document.querySelectorAll('[data-policy-lang]').forEach((section) => {
-        section.classList.toggle('active', section.dataset.policyLang === lang);
-      });
-      document.documentElement.lang = lang === 'ru' ? 'ru' : 'uz';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      setPolicyLanguage(localStorage.getItem('bpay_lang') || 'ru');
-      document.addEventListener('b1:languagechange', (event) => setPolicyLanguage(event.detail.lang));
-    });
-  </script>
 </body>
 
 </html>
