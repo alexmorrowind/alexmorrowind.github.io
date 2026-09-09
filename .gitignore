@@ -13,3 +13,10 @@ staticfiles/
 .deploy-secrets/
 .idea/
 .vscode/
+
+# Flutter/Android generated outputs and local Play release artifacts.
+APP/b1_app/.dart_tool/
+APP/b1_app/build/
+APP/b1_app/android/.gradle/
+APP/b1_app/release/
+APP/b1_app.zip

@@ -68,6 +68,38 @@ class KYCVerification(models.Model):
         return f"{self.email} ({self.status})"
 
 
+class AuthSession(models.Model):
+    KIND_CHOICES = [
+        ('web_qr', 'Web QR login'),
+        ('myid_mobile', 'MyID mobile login'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('verified', 'Verified'),
+        ('failed', 'Failed'),
+        ('expired', 'Expired'),
+    ]
+
+    session_id = models.CharField(max_length=120, unique=True)
+    kind = models.CharField(max_length=24, choices=KIND_CHOICES)
+    status = models.CharField(max_length=24, choices=STATUS_CHOICES, default='pending')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='auth_sessions', null=True, blank=True)
+    phone = models.CharField(max_length=30, blank=True, default='')
+    email = models.EmailField(blank=True, default='')
+    account_type = models.CharField(max_length=20, blank=True, default='physical')
+    qr_payload = models.TextField(blank=True, default='')
+    myid_session_id = models.CharField(max_length=120, blank=True, default='')
+    myid_payload = models.JSONField(default=dict, blank=True)
+    verified_at = models.DateTimeField(blank=True, null=True)
+    expires_at = models.DateTimeField()
+    last_error = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.kind} {self.session_id} ({self.status})"
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Ожидает оплаты'),
@@ -362,6 +394,8 @@ class APIConfiguration(models.Model):
         # MyID
         ('MYID_BASE_URL', 'MyID Base URL'),
         ('MYID_CLIENT_ID', 'MyID Client ID'),
+        ('MYID_CLIENT_HASH', 'MyID Client Hash'),
+        ('MYID_CLIENT_HASH_ID', 'MyID Client Hash ID'),
         ('MYID_USERNAME', 'MyID Username'),
         ('MYID_PASSWORD', 'MyID Password'),
         ('MYID_HOSTED_URL', 'MyID Hosted URL'),

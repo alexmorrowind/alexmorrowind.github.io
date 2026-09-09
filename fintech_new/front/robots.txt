@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /index.html
+Disallow: /login.html
+Disallow: /startup-create.html
+
+Sitemap: https://b1pay.uz/sitemap.xml

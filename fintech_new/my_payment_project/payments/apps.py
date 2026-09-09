@@ -20,6 +20,8 @@ def populate_api_configs(sender, **kwargs):
         'PAYME_SUBSCRIBE_BASE_URL': 'Payme Subscribe Base API URL.',
         'MYID_BASE_URL': 'MyID Base URL (e.g., https://docs.myid.uz).',
         'MYID_CLIENT_ID': 'MyID Client ID.',
+        'MYID_CLIENT_HASH': 'MyID SDK client hash.',
+        'MYID_CLIENT_HASH_ID': 'MyID SDK client hash id.',
         'MYID_USERNAME': 'MyID username.',
         'MYID_PASSWORD': 'MyID password.',
         'MYID_HOSTED_URL': 'MyID redirect URL.',

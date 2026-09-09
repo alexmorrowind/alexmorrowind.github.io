@@ -1,22 +1,26 @@
 import base64
+from io import BytesIO
 import os
 import time
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from urllib.parse import quote_plus, urlsplit, urlunsplit
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
+import qrcode
 from .integrations import (
     effective_config_value,
     generate_sms_code,
     get_myid_status,
     mask_phone,
     myid_is_configured,
+    myid_sdk_is_configured,
     payme_subscribe_rpc,
     send_registration_sms,
     start_myid_authentication,
@@ -24,7 +28,7 @@ from .integrations import (
     submit_octo_p2p_transfer,
     get_config,
 )
-from .models import APIConfiguration, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, UserProfile
+from .models import APIConfiguration, AuthSession, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, UserProfile
 
 from .serializers import (
     BankSerializer,
@@ -117,6 +121,150 @@ CONFIG_DEFAULTS = {
 }
 PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
+WEB_LOGIN_SESSION_TTL_SECONDS = 10 * 60
+MYID_LOGIN_SESSION_TTL_SECONDS = 15 * 60
+
+
+def _session_qr_payload(session_id):
+    return f"bpay://auth/qr?session_id={session_id}"
+
+
+def _qr_data_url(payload):
+    qr = qrcode.QRCode(border=2, box_size=8)
+    qr.add_data(payload)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color='black', back_color='white')
+    buffer = BytesIO()
+    image.save(buffer, format='PNG')
+    encoded = base64.b64encode(buffer.getvalue()).decode('ascii')
+    return f"data:image/png;base64,{encoded}"
+
+
+def _issue_tokens(user):
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    refresh = RefreshToken.for_user(user)
+    return {
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+    }
+
+
+def _normalize_account_type(value):
+    value = str(value or '').strip().lower()
+    if value in ['legal', 'business', 'company']:
+        return 'legal'
+    return 'physical'
+
+
+def _user_identity_lookup(phone='', email=''):
+    phone = str(phone or '').strip()
+    email = str(email or '').strip().lower()
+    profile = None
+    if phone:
+        profile = UserProfile.objects.filter(phone=phone).select_related('user').first()
+        if profile:
+            return profile.user
+    if email:
+        user = User.objects.filter(username=email).first() or User.objects.filter(email=email).first()
+        if user:
+            return user
+    if phone:
+        user = User.objects.filter(username=phone).first()
+        if user:
+            return user
+    return None
+
+
+def _get_or_create_myid_user(*, phone='', email='', first_name='', last_name=''):
+    user = _user_identity_lookup(phone=phone, email=email)
+    if user is None:
+        username = email or phone or f'myid_{uuid.uuid4().hex[:12]}'
+        user = User.objects.create_user(
+            username=username,
+            email=email or username,
+            password='',
+            first_name=first_name or '',
+            last_name=last_name or '',
+        )
+        user.set_unusable_password()
+        user.save(update_fields=['password'])
+    else:
+        changed = False
+        if email and user.email != email:
+            user.email = email
+            changed = True
+        if first_name and user.first_name != first_name:
+            user.first_name = first_name
+            changed = True
+        if last_name and user.last_name != last_name:
+            user.last_name = last_name
+            changed = True
+        if changed:
+            user.save(update_fields=['email', 'first_name', 'last_name'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    if phone and profile.phone != phone:
+        profile.phone = phone
+    profile.myid_status = 'verified'
+    profile.save()
+    return user, profile
+
+
+def _auth_session_payload(session):
+    payload = {
+        'session_id': session.session_id,
+        'kind': session.kind,
+        'status': session.status,
+        'expires_at': session.expires_at.isoformat(),
+        'qr_payload': session.qr_payload,
+        'phone': session.phone,
+        'email': session.email,
+        'account_type': session.account_type,
+        'verified_at': session.verified_at.isoformat() if session.verified_at else '',
+        'last_error': session.last_error,
+    }
+    if session.user_id:
+        profile_phone = ''
+        try:
+            profile_phone = session.user.profile.phone or ''
+        except Exception:
+            profile_phone = ''
+        payload['user'] = {
+            'id': session.user_id,
+            'email': session.user.email,
+            'phone': profile_phone,
+            'first_name': session.user.first_name,
+            'last_name': session.user.last_name,
+        }
+    return payload
+
+
+def _create_auth_session(*, kind, phone='', email='', account_type='physical', expires_in_seconds=WEB_LOGIN_SESSION_TTL_SECONDS):
+    session_id = f"{kind}-{uuid.uuid4().hex}"
+    now = timezone.now()
+    payload = _session_qr_payload(session_id)
+    session = AuthSession.objects.create(
+        session_id=session_id,
+        kind=kind,
+        status='pending',
+        phone=phone,
+        email=email,
+        account_type=_normalize_account_type(account_type),
+        qr_payload=payload,
+        expires_at=now + timedelta(seconds=expires_in_seconds),
+    )
+    return session
+
+
+def _ensure_auth_session_active(session):
+    if session.status == 'verified':
+        return session
+    if session.expires_at and session.expires_at <= timezone.now():
+        if session.status != 'expired':
+            session.status = 'expired'
+            session.save(update_fields=['status', 'updated_at'])
+    return session
 
 CBU_BANKS_SOURCE = 'https://cbu.uz/en/credit-organizations/banks/head-offices/'
 CATALOG_DATA_DATE = date(2026, 8, 24)
@@ -952,6 +1100,8 @@ class IntegrationStatusView(APIView):
                 **config_group_status([
                     'MYID_BASE_URL',
                     'MYID_CLIENT_ID',
+                    'MYID_CLIENT_HASH',
+                    'MYID_CLIENT_HASH_ID',
                     'MYID_USERNAME',
                     'MYID_PASSWORD',
                     'MYID_HOSTED_URL',
@@ -1037,6 +1187,198 @@ class PaymeDepositRatesView(APIView):
         return Response({
             'source': 'backend_local',
             'rates': rates,
+        })
+
+
+class AuthQrStartView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session = _create_auth_session(
+            kind='web_qr',
+            phone=str(request.data.get('phone', '')).strip(),
+            email=str(request.data.get('email', '')).strip().lower(),
+            account_type=request.data.get('account_type', 'physical'),
+            expires_in_seconds=WEB_LOGIN_SESSION_TTL_SECONDS,
+        )
+        if not session.qr_payload:
+            session.qr_payload = _session_qr_payload(session.session_id)
+        session.save(update_fields=['qr_payload', 'updated_at'])
+        return Response({
+            'session_id': session.session_id,
+            'status': session.status,
+            'expires_at': session.expires_at.isoformat(),
+            'qr_payload': session.qr_payload,
+            'qr_image': _qr_data_url(session.qr_payload),
+        }, status=status.HTTP_201_CREATED)
+
+
+class AuthQrStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = str(request.data.get('session_id', '')).strip()
+        session = AuthSession.objects.filter(session_id=session_id, kind='web_qr').select_related('user').first()
+        if not session:
+            return Response({'detail': 'QR session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        session = _ensure_auth_session_active(session)
+        if session.status != 'verified' or not session.user:
+            return Response(_auth_session_payload(session))
+
+        tokens = _issue_tokens(session.user)
+        payload = _auth_session_payload(session)
+        payload['tokens'] = tokens
+        profile, _ = UserProfile.objects.get_or_create(user=session.user)
+        payload['profile'] = {
+            'id': session.user.id,
+            'email': session.user.email,
+            'phone': profile.phone or session.phone,
+            'myid_status': profile.myid_status,
+        }
+        return Response(payload)
+
+
+class MobileMyIDStartView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        phone = str(request.data.get('phone', '')).strip()
+        if not phone:
+            return Response({'detail': 'phone is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = str(request.data.get('email', '')).strip().lower()
+        account_type = _normalize_account_type(request.data.get('account_type', 'physical'))
+        session = _create_auth_session(
+            kind='myid_mobile',
+            phone=phone,
+            email=email or f'{phone.replace("+", "").replace(" ", "")}@bpay.local',
+            account_type=account_type,
+            expires_in_seconds=MYID_LOGIN_SESSION_TTL_SECONDS,
+        )
+        session.myid_payload = {
+            'source': 'mobile_sdk',
+            'phone': phone,
+            'account_type': account_type,
+            'client_id': get_config('MYID_CLIENT_ID', ''),
+            'client_hash_present': bool(get_config('MYID_CLIENT_HASH', '')),
+            'client_hash_id_present': bool(get_config('MYID_CLIENT_HASH_ID', '')),
+        }
+        session.save(update_fields=['myid_payload', 'updated_at'])
+        return Response({
+            'session_id': session.session_id,
+            'phone': session.phone,
+            'email': session.email,
+            'account_type': session.account_type,
+            'client_id': get_config('MYID_CLIENT_ID', ''),
+            'client_hash': get_config('MYID_CLIENT_HASH', ''),
+            'client_hash_id': get_config('MYID_CLIENT_HASH_ID', ''),
+            'environment': 'production' if myid_sdk_is_configured() else 'demo',
+            'entry_type': 'IDENTIFICATION',
+            'status': session.status,
+            'expires_at': session.expires_at.isoformat(),
+            'demo': not myid_sdk_is_configured(),
+        }, status=status.HTTP_201_CREATED)
+
+
+class MobileMyIDCompleteView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = str(request.data.get('session_id', '')).strip()
+        session = AuthSession.objects.filter(session_id=session_id, kind='myid_mobile').select_related('user').first()
+        if not session:
+            return Response({'detail': 'MyID session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        session = _ensure_auth_session_active(session)
+        if session.status == 'expired':
+            return Response({'detail': 'MyID session expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        result_code = str(request.data.get('result_code') or request.data.get('code') or '').strip()
+        # The mobile client must never be able to mark an arbitrary session as
+        # verified by sending ``verified=true``.  MyID's embedded SDK defines
+        # result_code=1 as the successful identification result; every other
+        # result is a failed/cancelled flow.  The client flag is retained only
+        # for backward-compatible request parsing and is not trusted.
+        success = result_code == '1'
+        if not success:
+            session.status = 'failed'
+            session.last_error = request.data.get('error') or f'MyID result code: {result_code or "failed"}'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return Response({
+                'session_id': session.session_id,
+                'status': session.status,
+                'error': session.last_error,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        phone = str(request.data.get('phone') or session.phone or '').strip()
+        email = str(request.data.get('email') or session.email or '').strip().lower()
+        first_name = str(request.data.get('first_name') or '').strip()
+        last_name = str(request.data.get('last_name') or '').strip()
+        passport = str(request.data.get('passport') or '').strip().upper()
+        birth_date = request.data.get('birth_date') or ''
+        user, profile = _get_or_create_myid_user(
+            phone=phone,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        if passport:
+            profile.passport = passport
+        if birth_date:
+            try:
+                profile.birth_date = date.fromisoformat(str(birth_date))
+            except Exception:
+                pass
+        profile.myid_status = 'verified'
+        profile.save()
+
+        payload = {
+            'result_code': result_code,
+            'verified': True,
+            'phone': phone,
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name,
+            'passport': passport,
+            'birth_date': str(birth_date) if birth_date else '',
+            'raw': request.data.get('myid_payload') or {},
+        }
+        session.user = user
+        session.status = 'verified'
+        session.verified_at = timezone.now()
+        session.last_error = ''
+        session.phone = phone or session.phone
+        session.email = email or session.email
+        session.myid_payload = payload
+        session.save(update_fields=['user', 'status', 'verified_at', 'last_error', 'phone', 'email', 'myid_payload', 'updated_at'])
+
+        qr_session_id = str(request.data.get('qr_session_id') or '').strip()
+        if qr_session_id:
+            qr_session = AuthSession.objects.filter(session_id=qr_session_id, kind='web_qr').first()
+            if qr_session:
+                qr_session.user = user
+                qr_session.status = 'verified'
+                qr_session.verified_at = timezone.now()
+                qr_session.last_error = ''
+                qr_session.phone = phone or qr_session.phone
+                qr_session.email = email or qr_session.email
+                qr_session.save(update_fields=['user', 'status', 'verified_at', 'last_error', 'phone', 'email', 'updated_at'])
+
+        tokens = _issue_tokens(user)
+        return Response({
+            'session_id': session.session_id,
+            'status': session.status,
+            'tokens': tokens,
+            'profile': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': profile.phone or phone,
+                'myid_status': profile.myid_status,
+            },
+            'qr_session_id': qr_session_id,
         })
 
 

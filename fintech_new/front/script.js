@@ -26,10 +26,11 @@ const translations = {
 
         tagline: "MOLIYAVIY PLATFORM",
         nav_main: "ASOSIY",
-        nav_dashboard: "Boshqaruv paneli",
+        nav_dashboard: "Takliflar katalogi",
         nav_banks: "Banklar",
         nav_cards: "Kartalar",
         nav_loans: "Kreditlar",
+        nav_services: "Mikroqarz va sug'urta",
         nav_invest: "INVESTITSIYA",
         nav_investors: "Investorlar",
         nav_analytics: "Tahlil",
@@ -59,13 +60,32 @@ const translations = {
         spending_breakdown: "Xarajatlar Taqsimoti",
         quick_actions: "Tez Harakatlar",
         action_transfer: "Pul O'tkazish",
-        action_transfer_desc: "Tez va xavfsiz o'tkazmalar",
+        action_transfer_desc: "Hozircha ishlab chiqilmoqda",
         action_apply_loan: "Kredit Olish",
         action_apply_loan_desc: "Ariza topshirish va tasdiqlash",
         action_new_card: "Yangi Karta",
         action_new_card_desc: "Premium kartalar buyurtma qilish",
         action_analytics: "Tahlil Ko'rish",
         action_analytics_desc: "Moliyaviy statistika va hisobotlar",
+        catalog_eyebrow: "MOLIYAVIY TAKLIFLAR KATALOGI",
+        catalog_title: "Sizga mos moliyaviy taklifni toping",
+        catalog_desc: "Banklar, kreditlar, kartalar, mikroqarzlar, sug'urta va investitsiyalarni shartlari bo'yicha solishtiring.",
+        catalog_compare: "Takliflarni solishtirish",
+        catalog_p2p: "P2P o'tkazmalar — ishlab chiqilmoqda",
+        catalog_p2p_desc: "OCTO integratsiyasi va kerakli ruxsatlar tayyor bo'lgach, xavfsiz o'tkazmalar shu yerda paydo bo'ladi.",
+        catalog_featured: "Ommabop yo'nalishlar",
+        catalog_banks: "Banklar",
+        catalog_banks_desc: "Banklar, filiallar va rasmiy mahsulotlar",
+        catalog_credits: "Kreditlar",
+        catalog_credits_desc: "Shaxsiy, avto, ipoteka va biznes",
+        catalog_microloans: "Mikroqarzlar",
+        catalog_microloans_desc: "Kichik summa va qisqa muddat",
+        catalog_cards: "Kartalar",
+        catalog_cards_desc: "Cashback, limit va xizmat haqi",
+        catalog_insurance: "Sug'urta",
+        catalog_insurance_desc: "Avto, sayohat va sog'liq",
+        catalog_investments: "Investitsiyalar",
+        catalog_investments_desc: "Startaplar va real loyihalar",
 
 
         banks_title: "Banklarni Solishtirish",
@@ -222,10 +242,11 @@ const translations = {
 
         tagline: "ФИНАНСОВАЯ ПЛАТФОРМА",
         nav_main: "ГЛАВНОЕ",
-        nav_dashboard: "Панель управления",
+        nav_dashboard: "Каталог предложений",
         nav_banks: "Банки",
         nav_cards: "Карты",
         nav_loans: "Кредиты",
+        nav_services: "Микрозаймы и страхование",
         nav_invest: "ИНВЕСТИЦИИ",
         nav_investors: "Инвесторы",
         nav_analytics: "Аналитика",
@@ -255,13 +276,32 @@ const translations = {
         spending_breakdown: "Распределение Расходов",
         quick_actions: "Быстрые Действия",
         action_transfer: "Перевод Денег",
-        action_transfer_desc: "Быстрые и безопасные переводы",
+        action_transfer_desc: "Пока в разработке",
         action_apply_loan: "Получить Кредит",
         action_apply_loan_desc: "Подать заявку и получить одобрение",
         action_new_card: "Новая Карта",
         action_new_card_desc: "Заказать премиум карты",
         action_analytics: "Смотреть Аналитику",
         action_analytics_desc: "Финансовая статистика и отчёты",
+        catalog_eyebrow: "КАТАЛОГ ФИНАНСОВЫХ ПРЕДЛОЖЕНИЙ",
+        catalog_title: "Найдите предложение под вашу задачу",
+        catalog_desc: "Сравнивайте банки, кредиты, карты, микрозаймы, страхование и инвестиции по условиям.",
+        catalog_compare: "Сравнить предложения",
+        catalog_p2p: "P2P-переводы — в разработке",
+        catalog_p2p_desc: "Добавим безопасные переводы после подготовки OCTO-интеграции и необходимых разрешений.",
+        catalog_featured: "Популярные направления",
+        catalog_banks: "Банки",
+        catalog_banks_desc: "Банки, отделения и официальные продукты",
+        catalog_credits: "Кредиты",
+        catalog_credits_desc: "Потребительские, авто, ипотека и бизнес",
+        catalog_microloans: "Микрозаймы",
+        catalog_microloans_desc: "Небольшая сумма и короткий срок",
+        catalog_cards: "Карты",
+        catalog_cards_desc: "Кэшбэк, лимит и стоимость обслуживания",
+        catalog_insurance: "Страхование",
+        catalog_insurance_desc: "Авто, путешествия и здоровье",
+        catalog_investments: "Инвестиции",
+        catalog_investments_desc: "Стартапы и реальные проекты",
 
 
         banks_title: "Сравнение Банков",
@@ -441,6 +481,7 @@ function setLanguage(lang) {
     renderBanks();
     renderCards();
     renderLoans();
+    renderServices();
     renderInvestors();
 
     // === ДОБАВЛЯЕМ СЮДА ===
@@ -601,6 +642,18 @@ const loansData = [
     { id: 4, name: 'Biznes Kredit', nameRu: 'Бизнес Кредит', bank: 'Orient Finans', type: 'business', rate: 22, minAmount: 10000000, maxAmount: 1000000000, term: '12-60 oy', monthlyPayment: 25000000, icon: '', color: '#f59e0b' },
     { id: 5, name: 'Express Kredit', nameRu: 'Экспресс Кредит', bank: 'Anor Bank', type: 'personal', rate: 28, minAmount: 1000000, maxAmount: 20000000, term: '3-24 oy', monthlyPayment: 1000000, icon: '', color: '#f43f5e' },
     { id: 6, name: 'Talaba Krediti', nameRu: 'Студенческий Кредит', bank: 'Davr Bank', type: 'personal', rate: 12, minAmount: 2000000, maxAmount: 30000000, term: '12-48 oy', monthlyPayment: 800000, icon: '', color: '#06b6d4' },
+];
+
+// Informational catalogue data for products that are not yet connected to a
+// provider API. Rates and limits are illustrative; the final decision is made
+// by the provider. Keeping these items separate prevents them being confused
+// with live bank/credit applications.
+const servicesData = [
+    { id: 'micro-1', kind: 'microloan', name: 'Tezkor mikroqarz', nameRu: 'Быстрый микрозайм', provider: 'Mikrokreditbank', metric: '24% dan', metricRu: 'от 24%', metricLabel: 'yillik stavka', metricLabelRu: 'годовых', desc: 'Kichik summa uchun qisqa muddatli taklif.', descRu: 'Краткосрочное предложение для небольшой суммы.', color: '#f59e0b', icon: '↗' },
+    { id: 'micro-2', kind: 'microloan', name: 'Onlayn mikroqarz', nameRu: 'Онлайн-микрозайм', provider: 'Anorbank', metric: '1–30 mln', metricRu: '1–30 млн', metricLabel: 'UZS gacha', metricLabelRu: 'UZS', desc: 'Masofadan ariza va tezkor ko‘rib chiqish.', descRu: 'Удалённая заявка и быстрое рассмотрение.', color: '#06b6d4', icon: '◔' },
+    { id: 'ins-1', kind: 'insurance', name: 'Avto sug‘urta', nameRu: 'Автострахование', provider: 'Partner insurers', metric: 'Online', metricRu: 'Онлайн', metricLabel: 'ariza', metricLabelRu: 'заявка', desc: 'Avtomobil uchun sug‘urta variantlarini toping.', descRu: 'Подберите варианты страхования автомобиля.', color: '#2563eb', icon: '▣' },
+    { id: 'ins-2', kind: 'insurance', name: 'Sayohat sug‘urtasi', nameRu: 'Страхование путешествий', provider: 'Partner insurers', metric: '24/7', metricRu: '24/7', metricLabel: 'qo‘llab-quvvatlash', metricLabelRu: 'поддержка', desc: 'Safar oldidan asosiy risklarni solishtiring.', descRu: 'Сравните основные риски перед поездкой.', color: '#7c3aed', icon: '✚' },
+    { id: 'ins-3', kind: 'insurance', name: 'Sog‘liq sug‘urtasi', nameRu: 'Страхование здоровья', provider: 'Partner insurers', metric: 'Individual', metricRu: 'Для вас', metricLabel: 'reja', metricLabelRu: 'план', desc: 'Shaxsiy va oila uchun himoya rejalari.', descRu: 'Программы защиты для себя и семьи.', color: '#10b981', icon: '+' },
 ];
 
 const investorsData = [
@@ -1269,6 +1322,68 @@ function renderLoans() {
  </tr>
  `).join('');
     }
+}
+
+function renderServices(filter = window.currentServiceFilter || 'all') {
+    const grid = document.getElementById('servicesGrid');
+    if (!grid) return;
+    window.currentServiceFilter = filter;
+    const isUz = currentLang === 'uz';
+    const visible = servicesData.filter(item => filter === 'all' || item.kind === filter);
+    grid.innerHTML = visible.map(item => {
+        const name = isUz ? item.name : item.nameRu;
+        const metric = isUz ? item.metric : item.metricRu;
+        const metricLabel = isUz ? item.metricLabel : item.metricLabelRu;
+        const desc = isUz ? item.desc : item.descRu;
+        const kind = item.kind === 'insurance' ? (isUz ? "Sug'urta" : 'Страхование') : (isUz ? 'Mikroqarz' : 'Микрозайм');
+        const icon = item.kind === 'insurance'
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7.5 3v5.5c0 4.8-3.2 7.9-7.5 9.5-4.3-1.6-7.5-4.7-7.5-9.5V6z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M15 9.5c-.7-.7-1.6-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.4-.3-3-1"/></svg>';
+        return `
+            <article class="card service-offer-card">
+                <div class="service-offer-head">
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <span class="service-offer-icon" style="background:linear-gradient(135deg,${item.color},${item.color}99)">${icon}</span>
+                        <div><h3>${escapeHtml(name)}</h3><div class="service-offer-provider">${escapeHtml(item.provider)}</div></div>
+                    </div>
+                    <span class="tag ${item.kind === 'insurance' ? 'tag-cyan' : 'tag-amber'}">${kind}</span>
+                </div>
+                <div class="service-offer-metric">${escapeHtml(metric)} <small>${escapeHtml(metricLabel)}</small></div>
+                <p>${escapeHtml(desc)}</p>
+                <button class="btn-ghost btn-sm" style="width:100%;margin-top:14px" onclick="showServiceNotice('${item.kind}')">
+                    ${isUz ? 'Shartlarni ko‘rish' : 'Посмотреть условия'}
+                </button>
+            </article>`;
+    }).join('');
+}
+
+function filterServices(filter, button) {
+    document.querySelectorAll('#servicesFilters .filter-pill').forEach(item => item.classList.remove('active'));
+    button?.classList.add('active');
+    renderServices(filter);
+}
+
+function showServiceNotice(kind) {
+    const isUz = currentLang === 'uz';
+    showToast(kind === 'insurance'
+        ? (isUz ? "Sug'urta shartlari hamkorlar tasdiqlangach ochiladi" : 'Условия страхования появятся после подключения партнёров')
+        : (isUz ? "Mikroqarz shartlari hamkor bank tasdiqlagach ochiladi" : 'Условия микрозаймов появятся после подтверждения банка'));
+}
+
+function showP2PStatus() {
+    const isUz = currentLang === 'uz';
+    const content = document.getElementById('applicationModalContent');
+    if (!content) return;
+    content.innerHTML = `
+        <div class="modal-title">${isUz ? "P2P o'tkazmalar — ishlab chiqilmoqda" : 'P2P-переводы — в разработке'}</div>
+        <p style="margin:12px 0 18px;color:var(--text-secondary);line-height:1.65">
+            ${isUz
+                ? "OCTO Money Transfer integratsiyasi va Markaziy bank talablari bo'yicha ruxsatlar tayyorlanmoqda. Hozircha B1 faqat moliyaviy takliflarni solishtirish va arizaga yo'naltirish uchun ishlaydi."
+                : 'Мы готовим интеграцию OCTO Money Transfer и необходимые разрешения. Сейчас B1 работает как каталог финансовых предложений и направляет заявки партнёрам.'}
+        </p>
+        <div class="info-box info-amber" style="margin-bottom:16px"><div class="info-box-title">${isUz ? 'Holat' : 'Статус'}</div><p>${isUz ? 'Ishlab chiqilmoqda' : 'В разработке'}</p></div>
+        <button class="btn-primary" style="width:100%" onclick="closeModal('applicationModal')">${isUz ? 'Tushunarli' : 'Понятно'}</button>`;
+    openModal('applicationModal');
 }
 
 function renderInvestors() {
@@ -4468,6 +4583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBanks();
     renderCards();
     renderLoans();
+    renderServices();
     renderInvestors();
     loadCatalogBanks();
     if (investorUserMode === 'legal') syncLegalEntityProfile();

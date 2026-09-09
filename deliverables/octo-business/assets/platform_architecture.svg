@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">B1Pay and Octo target platform architecture</title>
+  <desc id="desc">A layered diagram showing users, B1Pay control plane, identity and regulated partners.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eef6ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#0b2145" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#4f6f94"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1264d6"/>
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill:#112a4d; }
+      .subtitle { font: 400 16px Arial, sans-serif; fill:#60738d; }
+      .label { font: 700 19px Arial, sans-serif; fill:#112a4d; }
+      .small { font: 400 15px Arial, sans-serif; fill:#526984; }
+      .tiny { font: 400 13px Arial, sans-serif; fill:#60738d; }
+      .box { stroke:#b7cbe2; stroke-width:2; rx:16; }
+      .layer { font:700 16px Arial,sans-serif; fill:#1264d6; letter-spacing:1px; }
+      .line { stroke:#4f6f94; stroke-width:3; fill:none; marker-end:url(#arrow); }
+      .lineBlue { stroke:#1264d6; stroke-width:3; fill:none; marker-end:url(#arrowBlue); }
+      .dash { stroke:#7f9bb8; stroke-width:2; stroke-dasharray:9 8; fill:none; }
+    </style>
+  </defs>
+  <rect width="1600" height="1040" fill="url(#bg)"/>
+  <text x="72" y="72" class="title">B1Pay × Octo — целевая архитектура платформы</text>
+  <text x="72" y="105" class="subtitle">Каталог и заявки сейчас; регулируемые переводы — только через согласованный лицензированный контур</text>
+
+  <rect x="52" y="142" width="1496" height="184" fill="#ffffff" class="box" filter="url(#shadow)"/>
+  <text x="82" y="176" class="layer">CLIENT LAYER</text>
+  <rect x="82" y="198" width="355" height="93" fill="#e9f2ff" class="box"/>
+  <text x="110" y="232" class="label">Web-портал</text>
+  <text x="110" y="258" class="small">Каталог · SEO · заявки · QR-вход</text>
+  <text x="110" y="279" class="small">privacy / consent / статусы</text>
+  <rect x="472" y="198" width="355" height="93" fill="#e9f2ff" class="box"/>
+  <text x="500" y="232" class="label">Flutter Android</text>
+  <text x="500" y="258" class="small">MyID · QR-confirm · уведомления</text>
+  <text x="500" y="279" class="small">инвестиционный модуль · статусы</text>
+  <rect x="862" y="198" width="325" height="93" fill="#fef4df" class="box"/>
+  <text x="890" y="232" class="label">Пользователь</text>
+  <text x="890" y="258" class="small">Выбор · согласие · подтверждение</text>
+  <text x="890" y="279" class="small">Операция выполняется партнёром</text>
+  <rect x="1222" y="198" width="286" height="93" fill="#eff9f1" class="box"/>
+  <text x="1250" y="232" class="label">Партнёрский кабинет</text>
+  <text x="1250" y="258" class="small">offers · leads · SLA · reports</text>
+  <text x="1250" y="279" class="small">доступ по RBAC + MFA</text>
+
+  <path d="M260 326 L260 374" class="lineBlue"/>
+  <path d="M650 326 L650 374" class="lineBlue"/>
+  <path d="M1020 326 L1020 374" class="dash"/>
+  <path d="M1365 326 L1365 374" class="dash"/>
+
+  <rect x="52" y="374" width="1496" height="302" fill="#ffffff" class="box" filter="url(#shadow)"/>
+  <text x="82" y="410" class="layer">B1PAY CONTROL PLANE</text>
+  <rect x="82" y="437" width="260" height="96" fill="#f2f7fc" class="box"/>
+  <text x="105" y="470" class="label">Auth / Session</text>
+  <text x="105" y="497" class="small">JWT · QR nonce · TTL</text>
+  <text x="105" y="518" class="small">device binding</text>
+  <rect x="370" y="437" width="260" height="96" fill="#f2f7fc" class="box"/>
+  <text x="393" y="470" class="label">Catalog / Content</text>
+  <text x="393" y="497" class="small">offers · source · update date</text>
+  <text x="393" y="518" class="small">moderation · sponsored label</text>
+  <rect x="658" y="437" width="260" height="96" fill="#f2f7fc" class="box"/>
+  <text x="681" y="470" class="label">Applications</text>
+  <text x="681" y="497" class="small">lead · consent · routing</text>
+  <text x="681" y="518" class="small">partner status</text>
+  <rect x="946" y="437" width="260" height="96" fill="#f2f7fc" class="box"/>
+  <text x="969" y="470" class="label">Payment state</text>
+  <text x="969" y="497" class="small">idempotency · webhooks</text>
+  <text x="969" y="518" class="small">pending → success/reversal</text>
+  <rect x="1234" y="437" width="274" height="96" fill="#f2f7fc" class="box"/>
+  <text x="1257" y="470" class="label">Risk / AML queue</text>
+  <text x="1257" y="497" class="small">limits · screening · cases</text>
+  <text x="1257" y="518" class="small">manual review</text>
+  <rect x="370" y="558" width="260" height="87" fill="#edf8f1" class="box"/>
+  <text x="393" y="591" class="label">Consent ledger</text>
+  <text x="393" y="618" class="small">purpose · scope · timestamp</text>
+  <rect x="658" y="558" width="260" height="87" fill="#edf8f1" class="box"/>
+  <text x="681" y="591" class="label">Webhook / Reconcile</text>
+  <text x="681" y="618" class="small">signature · retries · reports</text>
+  <rect x="946" y="558" width="260" height="87" fill="#edf8f1" class="box"/>
+  <text x="969" y="591" class="label">Audit / Observability</text>
+  <text x="969" y="618" class="small">correlation ID · alerts</text>
+
+  <path d="M212 676 L212 738" class="line"/>
+  <path d="M500 676 L500 738" class="line"/>
+  <path d="M788 676 L788 738" class="line"/>
+  <path d="M1076 676 L1076 738" class="line"/>
+  <path d="M1368 676 L1368 738" class="line"/>
+
+  <rect x="52" y="738" width="1496" height="226" fill="#ffffff" class="box" filter="url(#shadow)"/>
+  <text x="82" y="774" class="layer">PARTNER &amp; REGULATED SERVICES</text>
+  <rect x="82" y="802" width="230" height="104" fill="#fff1ed" class="box"/>
+  <text x="106" y="836" class="label">MyID</text>
+  <text x="106" y="863" class="small">KYC session/status</text>
+  <text x="106" y="884" class="tiny">биометрия остаётся в</text>
+  <text x="106" y="900" class="tiny">согласованном контуре</text>
+  <rect x="350" y="802" width="230" height="104" fill="#fff1ed" class="box"/>
+  <text x="374" y="836" class="label">Octo / банк</text>
+  <text x="374" y="863" class="small">P2P · payout · settlement</text>
+  <text x="374" y="884" class="tiny">только по договору</text>
+  <text x="374" y="900" class="tiny">и в разрешённой роли</text>
+  <rect x="618" y="802" width="230" height="104" fill="#fff1ed" class="box"/>
+  <text x="642" y="836" class="label">Банки / МФО</text>
+  <text x="642" y="863" class="small">кредит · микрозайм</text>
+  <text x="642" y="884" class="tiny">решение и договор</text>
+  <text x="642" y="900" class="tiny">у партнёра</text>
+  <rect x="886" y="802" width="230" height="104" fill="#fff1ed" class="box"/>
+  <text x="910" y="836" class="label">Страховщик</text>
+  <text x="910" y="863" class="small">quote · policy · claim</text>
+  <text x="910" y="884" class="tiny">андеррайтинг у</text>
+  <text x="910" y="900" class="tiny">лицензированного партнёра</text>
+  <rect x="1154" y="802" width="354" height="104" fill="#fff1ed" class="box"/>
+  <text x="1178" y="836" class="label">Investment perimeter</text>
+  <text x="1178" y="863" class="small">отдельная юридическая модель</text>
+  <text x="1178" y="884" class="tiny">risk disclosure · suitability</text>
+  <text x="1178" y="900" class="tiny">без гарантий доходности</text>
+
+  <text x="82" y="1008" class="tiny">Ключевой принцип: B1Pay агрегирует и маршрутизирует; лицензированный партнёр отвечает за регулируемую операцию, договор и финальное решение.</text>
+</svg>

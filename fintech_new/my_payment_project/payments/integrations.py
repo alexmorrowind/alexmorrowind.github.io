@@ -138,6 +138,21 @@ def myid_is_configured():
     ])
 
 
+def myid_sdk_is_configured():
+    """Return whether the mobile SDK can be started safely.
+
+    The embedded SDK receives a short-lived session plus the client hash
+    values.  It does not require the server-side MyID username/password used
+    by the legacy backend API, so keep this check separate from
+    ``myid_is_configured``.
+    """
+    return all([
+        get_config('MYID_CLIENT_ID'),
+        get_config('MYID_CLIENT_HASH'),
+        get_config('MYID_CLIENT_HASH_ID'),
+    ])
+
+
 def get_myid_access_token():
     base_url = get_config('MYID_BASE_URL').rstrip('/')
     payload = {

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>B1 — Doim birinchi bo'ling</title>
     <link rel="icon" href="favicon.ico?v=20260820" sizes="any">
     <link rel="icon" type="image/png" href="favicon.png?v=20260820">
@@ -78,7 +79,7 @@
 
         <nav class="sidebar-nav">
             <div class="sidebar-section" data-lang-key="nav_main">ASOSIY</div>
-            <div class="nav-item active" onclick="navigate('dashboard', this)">
+            <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7" rx="1.5" />
                     <rect x="14" y="3" width="7" height="7" rx="1.5" />
@@ -87,29 +88,36 @@
                 </svg>
                 <span class="nav-label" data-lang-key="nav_dashboard">Boshqaruv paneli</span>
             </div>
-            <div class="nav-item" onclick="navigate('banks', this)">
+            <div class="nav-item" data-page="banks" onclick="navigate('banks', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" />
                 </svg>
                 <span class="nav-label" data-lang-key="nav_banks">Banklar</span>
             </div>
-            <div class="nav-item" onclick="navigate('cards', this)">
+            <div class="nav-item" data-page="cards" onclick="navigate('cards', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="2" y="5" width="20" height="14" rx="2" />
                     <path d="M2 10h20" />
                 </svg>
                 <span class="nav-label" data-lang-key="nav_cards">Kartalar</span>
             </div>
-            <div class="nav-item" onclick="navigate('loans', this)">
+            <div class="nav-item" data-page="loans" onclick="navigate('loans', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 6v6l4 2" />
                 </svg>
                 <span class="nav-label" data-lang-key="nav_loans">Kreditlar</span>
             </div>
+            <div class="nav-item" data-page="services" onclick="navigate('services', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v18M3 12h18" />
+                    <rect x="4" y="4" width="16" height="16" rx="3" />
+                </svg>
+                <span class="nav-label" data-lang-key="nav_services">Mikroqarz va sug'urta</span>
+            </div>
 
             <div class="sidebar-section" data-lang-key="nav_invest">INVESTITSIYA</div>
-            <div class="nav-item" onclick="navigate('investors', this)">
+            <div class="nav-item" data-page="investors" onclick="navigate('investors', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
@@ -117,7 +125,7 @@
                 </svg>
                 <span class="nav-label" data-lang-key="nav_investors">Investorlar</span>
             </div>
-            <div class="nav-item" onclick="navigate('analytics', this)">
+            <div class="nav-item" data-page="analytics" onclick="navigate('analytics', this)">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 3v18h18" />
                     <path d="M18 9l-5 5-4-4-3 3" />
@@ -194,6 +202,60 @@
         <div class="content">
 
             <section id="sec-dashboard" class="section active">
+
+                <div class="catalog-hero">
+                    <div class="catalog-hero-copy">
+                        <div class="catalog-eyebrow" data-lang-key="catalog_eyebrow">MOLIYAVIY TAKLIFLAR KATALOGI</div>
+                        <h1 data-lang-key="catalog_title">Sizga mos moliyaviy taklifni toping</h1>
+                        <p data-lang-key="catalog_desc">Banklar, kreditlar, kartalar, mikroqarzlar, sug'urta va investitsiyalarni shartlari bo'yicha solishtiring.</p>
+                        <div class="catalog-hero-actions">
+                            <button class="btn-primary" onclick="navigate('loans', document.querySelector('[data-page=loans]'))" data-lang-key="catalog_compare">Takliflarni solishtirish</button>
+                            <button class="btn-ghost" onclick="showP2PStatus()" data-lang-key="catalog_p2p">P2P o'tkazmalar — ishlab chiqilmoqda</button>
+                        </div>
+                    </div>
+                    <div class="catalog-hero-aside">
+                        <span class="catalog-status-dot"></span>
+                        <strong data-lang-key="catalog_p2p">P2P o'tkazmalar — ishlab chiqilmoqda</strong>
+                        <span data-lang-key="catalog_p2p_desc">OCTO integratsiyasi va kerakli ruxsatlar tayyor bo'lgach, xavfsiz o'tkazmalar shu yerda paydo bo'ladi.</span>
+                    </div>
+                </div>
+
+                <div class="catalog-section-head">
+                    <div class="sec-title" data-lang-key="catalog_featured">Ommabop yo'nalishlar</div>
+                    <span class="catalog-helper">B1 catalog</span>
+                </div>
+                <div class="catalog-category-grid">
+                    <button class="catalog-category-card catalog-category-blue" onclick="navigate('banks', document.querySelector('[data-page=banks]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M4 10h16M6 10v11M10 10v11M14 10v11M18 10v11M5 6l7-3 7 3v4H5z"/></svg></span>
+                        <strong data-lang-key="catalog_banks">Banklar</strong>
+                        <small data-lang-key="catalog_banks_desc">Banklar, filiallar va rasmiy mahsulotlar</small>
+                    </button>
+                    <button class="catalog-category-card catalog-category-green" onclick="navigate('loans', document.querySelector('[data-page=loans]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18h16M6 15l3-4 3 2 5-7"/><path d="M14 6h3v3"/></svg></span>
+                        <strong data-lang-key="catalog_credits">Kreditlar</strong>
+                        <small data-lang-key="catalog_credits_desc">Shaxsiy, avto, ipoteka va biznes</small>
+                    </button>
+                    <button class="catalog-category-card catalog-category-amber" onclick="navigate('services', document.querySelector('[data-page=services]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v8.5h8.5M12 12l4.5 4.5"/></svg></span>
+                        <strong data-lang-key="catalog_microloans">Mikroqarzlar</strong>
+                        <small data-lang-key="catalog_microloans_desc">Kichik summa va qisqa muddat</small>
+                    </button>
+                    <button class="catalog-category-card catalog-category-purple" onclick="navigate('cards', document.querySelector('[data-page=cards]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M2.5 10h19M6 15h4"/></svg></span>
+                        <strong data-lang-key="catalog_cards">Kartalar</strong>
+                        <small data-lang-key="catalog_cards_desc">Cashback, limit va xizmat haqi</small>
+                    </button>
+                    <button class="catalog-category-card catalog-category-cyan" onclick="navigate('services', document.querySelector('[data-page=services]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7.5 3v5.5c0 4.8-3.2 7.9-7.5 9.5-4.3-1.6-7.5-4.7-7.5-9.5V6z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg></span>
+                        <strong data-lang-key="catalog_insurance">Sug'urta</strong>
+                        <small data-lang-key="catalog_insurance_desc">Avto, sayohat va sog'liq</small>
+                    </button>
+                    <button class="catalog-category-card catalog-category-rose" onclick="navigate('investors', document.querySelector('[data-page=investors]'))">
+                        <span class="catalog-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18.5 9 13l3 2.5 7-8"/><path d="M15 7.5h4v4"/><path d="M4 21h16"/></svg></span>
+                        <strong data-lang-key="catalog_investments">Investitsiyalar</strong>
+                        <small data-lang-key="catalog_investments_desc">Startaplar va real loyihalar</small>
+                    </button>
+                </div>
 
                 <div class="welcome-hero">
                     <div class="hero-glow"></div>
@@ -351,12 +413,12 @@
                 <div class="divider"></div>
                 <div class="sec-title" data-lang-key="quick_actions">Tez Harakatlar</div>
                 <div class="grid-4">
-                    <div class="rec-card" onclick="openTransferModal()">
+                    <div class="rec-card" onclick="showP2PStatus()">
                         <div class="rec-icon"
                             style="background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(59,130,246,.05))"></div>
                         <div>
                             <div class="rec-title" data-lang-key="action_transfer">Pul O'tkazish</div>
-                            <div class="rec-desc" data-lang-key="action_transfer_desc">Tez va xavfsiz o'tkazmalar</div>
+                            <div class="rec-desc" data-lang-key="action_transfer_desc">Hozircha ishlab chiqilmoqda</div>
                         </div>
                     </div>
                     <div class="rec-card" onclick="openApplicationModal('loan', 1)">
@@ -387,6 +449,28 @@
                                 hisobotlar</div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <section id="sec-services" class="section">
+                <div class="page-header">
+                    <div>
+                        <div class="page-title" data-lang-key="nav_services">Mikroqarz va sug'urta</div>
+                        <div class="page-subtitle">Takliflarni mahsulot turi va asosiy shartlari bo'yicha solishtiring</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-ghost" onclick="showP2PStatus()" data-lang-key="catalog_p2p">P2P o'tkazmalar — ishlab chiqilmoqda</button>
+                    </div>
+                </div>
+                <div class="filter-pills" id="servicesFilters">
+                    <button class="filter-pill active" data-service-filter="all" onclick="filterServices('all', this)">Barchasi</button>
+                    <button class="filter-pill" data-service-filter="microloan" onclick="filterServices('microloan', this)">Mikroqarzlar</button>
+                    <button class="filter-pill" data-service-filter="insurance" onclick="filterServices('insurance', this)">Sug'urta</button>
+                </div>
+                <div class="grid-3" id="servicesGrid"></div>
+                <div class="info-box info-amber" style="margin-top:20px">
+                    <div class="info-box-title">Muhim</div>
+                    <p>Shartlar informatsion xarakterga ega. Yakuniy stavka, tasdiq va sug'urta shartnomasi tegishli tashkilot tomonidan belgilanadi.</p>
                 </div>
             </section>
 

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080, initial-scale=1">
+  <title>BPay Google Play assets</title>
+  <style>
+    :root { --blue:#2563eb; --cyan:#06b6d4; --green:#10b981; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --soft:#f8fafc; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:1080px; height:1920px; background:#f8fafc; color:var(--ink); font-family:Inter,Roboto,Arial,sans-serif; }
+    body { overflow:hidden; }
+    .screen { width:1080px; height:1920px; position:relative; background:linear-gradient(180deg,#f8fafc 0%,#eef4ff 100%); }
+    .status { height:74px; padding:27px 38px 0; display:flex; justify-content:space-between; font-size:25px; font-weight:700; color:#334155; }
+    .status-right { display:flex; gap:16px; align-items:center; }
+    .signal { width:29px; height:21px; display:flex; gap:3px; align-items:end; }
+    .signal i { display:block; width:5px; background:#334155; border-radius:4px; }
+    .signal i:nth-child(1){height:7px}.signal i:nth-child(2){height:11px}.signal i:nth-child(3){height:16px}.signal i:nth-child(4){height:21px}
+    .wifi { width:27px; height:18px; border:4px solid #334155; border-top-color:transparent; border-left-color:transparent; border-right-color:transparent; border-radius:50%; transform:rotate(180deg); position:relative; }
+    .wifi:after { content:""; position:absolute; left:8px; top:10px; width:7px; height:7px; background:#334155; border-radius:50%; }
+    .battery { width:38px; height:19px; border:3px solid #334155; border-radius:5px; position:relative; }
+    .battery:after { content:""; position:absolute; right:-7px; top:4px; width:4px; height:8px; background:#334155; border-radius:0 2px 2px 0; }
+    .battery:before { content:""; position:absolute; left:3px; right:7px; top:3px; bottom:3px; background:#10b981; border-radius:2px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:20px 38px 22px; }
+    .brand { display:flex; align-items:center; gap:16px; }
+    .mark { width:70px; height:70px; border-radius:21px; display:block; box-shadow:0 12px 24px #2563eb33; }
+    .brand-name { font-size:32px; font-weight:900; letter-spacing:-.8px; }
+    .brand-tag { font-size:20px; color:var(--muted); margin-top:3px; }
+    .lang { border:1px solid #cbd5e1; background:white; border-radius:14px; padding:12px 17px; font-size:19px; font-weight:800; color:#1e40af; }
+    .content { padding:15px 38px 0; }
+    h1 { font-size:51px; line-height:1.05; letter-spacing:-1.5px; margin:30px 0 14px; }
+    h2 { font-size:31px; margin:0 0 10px; letter-spacing:-.5px; }
+    p { font-size:23px; line-height:1.4; color:var(--muted); margin:0; }
+    .segment { display:flex; padding:5px; background:#e8eef9; border-radius:18px; margin:30px 0 25px; }
+    .segment span { flex:1; text-align:center; padding:16px 8px; border-radius:14px; color:#475569; font-size:22px; font-weight:800; }
+    .segment .active { background:white; color:var(--blue); box-shadow:0 5px 16px #1e293b14; }
+    .field { height:78px; display:flex; align-items:center; gap:17px; padding:0 22px; border-radius:15px; background:#eef2f7; margin-bottom:16px; border:1px solid transparent; }
+    .field-label { color:#64748b; font-size:20px; position:absolute; transform:translateY(-22px); }
+    .field-value { font-size:24px; font-weight:700; padding-top:9px; }
+    .field-icon { font-size:28px; width:34px; text-align:center; color:#2563eb; }
+    .myid-card { margin-top:22px; padding:25px 23px 23px; background:white; border:1px solid #dbe5f3; border-radius:19px; box-shadow:0 14px 30px #0f172a0d; }
+    .myid-card p { font-size:20px; line-height:1.35; margin-bottom:18px; }
+    .button { height:66px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:12px; font-weight:800; font-size:22px; }
+    .primary { color:white; background:linear-gradient(135deg,#2563eb,#1d4ed8); box-shadow:0 11px 24px #2563eb35; }
+    .outline { border:2px solid #bfdbfe; color:#1d4ed8; margin-top:12px; background:#f8fbff; }
+    .demo { margin-top:28px; border:1px solid #cbd5e1; background:white; color:#334155; }
+    .hint { display:flex; gap:12px; align-items:center; margin-top:26px; color:#0f766e; font-size:18px; font-weight:700; }
+    .check { width:28px; height:28px; border-radius:50%; background:#d1fae5; display:grid; place-items:center; color:#047857; }
+
+    .hero { margin-top:20px; padding:29px 28px; border-radius:23px; color:white; background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 48%,#06b6d4 100%); box-shadow:0 20px 38px #2563eb30; position:relative; overflow:hidden; }
+    .hero:after { content:""; position:absolute; width:310px; height:310px; border:2px solid #ffffff2e; border-radius:50%; right:-110px; top:-120px; box-shadow:0 0 0 35px #ffffff0d,0 0 0 70px #ffffff08; }
+    .hero small { color:#dbeafe; font-size:20px; font-weight:600; }
+    .balance { font-size:43px; font-weight:900; letter-spacing:-1.3px; margin:12px 0 23px; }
+    .hero-stats { display:flex; gap:20px; }
+    .hero-stat { flex:1; }
+    .hero-stat label { color:#dbeafe; display:block; font-size:17px; }
+    .hero-stat strong { font-size:23px; }
+    .quick { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:25px 0 28px; }
+    .quick-card { text-align:center; padding:13px 4px 9px; border-radius:16px; background:white; border:1px solid #e2e8f0; box-shadow:0 8px 18px #0f172a08; font-size:17px; font-weight:700; color:#334155; }
+    .qicon { width:52px; height:52px; border-radius:50%; margin:0 auto 8px; display:grid; place-items:center; color:#1d4ed8; background:#dbeafe; font-size:25px; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; }
+    .section-head h2 { font-size:28px; }
+    .link { color:#2563eb; font-size:18px; font-weight:800; }
+    .chart { background:white; border:1px solid #e2e8f0; border-radius:18px; padding:18px 18px 12px; height:250px; box-shadow:0 8px 18px #0f172a08; }
+    .chart-title { font-size:18px; color:#64748b; font-weight:700; }
+    .chart svg { width:100%; height:165px; margin-top:6px; }
+    .tx { display:flex; align-items:center; gap:15px; padding:16px 0; border-bottom:1px solid #e2e8f0; }
+    .tx:last-child { border-bottom:0; }
+    .tx-icon { width:48px; height:48px; border-radius:15px; background:#eff6ff; display:grid; place-items:center; font-size:23px; }
+    .tx-text { flex:1; }
+    .tx-title { font-size:21px; font-weight:800; }
+    .tx-date { font-size:16px; color:#94a3b8; margin-top:2px; }
+    .tx-amount { font-size:20px; font-weight:900; }
+    .positive { color:#059669; }
+    .negative { color:#e11d48; }
+
+    .app-title { display:flex; align-items:center; gap:15px; margin:27px 0 10px; }
+    .back { font-size:34px; color:#334155; }
+    .app-title h1 { font-size:37px; margin:0; }
+    .search { height:69px; background:white; border:1px solid #dbe5f3; border-radius:15px; display:flex; gap:13px; align-items:center; padding:0 20px; color:#94a3b8; font-size:22px; margin:18px 0 21px; }
+    .add-card { background:white; border:1px solid #dbe5f3; border-radius:19px; padding:23px; box-shadow:0 8px 18px #0f172a08; }
+    .add-card h2 { font-size:27px; }
+    .small-field { height:66px; border-radius:13px; background:#f1f5f9; padding:21px 18px; color:#64748b; font-size:19px; margin-top:12px; }
+    .add-btn { margin-top:15px; height:62px; }
+    .offer { margin-top:15px; background:white; border:1px solid #dbe5f3; border-radius:18px; padding:19px; box-shadow:0 8px 18px #0f172a08; }
+    .offer-top { display:flex; align-items:center; gap:14px; }
+    .offer-icon { width:54px; height:54px; border-radius:16px; background:#dbeafe; color:#1d4ed8; display:grid; place-items:center; font-size:26px; }
+    .offer-name { flex:1; }
+    .offer-name strong { display:block; font-size:22px; }
+    .offer-name span { color:#64748b; font-size:17px; }
+    .offer-limit { font-size:19px; font-weight:900; text-align:right; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin:15px 0 16px; }
+    .chip { padding:8px 12px; background:#eff6ff; border-radius:10px; color:#1e40af; font-size:16px; font-weight:700; }
+    .order { border:2px solid #bfdbfe; color:#1d4ed8; background:#f8fbff; height:53px; font-size:19px; }
+    .bottom { position:absolute; left:0; right:0; bottom:0; height:119px; background:white; border-top:1px solid #e2e8f0; display:flex; justify-content:space-around; align-items:center; padding-bottom:12px; }
+    .nav-item { color:#64748b; font-size:15px; font-weight:700; text-align:center; }
+    .nav-icon { width:47px; height:37px; display:grid; place-items:center; margin:auto; font-size:26px; }
+    .nav-item.active { color:#2563eb; }
+    .nav-item.active .nav-icon { background:#dbeafe; border-radius:16px; }
+    .home-indicator { position:absolute; bottom:15px; left:calc(50% - 73px); width:146px; height:6px; background:#0f172a; border-radius:20px; opacity:.88; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const mark = `<svg class="mark" viewBox="0 0 70 70" aria-label="BPay logo"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs><rect width="70" height="70" rx="21" fill="url(#g)"/><path d="M23 17h18l-15 18 12 12H21l-8-8 15-14Z" fill="#fff" opacity=".98"/><path d="M45 34h11L42 51H30Z" fill="#bfdbfe"/><path d="M30 51h13l-7 8H23Z" fill="#dbeafe"/></svg>`;
+    const status = `<div class="status"><span>9:41</span><div class="status-right"><div class="signal"><i></i><i></i><i></i><i></i></div><div class="wifi"></div><div class="battery"></div></div></div>`;
+    const bottom = (active) => `<div class="bottom"><div class="nav-item ${active==='home'?'active':''}"><div class="nav-icon">⌂</div>Home</div><div class="nav-item ${active==='banks'?'active':''}"><div class="nav-icon">▦</div>Banks</div><div class="nav-item ${active==='cards'?'active':''}"><div class="nav-icon">▣</div>Cards</div><div class="nav-item"><div class="nav-icon">◷</div>Loans</div><div class="nav-item"><div class="nav-icon">◎</div>Profile</div></div><div class="home-indicator"></div>`;
+    function login(){ return `<div class="screen">${status}<div class="topbar"><div class="brand">${mark}<div><div class="brand-name">BPay</div><div class="brand-tag">Moliyaviy platforma</div></div></div><div class="lang">UZ ▾</div></div><div class="content"><h1>Welcome back</h1><p>Secure access to your financial platform</p><div class="segment"><span class="active">⌁ Login</span><span>＋ Register</span></div><div class="field"><div class="field-icon">☎</div><div><div class="field-label">Phone number</div><div class="field-value">+998 90 123 45 67</div></div></div><div class="field"><div class="field-icon">⌑</div><div><div class="field-label">Password</div><div class="field-value">••••••••</div></div><div style="margin-left:auto;color:#64748b;font-size:25px">◉</div></div><div class="myid-card"><h2>MyID and QR access</h2><p>MyID is enough for the app. For website login, scan the QR before or during MyID.</p><div class="button primary">✓ &nbsp;Continue with MyID</div><div class="button outline">⌗ &nbsp;Scan web QR</div></div><div class="hint"><span class="check">✓</span> Identity verification by MyID</div><div class="button demo">▶ &nbsp;Open demo mode</div></div></div>`; }
+    function dashboard(){ return `<div class="screen">${status}<div class="topbar"><div class="brand">${mark}<div><div class="brand-name">BPay</div><div class="brand-tag">Financial platform</div></div></div><div style="font-size:29px;color:#2563eb">⚙</div></div><div class="content"><div class="hero"><small>Welcome, Anvar Karimov</small><div class="balance">284,521,000 UZS</div><div class="hero-stats"><div class="hero-stat"><label>Growth</label><strong>+12.4%</strong></div><div class="hero-stat"><label>Score</label><strong>821</strong></div><div class="hero-stat"><label>Cards</label><strong>4</strong></div></div></div><div class="quick"><div class="quick-card"><div class="qicon">↗</div>Transfer</div><div class="quick-card"><div class="qicon">＋</div>Add card</div><div class="quick-card"><div class="qicon">⌗</div>Calc</div><div class="quick-card"><div class="qicon">⌁</div>Analytics</div></div><div class="section-head"><h2>Portfolio growth</h2><span class="link">View all</span></div><div class="chart"><div class="chart-title">Balance history · UZS</div><svg viewBox="0 0 940 165" preserveAspectRatio="none"><defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563eb" stop-opacity=".24"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs><path d="M0 135 C85 118 108 125 170 100 S270 112 330 88 S430 98 500 62 S620 77 685 51 S790 80 850 27 S905 41 940 14 L940 165 L0 165Z" fill="url(#fill)"/><path d="M0 135 C85 118 108 125 170 100 S270 112 330 88 S430 98 500 62 S620 77 685 51 S790 80 850 27 S905 41 940 14" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/><circle cx="940" cy="14" r="7" fill="#2563eb"/></svg></div><div style="height:27px"></div><div class="section-head"><h2>Recent transactions</h2><span class="link">See all</span></div><div class="tx"><div class="tx-icon">🛍</div><div class="tx-text"><div class="tx-title">Market payment</div><div class="tx-date">Today · Card payment</div></div><div class="tx-amount negative">−124,000 UZS</div></div><div class="tx"><div class="tx-icon">☕</div><div class="tx-text"><div class="tx-title">Dinner</div><div class="tx-date">Today · Card payment</div></div><div class="tx-amount negative">−85,000 UZS</div></div><div class="tx"><div class="tx-icon">↙</div><div class="tx-text"><div class="tx-title">Salary deposit</div><div class="tx-date">Yesterday · Incoming</div></div><div class="tx-amount positive">+9,200,000 UZS</div></div></div>${bottom('home')}</div>`; }
+    function cards(){ return `<div class="screen">${status}<div class="content"><div class="app-title"><span class="back">‹</span><h1>Bank cards</h1><span style="margin-left:auto;font-size:29px;color:#2563eb">⋮</span></div><p>Connect a card and compare offers</p><div class="search">⌕ <span>Search cards</span></div><div class="add-card"><h2>Add card</h2><div class="small-field">Card number &nbsp; 9860 1234 1234 5678</div><div class="small-field">Expiry MM/YY &nbsp; 03/29</div><div class="button primary add-btn">✉ &nbsp;Send SMS OTP</div></div><div style="height:24px"></div><div class="section-head"><h2>Available cards</h2><span class="link">Compare</span></div><div class="offer"><div class="offer-top"><div class="offer-icon">▣</div><div class="offer-name"><strong>Visa Platinum</strong><span>Kapitalbank · 3.5% cashback</span></div><div class="offer-limit">50M UZS</div></div><div class="chips"><span class="chip">Premium</span><span class="chip">Travel</span><span class="chip">Contactless</span></div><div class="button order">Order card</div></div><div class="offer"><div class="offer-top"><div class="offer-icon" style="background:#d1fae5;color:#047857">▣</div><div class="offer-name"><strong>Digital Freedom</strong><span>Anorbank · 5% cashback</span></div><div class="offer-limit">100M UZS</div></div><div class="chips"><span class="chip">No annual fee</span><span class="chip">Digital</span><span class="chip">Fast onboarding</span></div><div class="button order">Order card</div></div><div class="offer"><div class="offer-top"><div class="offer-icon" style="background:#fef3c7;color:#b45309">▣</div><div class="offer-name"><strong>Mastercard Gold</strong><span>Hamkorbank · 2.5% cashback</span></div><div class="offer-limit">30M UZS</div></div><div class="chips"><span class="chip">Lounge access</span><span class="chip">Transfers</span></div><div class="button order">Order card</div></div></div>${bottom('cards')}</div>`; }
+    const kind = (location.hash||'#login').slice(1); document.getElementById('app').innerHTML = kind==='dashboard'?dashboard():kind==='cards'?cards():login();
+  </script>
+</body>
+</html>
