@@ -361,7 +361,7 @@ def build_pptx():
         "Security questionnaire, IP allowlist, certificates, monitoring.",
         "Пилотная группа, продукт, срок, KPI и go/no-go критерии.",
     ], fill=PALE_BLUE, accent=BLUE, body_size=11.4)
-    add_text(s, 0.8, 6.45, 11.5, 0.35, "Предложение: совместный discovery workshop на 90 минут и затем короткий sandbox plan.", 14, NAVY, True, align=PP_ALIGN.CENTER)
+    add_text(s, 0.8, 6.45, 11.5, 0.35, "Предложение: совместная рабочая встреча на 90 минут и согласованный план тестового запуска.", 14, NAVY, True, align=PP_ALIGN.CENTER)
 
     # 14 success metrics
     s = new_slide(prs, 14, "Как поймём, что пилот работает", "Результат — не только транзакции, но и управляемый риск, качество данных и понятный UX", "13 | KPI")
@@ -376,16 +376,15 @@ def build_pptx():
     add_text(s, 0.75, 5.7, 11.8, 0.75, "Главная метрика: пользователь получает прозрачный путь и правильный статус, а партнёр — качественную заявку/операцию в контролируемом контуре.", 17, NAVY, True, align=PP_ALIGN.CENTER)
 
     # 15 closing
-    s = new_slide(prs, 15, "Следующий шаг", "B1Pay готовит UX и технический контур; Octo помогает определить допустимый regulated perimeter", "14 | Decision")
-    add_text(s, 0.9, 1.8, 11.5, 0.55, "Предлагаем совместно подтвердить:", 22, NAVY, True, align=PP_ALIGN.CENTER)
-    bullet_box(s, 2.0, 2.75, 9.3, 2.25, "Decision pack", [
-        "роль B1Pay + список разрешённых продуктов",
-        "sandbox/API + security/AML requirements",
-        "пилотный продукт, группа, лимиты и KPI",
-        "go/no-go критерии для P2P/payout",
+    s = new_slide(prs, 15, "Следующий шаг", "B1Pay готовит сайт и приложение; вместе с Octo мы определяем, какие услуги можно запускать законно и безопасно", "14 | Решение")
+    add_text(s, 0.9, 1.8, 11.5, 0.55, "Предлагаем вместе подтвердить:", 22, NAVY, True, align=PP_ALIGN.CENTER)
+    bullet_box(s, 2.0, 2.75, 9.3, 2.25, "Решения для старта", [
+        "роль B1Pay и список разрешённых услуг",
+        "тестовое подключение и требования к безопасности",
+        "пилотный продукт, группа пользователей, лимиты и показатели",
+        "условия, при которых можно будет включить переводы",
     ], fill=PALE_BLUE, accent=BLUE, body_size=15)
-    add_text(s, 1.0, 5.65, 11.3, 0.5, "Спасибо. Контакт для workshop: команда B1Pay", 19, BLUE, True, align=PP_ALIGN.CENTER)
-    add_text(s, 1.0, 6.25, 11.3, 0.3, "Приложения: business_model.md • architecture.md • platform_architecture.svg", 11, MUTED, align=PP_ALIGN.CENTER)
+    add_text(s, 1.0, 5.65, 11.3, 0.5, "Спасибо. Контакт для рабочей встречи: команда B1Pay", 19, BLUE, True, align=PP_ALIGN.CENTER)
 
     prs.save(PPTX_PATH)
     return PPTX_PATH
@@ -402,23 +401,23 @@ def build_one_pager():
     doc = SimpleDocTemplate(str(ONE_PAGER_PATH), pagesize=A4, rightMargin=15*mm, leftMargin=15*mm, topMargin=13*mm, bottomMargin=13*mm)
     story = []
     story.append(Paragraph("B1Pay × Octo — предложение о партнёрстве", title))
-    story.append(Paragraph("Цифровая финансовая витрина и будущий partner-led платёжный слой для Узбекистана. Версия для переговоров, 10 сентября 2026.", sub))
+    story.append(Paragraph("Цифровая витрина финансовых услуг и возможная платёжная интеграция для Узбекистана. Краткое предложение для переговоров, 10 сентября 2026.", sub))
     story.append(Paragraph("Идея", h))
-    story.append(Paragraph("B1Pay объединяет каталог банковских продуктов, кредиты/микрозаймы, страхование, MyID + QR-вход и отдельный инвестиционный модуль. Пользователь сравнивает условия и направляет заявку лицензированному партнёру. P2P/payout подключается только после юридического, договорного, AML и технического согласования с Octo/банком.", body))
+    story.append(Paragraph("B1Pay объединяет в одном месте предложения банков и других лицензированных организаций: кредиты, микрозаймы, карты, страхование и инвестиционные продукты. Пользователь сравнивает условия, выбирает подходящее предложение и оставляет заявку. Окончательное решение и деньги остаются у банка или другого лицензированного партнёра. Переводы можно подключить только после отдельного согласования.", body))
     story.append(Paragraph("Ценность для Octo / банка", h))
     vals = [
-        "Структурированные лиды и единая API-точка для web и Android.",
-        "Контролируемый пилот: sandbox, лимиты, SLA, webhooks, reconciliation.",
-        "MyID на телефоне, QR в web, минимизация KYC/payment данных.",
-        "Воронка и метрики: просмотр → заявка → KYC → решение → операция.",
+        "Готовый цифровой канал привлечения клиентов через сайт и приложение.",
+        "Ограниченный пилот, чтобы проверить спрос, качество заявок и безопасность.",
+        "Подтверждение личности MyID на телефоне; на сайте — безопасный QR-код.",
+        "Понятная статистика: просмотр предложения → заявка → проверка личности → решение.",
     ]
     for x in vals: story.append(Paragraph("• " + x, bullet))
     story.append(Paragraph("Модель ответственности", h))
     table_data = [
-        [Paragraph("B1Pay", small), Paragraph("UX, каталог, consent, routing, support L1", small)],
-        [Paragraph("Octo / банк", small), Paragraph("API, settlement, лимиты, fraud и regulated operation в разрешённой роли", small)],
-        [Paragraph("Банк/МФО/страховщик", small), Paragraph("Кредитное решение, договор, полис, выдача и claims", small)],
-        [Paragraph("MyID", small), Paragraph("KYC session/status в согласованном контуре", small)],
+        [Paragraph("B1Pay", small), Paragraph("Сайт и приложение, каталог предложений, заявки и первая линия поддержки", small)],
+        [Paragraph("Octo / банк", small), Paragraph("Техническая платёжная инфраструктура, лимиты и контроль операций", small)],
+        [Paragraph("Банк/МФО/страховщик", small), Paragraph("Рассмотрение заявки, договор, выдача кредита или полиса", small)],
+        [Paragraph("MyID", small), Paragraph("Подтверждение личности пользователя", small)],
     ]
     t = Table(table_data, colWidths=[38*mm, 135*mm])
     t.setStyle(TableStyle([
@@ -431,19 +430,17 @@ def build_one_pager():
     ]))
     story.append(t)
     story.append(Paragraph("Пилот", h))
-    story.append(Paragraph("Фаза 0: legal/discovery → Фаза 1: каталог и лиды → Фаза 2: controlled pilot → Фаза 3: P2P/payout после approval gate. На первом этапе P2P остаётся выключенным feature flag и не обещается пользователю как доступная операция.", body))
+    story.append(Paragraph("Этап 0: согласовать законную модель и роли → Этап 1: каталог и заявки → Этап 2: ограниченный тест → Этап 3: переводы после отдельного одобрения. Пока переводы выключены и не обещаются пользователю как доступная услуга.", body))
     story.append(Paragraph("Что просим у Octo", h))
     for x in [
-        "Подтвердить разрешённые P2P/payout/merchant сценарии и юридическую роль B1Pay.",
-        "Предоставить sandbox/API/signing/webhook/error-code documentation.",
-        "Согласовать лимиты, комиссии, settlement, refund/reversal/chargeback и SLA.",
-        "Определить AML/KYC RACI, security requirements, пилотную группу и KPI.",
+        "Подтвердить, какие услуги и сценарии можно подключить и в какой роли будет работать B1Pay.",
+        "Предоставить описание технического подключения и тестовую среду.",
+        "Согласовать лимиты, комиссии, сроки расчётов, возвраты и порядок разбора спорных операций.",
+        "Определить, кто отвечает за проверку клиента, безопасность, отчётность, пилотную группу и показатели успеха.",
     ]: story.append(Paragraph("• " + x, bullet))
     story.append(Spacer(1, 4))
     story.append(Paragraph("Юридическое ограничение", h))
-    story.append(Paragraph("B1Pay не заявляет себя банком, платёжной организацией, МФО, страховщиком или инвестиционным посредником. Этот документ — концепция для переговоров, не юридическое заключение. До запуска требуется консультация юриста и письменное подтверждение Octo/партнёров.", body))
-    story.append(Spacer(1, 4))
-    story.append(Paragraph("Приложения: business_model.md • architecture.md • platform_architecture.svg • полная презентация PPTX/PDF", small))
+    story.append(Paragraph("B1Pay не является банком, МФО, страховой или платёжной организацией. B1Pay предоставляет интерфейс и направляет заявку лицензированному партнёру. Этот документ нужен для обсуждения, а не является юридическим заключением. Перед запуском необходимы консультация юриста и письменное согласование партнёров.", body))
     doc.build(story)
     return ONE_PAGER_PATH
 
