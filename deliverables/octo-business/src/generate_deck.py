@@ -106,7 +106,10 @@ def add_rich_text(slide, x, y, w, h, runs, size=18, color=INK, align=PP_ALIGN.LE
 
 def add_title(slide, title, subtitle=None, section=None):
     if section:
-        add_text(slide, 0.55, 0.28, 3.5, 0.24, section.upper(), 9, BLUE, True)
+        # Keep the section label clear of the B1Pay mark at the top-left.
+        # The old x=0.55 position caused the two text boxes to overlap on
+        # every content slide when exported to PDF/PowerPoint.
+        add_text(slide, 2.85, 0.28, 5.0, 0.24, section.upper(), 9, BLUE, True)
     add_text(slide, 0.52, 0.55, 12.1, 0.58, title, 27, NAVY, True)
     if subtitle:
         add_text(slide, 0.55, 1.17, 11.9, 0.42, subtitle, 12, MUTED)
@@ -158,14 +161,19 @@ def add_brand(slide, dark=False):
     color = WHITE if dark else NAVY
     add_rich_text(slide, 0.55, 0.18, 2.0, 0.33, [
         {"text": "B1", "bold": True, "color": BLUE, "size": 18},
-        {"text": "pay", "bold": True, "color": color, "size": 18},
+        {"text": "Pay", "bold": True, "color": color, "size": 18},
     ])
 
 
 def new_slide(prs, idx, title, subtitle=None, section=None, dark=False):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_full_bg(slide, NAVY if dark else WHITE)
-    if not dark:
+    if dark:
+        add_brand(slide, dark=True)
+        add_text(slide, 0.72, 0.62, 6.8, 0.42, title, 24, WHITE, True)
+        if subtitle:
+            add_text(slide, 0.76, 1.05, 11.4, 0.34, subtitle, 12, RGBColor(190, 211, 235))
+    else:
         add_brand(slide)
         add_title(slide, title, subtitle, section)
         add_footer(slide, idx)
