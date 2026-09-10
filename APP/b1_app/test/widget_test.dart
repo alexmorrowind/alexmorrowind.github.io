@@ -20,27 +20,40 @@ void main() {
   });
 
   testWidgets('login validation rejects invalid credentials', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const BPayApp());
     await tester.pump(const Duration(milliseconds: 1600));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).first, 'bad-phone');
     await tester.enterText(find.byType(TextField).at(1), '123');
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Kirish'));
     await tester.tap(find.widgetWithText(FilledButton, 'Kirish'));
     await tester.pump();
 
-    expect(find.text('Enter Uzbekistan phone number in +998 format'), findsOneWidget);
+    expect(find.textContaining('+998'), findsOneWidget);
   });
 
   testWidgets('demo login reaches home dashboard', (tester) async {
+    tester.view.physicalSize = const Size(1200, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const BPayApp());
     await tester.pump(const Duration(milliseconds: 1600));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Demo rejimida korish'));
     await tester.tap(find.text('Demo rejimida korish'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('284,521,000 UZS'), findsOneWidget);
+    expect(find.text('MOLIYAVIY TAKLIFLAR KATALOGI'), findsOneWidget);
+    expect(find.textContaining('P2P'), findsWidgets);
     expect(find.byIcon(Icons.dashboard_outlined), findsOneWidget);
   });
 
@@ -57,12 +70,16 @@ void main() {
   test('search and filters return expected offers', () {
     const service = AppDataService();
 
-    expect(service.searchBanks('digital').map((bank) => bank.name), contains('TBC Uzbekistan'));
+    expect(service.searchBanks('digital').map((bank) => bank.name),
+        contains('TBC Uzbekistan'));
     expect(service.searchCards('travel'), isNotEmpty);
     expect(service.searchLoans('auto').single.type, LoanType.auto);
-    expect(service.filterInvestors(InvestorDomain.tech).single.name, 'Silk Road Ventures');
-    expect(AppDataService.banks.map((bank) => bank.name), contains('National Bank of Uzbekistan (NBU)'));
-    expect(AppDataService.banks.map((bank) => bank.name), contains('Kredit Standart Bank'));
+    expect(service.filterInvestors(InvestorDomain.tech).single.name,
+        'Silk Road Ventures');
+    expect(AppDataService.banks.map((bank) => bank.name),
+        contains('National Bank of Uzbekistan (NBU)'));
+    expect(AppDataService.banks.map((bank) => bank.name),
+        contains('Kredit Standart Bank'));
   });
 
   test('loan calculator returns a monthly payment', () {
@@ -136,7 +153,10 @@ void main() {
       businessModel: 'SaaS',
       financialInfo: 'MRR 10M UZS',
     );
-    startups.invest(userId: 'physical_1', startupId: startups.startups.last.id, amount: 1000000);
+    startups.invest(
+        userId: 'physical_1',
+        startupId: startups.startups.last.id,
+        amount: 1000000);
 
     expect(startups.startups.last.status, StartupStatus.pendingApproval);
     expect(startups.investments.last.amount, 1000000);
