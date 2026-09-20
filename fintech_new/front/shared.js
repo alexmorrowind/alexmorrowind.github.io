@@ -23,6 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
       a.classList.add('active');
     }
   });
+
+  // The public website is informational. Keep the separate app login/MyID flow,
+  // but never send website visitors to a registration form from public pages.
+  if (path !== 'login.html') {
+    document.querySelectorAll('a[href="login.html"], a[href^="login.html?"]').forEach(anchor => {
+      anchor.href = 'landing.html#app';
+      anchor.classList.add('public-app-cta');
+      anchor.dataset.uz = 'Ilovani ochish';
+      anchor.dataset.ru = 'Открыть приложение';
+      if (!anchor.textContent.trim() || anchor.classList.contains('nav-cta')) {
+        anchor.textContent = localStorage.getItem('bpay_lang') === 'ru'
+          ? 'Открыть приложение'
+          : 'Ilovani ochish';
+      }
+    });
+  }
 });
 
 // Словарь переводов для локализации

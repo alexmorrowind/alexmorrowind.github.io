@@ -205,11 +205,13 @@
             <div><span>${text('Min. ishtirok', 'Мин. участие')}</span><strong>${money(startup.min_investment)}</strong></div>
             <div><span>${text('Maqsadli ROI', 'Целевой ROI')}</span><strong>${escapeHtml(startup.roi)}%</strong></div>
           </div>
-          <form id="startupInvestmentForm" class="startup-invest-form">
-            <label for="startupInvestmentAmount">${text('Miqdor, so‘m', 'Сумма, сум')}</label>
-            <input id="startupInvestmentAmount" type="number" min="${escapeHtml(startup.min_investment)}" step="1000" value="${escapeHtml(startup.min_investment)}" required>
-            <button class="btn-hero btn-hero-primary" type="submit">${text('Investitsiya arizasini boshlash', 'Начать заявку на инвестицию')}</button>
-          </form>
+          <div class="startup-invest-status" role="note">
+            ${text(
+              'B1 hozircha startaplar haqida axborot beradi. Investitsiya shartlari va bitimlar faqat litsenziyalangan hamkor bilan alohida tekshiriladi.',
+              'Сейчас B1 показывает только информационные карточки стартапов. Условия инвестиций и сделки проверяются отдельно с лицензированным партнёром.'
+            )}
+          </div>
+          <a class="btn-hero btn-hero-ghost" href="help.html">${text('Qo‘llab-quvvatlash', 'Связаться с поддержкой')}</a>
           <div id="startupInvestmentStatus" class="startup-invest-status" aria-live="polite"></div>
         </aside>
       </section>

@@ -4,6 +4,17 @@
   const bankId = params.get('id');
   const bankSlug = params.get('slug');
   const requestedService = params.get('service');
+  const selectedCredit = {
+    id: params.get('credit') || '',
+    name: params.get('credit_name') || '',
+    type: params.get('credit_type') || '',
+    rate: params.get('rate') || '',
+    term: params.get('term') || '',
+    downPayment: params.get('down') || '',
+    amount: params.get('amount') || '',
+    channel: params.get('channel') || '',
+    monthly: params.get('monthly') || '',
+  };
   let bankMap = null;
 
   function escapeHtml(value) {
@@ -102,15 +113,80 @@
       : ''}<span style="display:${source ? 'none' : 'grid'};background:${color}">${fallback}</span>`;
   }
 
-  function officialLink(bank, label) {
-    const url = safeUrl(bank.website_url);
+  function productUrl(bank, kind) {
+    const productUrls = bank.product_urls || bank.productUrls || {};
+    const candidates = [
+      productUrls[kind],
+      bank[`${kind}_url`],
+      bank[`${kind}Url`],
+      bank.website_url,
+    ];
+    return candidates.map(safeUrl).find(Boolean) || '';
+  }
+
+  function officialLink(bank, label, kind) {
+    const url = productUrl(bank, kind);
     if (!url) {
       return `<span class="bank-detail-button bank-detail-button-muted">${text('Rasmiy sayt kiritilmagan', 'Официальный сайт не указан')}</span>`;
     }
     return `<a class="bank-detail-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label} <span aria-hidden="true">↗</span></a>`;
   }
 
-  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords, internalHref, internalLabelUz, internalLabelRu) {
+  function formatOfferNumber(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return escapeHtml(value || '—');
+    return new Intl.NumberFormat(language() === 'ru' ? 'ru-RU' : 'uz-UZ', {
+      maximumFractionDigits: 1,
+    }).format(number);
+  }
+
+  function renderSelectedCredit(bank) {
+    const panel = document.getElementById('selectedCreditPanel');
+    if (!panel) return;
+    if (!selectedCredit.id && !selectedCredit.name) {
+      panel.hidden = true;
+      return;
+    }
+
+    const creditName = selectedCredit.name || text('Tanlangan kredit', 'Выбранный кредит');
+    const action = document.getElementById('selectedCreditAction');
+    const creditUrl = productUrl(bank, 'credits') || safeUrl(bank.website_url);
+    if (action) {
+      if (creditUrl) {
+        action.href = creditUrl;
+        action.hidden = false;
+      } else {
+        action.hidden = true;
+      }
+    }
+
+    setText('#selectedCreditName', creditName);
+    setText('#selectedCreditMeta', text(
+      'B1 ushbu taklifni solishtirish uchun ko‘rsatadi. Yakuniy shartlar va tasdiqlash bank tomonida belgilanadi.',
+      'B1 показывает это предложение для сравнения. Финальные условия и одобрение определяет банк.'
+    ));
+
+    const facts = document.getElementById('selectedCreditFacts');
+    if (facts) {
+      const items = [
+        [text('Stavka', 'Ставка'), selectedCredit.rate ? `${formatOfferNumber(selectedCredit.rate)}%` : '—'],
+        [text('Muddat', 'Срок'), selectedCredit.term || '—'],
+        [text('Boshlang‘ich', 'Первый взнос'), selectedCredit.downPayment || text('Talabga qarab', 'По условиям')],
+        [text('Limit', 'Лимит'), selectedCredit.amount || '—'],
+      ];
+      if (selectedCredit.monthly) items.push([text('Taxminiy to‘lov', 'Ориентир/мес'), selectedCredit.monthly]);
+      facts.innerHTML = items.map(([label, value]) => `
+        <div class="selected-credit-fact">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+        </div>
+      `).join('');
+    }
+
+    panel.hidden = false;
+  }
+
+  function categoryCard(bank, id, icon, titleUz, titleRu, descriptionUz, descriptionRu, keywords, internalHref, internalLabelUz, internalLabelRu, productKind) {
     const values = uniqueItems(bank);
     const matched = values.filter(value => keywords.some(keyword => value.toLowerCase().includes(keyword)));
     const list = matched.length ? matched : [
@@ -126,7 +202,7 @@
           <ul>${list.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
           <div class="bank-product-actions">
             ${internalHref ? `<a class="bank-detail-button bank-detail-button-secondary" href="${escapeHtml(internalHref)}">${text(internalLabelUz || 'Ko‘rish', internalLabelRu || 'Смотреть')} <span aria-hidden="true">→</span></a>` : ''}
-            ${officialLink(bank, text('Rasmiy saytga o‘tish', 'Перейти на официальный сайт'))}
+            ${officialLink(bank, text('Rasmiy saytga o‘tish', 'Перейти на официальный сайт'), productKind)}
           </div>
         </div>
       </article>
@@ -195,15 +271,17 @@
         : `<span id="bankDetailPrimaryAction" class="btn-hero btn-hero-ghost">${text('Rasmiy sayt kiritilmagan', 'Официальный сайт не указан')}</span>`;
     }
 
+    renderSelectedCredit(bank);
+
     const sections = document.getElementById('bankProductSections');
     if (sections) {
       sections.innerHTML = [
-        categoryCard(bank, 'credits', '↗', 'Kreditlar', 'Кредиты', 'Iste’mol, mikro va boshqa kredit takliflarini bankning rasmiy sahifasida ko‘ring.', 'Потребительские, микрокредитные и другие предложения смотрите на официальной странице банка.', ['kredit', 'credit', 'qarz', 'loan'], `calculator.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Kalkulyatorda hisoblash', 'Посчитать в калькуляторе'),
-        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard'], `bank-cards.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Bank kartalarini ko‘rish', 'Смотреть карты банка'),
-        categoryCard(bank, 'mortgage', '⌂', 'Ipoteka', 'Ипотека', 'Uy-joy moliyalashtirish va ipoteka yo‘nalishlarini tekshiring.', 'Проверьте ипотечные программы и финансирование жилья.', ['ipoteka', 'ипотек', 'mortgage']),
-        categoryCard(bank, 'insurance', '◇', 'Sug‘urta', 'Страхование', 'Sug‘urta mahsulotlari va hamkorlik takliflari bank saytida tekshiriladi.', 'Страховые продукты и партнёрские предложения проверяются на сайте банка.', ['sug', 'страх', 'insurance']),
-        categoryCard(bank, 'business', '◫', 'Biznes kreditlari', 'Бизнес-кредиты', 'Tadbirkorlar va kompaniyalar uchun moliyalashtirish yo‘nalishlari.', 'Финансирование для предпринимателей и компаний.', ['biznes', 'business', 'korpor', 'предпри', 'business']),
-        categoryCard(bank, 'deposits', '◌', 'Depozitlar', 'Депозиты', 'Jamg‘arma va depozitlar bo‘yicha joriy shartlarni rasmiy manbada tekshiring.', 'Проверяйте актуальные условия накоплений и депозитов на официальном источнике.', ['depozit', 'deposit', 'omonat', 'вклад']),
+        categoryCard(bank, 'credits', '↗', 'Kreditlar', 'Кредиты', 'Iste’mol, mikro va boshqa kredit takliflarini bankning rasmiy sahifasida ko‘ring.', 'Потребительские, микрокредитные и другие предложения смотрите на официальной странице банка.', ['kredit', 'credit', 'qarz', 'loan'], `calculator.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Kalkulyatorda hisoblash', 'Посчитать в калькуляторе', 'credits'),
+        categoryCard(bank, 'cards', '▣', 'Kartalar', 'Карты', 'Debet, kredit va boshqa kartalar bo‘yicha shartlarni taqqoslashga tayyorlaymiz.', 'Показываем условия по дебетовым, кредитным и другим картам.', ['karta', 'card', 'visa', 'mastercard', 'humo', 'uzcard'], `bank-cards.html?bank=${encodeURIComponent(bank.slug || bank.id)}`, 'Bank kartalarini ko‘rish', 'Смотреть карты банка', 'cards'),
+        categoryCard(bank, 'mortgage', '⌂', 'Ipoteka', 'Ипотека', 'Uy-joy moliyalashtirish va ipoteka yo‘nalishlarini tekshiring.', 'Проверьте ипотечные программы и финансирование жилья.', ['ipoteka', 'ипотек', 'mortgage'], null, null, null, 'mortgage'),
+        categoryCard(bank, 'insurance', '◇', 'Sug‘urta', 'Страхование', 'Sug‘urta mahsulotlari va hamkorlik takliflari bank saytida tekshiriladi.', 'Страховые продукты и партнёрские предложения проверяются на сайте банка.', ['sug', 'страх', 'insurance'], null, null, null, 'insurance'),
+        categoryCard(bank, 'business', '◫', 'Biznes kreditlari', 'Бизнес-кредиты', 'Tadbirkorlar va kompaniyalar uchun moliyalashtirish yo‘nalishlari.', 'Финансирование для предпринимателей и компаний.', ['biznes', 'business', 'korpor', 'предпри', 'business'], null, null, null, 'business'),
+        categoryCard(bank, 'deposits', '◌', 'Depozitlar', 'Депозиты', 'Jamg‘arma va depozitlar bo‘yicha joriy shartlarni rasmiy manbada tekshiring.', 'Проверяйте актуальные условия накоплений и депозитов на официальном источнике.', ['depozit', 'deposit', 'omonat', 'вклад'], null, null, null, 'deposits'),
       ].join('');
     }
 

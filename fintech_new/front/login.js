@@ -2,6 +2,7 @@
   let currentLang = localStorage.getItem('b1_lang') || 'uz';
   let currentSessionId = '';
   let pollTimer = null;
+  let authFlow = 'login';
 
   function getApiBaseUrl() {
     if (window.B1_API_BASE_URL) return window.B1_API_BASE_URL.replace(/\/$/, '');
@@ -93,6 +94,111 @@
 
   function goToDashboard() {
     window.location.href = 'index.html';
+  }
+
+  function setWebAuthStatus(message, isError = false) {
+    const status = document.getElementById('webAuthStatus');
+    if (!status) return;
+    status.textContent = message || '';
+    status.style.color = isError ? '#b91c1c' : 'var(--muted)';
+  }
+
+  function setAuthFlow(flow) {
+    authFlow = flow === 'register' ? 'register' : 'login';
+    document.getElementById('loginTab')?.classList.toggle('active', authFlow === 'login');
+    document.getElementById('registerTab')?.classList.toggle('active', authFlow === 'register');
+    const loginForm = document.getElementById('myIdLoginForm');
+    const registerForm = document.getElementById('myIdRegisterForm');
+    if (loginForm) loginForm.hidden = authFlow !== 'login';
+    if (registerForm) registerForm.hidden = authFlow !== 'register';
+    setWebAuthStatus('');
+  }
+
+  function cleanMyIdCallbackQuery() {
+    const url = new URL(window.location.href);
+    ['myid_status', 'myid_session', 'reason_code', 'message'].forEach((key) => url.searchParams.delete(key));
+    window.history.replaceState({}, document.title, url.toString());
+  }
+
+  async function completeMyIdWebFlow() {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('myid_status');
+    const sessionId = params.get('myid_session') || localStorage.getItem('pendingMyIdWebSession') || '';
+    if (!status && !sessionId) return false;
+
+    if (status !== 'verified') {
+      setWebAuthStatus(params.get('message') || (currentLang === 'uz'
+        ? 'MyID tekshiruvi tugallanmagan. Qayta urinib ko‘ring.'
+        : 'Проверка MyID не завершена. Попробуйте ещё раз.'), true);
+      localStorage.removeItem('pendingMyIdWebSession');
+      cleanMyIdCallbackQuery();
+      return true;
+    }
+
+    if (!sessionId) {
+      setWebAuthStatus(currentLang === 'uz' ? 'MyID sessiyasi topilmadi.' : 'Сессия MyID не найдена.', true);
+      cleanMyIdCallbackQuery();
+      return true;
+    }
+
+    setWebAuthStatus(currentLang === 'uz' ? 'MyID tasdiqlovi yakunlanmoqda...' : 'Завершаем подтверждение MyID...');
+    try {
+      const data = await apiRequest('/auth/myid/redirect/complete/', {
+        method: 'POST',
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+      storeTokens(data.tokens, data.profile || {});
+      localStorage.removeItem('pendingMyIdWebSession');
+      cleanMyIdCallbackQuery();
+      setWebAuthStatus(currentLang === 'uz' ? 'Tasdiqlandi. Kabinet ochilmoqda...' : 'Подтверждено. Открываем кабинет...');
+      window.setTimeout(goToDashboard, 500);
+    } catch (error) {
+      setWebAuthStatus(currentLang === 'uz'
+        ? `Tasdiqlash xatosi: ${error.message}`
+        : `Ошибка подтверждения: ${error.message}`, true);
+      cleanMyIdCallbackQuery();
+    }
+    return true;
+  }
+
+  async function startMyIdWebFlow(event) {
+    event.preventDefault();
+    const payload = { flow: authFlow, account_type: 'physical' };
+    if (authFlow === 'login') {
+      const identifier = document.getElementById('loginIdentifier')?.value.trim() || '';
+      if (!identifier) {
+        setWebAuthStatus(currentLang === 'uz' ? 'Telefon yoki emailni kiriting.' : 'Введите телефон или email.', true);
+        return;
+      }
+      if (identifier.includes('@')) payload.email = identifier;
+      else payload.phone = identifier;
+    } else {
+      payload.first_name = document.getElementById('registerFirstName')?.value.trim() || '';
+      payload.last_name = document.getElementById('registerLastName')?.value.trim() || '';
+      payload.email = document.getElementById('registerEmail')?.value.trim() || '';
+      payload.phone = document.getElementById('registerPhone')?.value.trim() || '';
+      payload.password = document.getElementById('registerPassword')?.value || '';
+      payload.agreed_on_terms = document.getElementById('registerConsent')?.checked === true;
+    }
+
+    const button = event.submitter;
+    if (button) button.disabled = true;
+    setWebAuthStatus(currentLang === 'uz'
+      ? 'MyID oynasi tayyorlanmoqda...'
+      : 'Готовим окно MyID...');
+    try {
+      const data = await apiRequest('/auth/myid/redirect/start/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      localStorage.setItem('pendingMyIdWebSession', data.session_id || '');
+      window.location.assign(data.redirect_url);
+    } catch (error) {
+      setWebAuthStatus(currentLang === 'uz'
+        ? `MyID ishga tushmadi: ${error.message}`
+        : `Не удалось открыть MyID: ${error.message}`, true);
+      if (button) button.disabled = false;
+    }
   }
 
   async function pollQrStatus() {
@@ -191,9 +297,17 @@
   function wireEvents() {
     const refreshBtn = document.getElementById('refreshBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('myIdLoginForm');
+    const registerForm = document.getElementById('myIdRegisterForm');
 
     if (refreshBtn) refreshBtn.addEventListener('click', startQrSession);
     if (copyBtn) copyBtn.addEventListener('click', pollQrStatus);
+    if (loginTab) loginTab.addEventListener('click', () => setAuthFlow('login'));
+    if (registerTab) registerTab.addEventListener('click', () => setAuthFlow('register'));
+    if (loginForm) loginForm.addEventListener('submit', startMyIdWebFlow);
+    if (registerForm) registerForm.addEventListener('submit', startMyIdWebFlow);
   }
 
   window.setLang = setLang;
@@ -208,7 +322,9 @@
     }
 
     if (window.location.pathname.includes('login.html')) {
-      startQrSession();
+      completeMyIdWebFlow().then((callbackHandled) => {
+        if (!callbackHandled) startQrSession();
+      });
     }
   });
 })();

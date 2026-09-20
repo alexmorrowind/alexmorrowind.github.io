@@ -4,407 +4,446 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Рассчитайте ориентировочный ежемесячный платёж по кредиту и сравните предложения банков в B1Pay.">
+  <meta name="description" content="Сравните кредитные предложения банков Узбекистана и рассчитайте ориентировочный платёж в B1Pay.">
   <link rel="canonical" href="https://b1pay.uz/calculator.html">
-  <title>Кредитный калькулятор — расчёт платежа | B1Pay</title>
+  <title>Кредиты банков — сравнение и калькулятор | B1Pay</title>
   <link rel="icon" href="favicon.ico?v=20260826" sizes="any">
   <link rel="icon" type="image/png" href="favicon.png?v=20260826">
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260826">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared.css?v=20260826">
   <style>
-    .calculator-shell {
-      max-width: 1200px;
+    .credit-shell {
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 0 48px 88px;
+      padding: 104px 48px 88px;
     }
 
-    .calculator-tabs {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 22px;
-      padding: 8px;
-      border: 1px solid rgba(59, 130, 246, 0.12);
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.04);
+    .credit-breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 36px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
     }
 
-    .calculator-tab {
-      min-height: 46px;
+    .credit-breadcrumbs a {
+      color: #64748b;
+      text-decoration: none;
+    }
+
+    .credit-heading {
+      max-width: 820px;
+      margin: 0 auto 34px;
+      text-align: center;
+    }
+
+    .credit-heading h1 {
+      margin-bottom: 12px;
+      color: #111827;
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .credit-heading p {
+      color: #475569;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .credit-type-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+    }
+
+    .credit-type-tab {
+      min-height: 42px;
+      padding: 0 4px;
       border: 0;
-      border-radius: 10px;
+      border-bottom: 3px solid transparent;
       background: transparent;
-      color: var(--text-secondary);
+      color: #94a3b8;
       cursor: pointer;
       font: inherit;
+      font-size: 16px;
       font-weight: 800;
+      transition: color 0.2s, border-color 0.2s;
     }
 
-    .calculator-tab.active {
-      background: #fff;
-      color: var(--text-primary);
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    .credit-type-tab:hover,
+    .credit-type-tab.active {
+      border-color: var(--blue-neon);
+      color: #111827;
     }
 
-    .calculator-layout {
-      display: grid;
-      grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .calculator-panel,
-    .calculator-results,
-    .calculator-help,
-    .bank-rate-strip {
-      border: 1.5px solid rgba(59, 130, 246, 0.12);
+    .credit-filter-card {
+      margin-bottom: 28px;
+      padding: 24px;
+      border: 1px solid #e2e8f0;
       border-radius: 18px;
       background: #fff;
-      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 8px 26px rgba(15, 23, 42, 0.05);
     }
 
-    .calculator-panel {
-      padding: 28px;
+    .credit-filter-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 1fr 0.9fr auto;
+      gap: 18px;
+      align-items: end;
     }
 
-    .calculator-field {
-      margin-bottom: 22px;
-    }
-
-    .calculator-label {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
+    .credit-field label {
+      display: block;
       margin-bottom: 10px;
-      color: var(--text-primary);
+      color: #172554;
       font-size: 14px;
       font-weight: 800;
     }
 
-    .calculator-label span:last-child {
-      color: #ef4444;
-    }
-
-    .calculator-input,
-    .calculator-select {
+    .credit-field select {
       width: 100%;
-      min-height: 48px;
-      padding: 0 14px;
-      border: 1px solid rgba(59, 130, 246, 0.18);
+      min-height: 52px;
+      padding: 0 16px;
+      border: 1px solid #e2e8f0;
       border-radius: 10px;
-      background: #f8fbff;
-      color: var(--text-primary);
+      background: #f8fafc;
+      color: #334155;
       font: inherit;
       font-weight: 700;
       outline: none;
     }
 
-    .calculator-input:focus,
-    .calculator-select:focus {
+    .credit-field select:focus {
       border-color: var(--blue-neon);
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
-    .term-row,
-    .method-row {
-      display: grid;
-      gap: 10px;
-    }
-
-    .term-row {
-      grid-template-columns: minmax(90px, 1fr) 1fr 0.8fr;
-    }
-
-    .method-row {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .choice-button {
-      min-height: 48px;
-      border: 1px solid rgba(59, 130, 246, 0.16);
-      border-radius: 10px;
-      background: #fff;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font: inherit;
-      font-weight: 800;
-    }
-
-    .choice-button.active {
-      border-color: var(--blue-neon);
-      background: rgba(37, 99, 235, 0.08);
-      color: var(--blue-neon);
-    }
-
-    .calculator-submit {
-      display: inline-flex;
-      width: 100%;
+    .credit-search-button {
+      min-width: 154px;
       min-height: 52px;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
       border: 0;
-      border-radius: 12px;
-      background: var(--grad-primary);
+      border-radius: 10px;
+      background: #2563eb;
       color: #fff;
       cursor: pointer;
       font: inherit;
       font-size: 16px;
       font-weight: 800;
-      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.25);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
     }
 
-    .calculator-results {
-      min-height: 100%;
-      padding: 28px;
-    }
-
-    .result-empty {
-      display: grid;
-      min-height: 420px;
-      place-items: center;
-      color: var(--text-secondary);
-      text-align: center;
-    }
-
-    .result-empty-icon,
-    .history-score-ring {
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: rgba(37, 99, 235, 0.08);
-      color: var(--blue-neon);
-      font-size: 30px;
-      font-weight: 800;
-    }
-
-    .result-empty-icon {
-      width: 72px;
-      height: 72px;
-      margin: 0 auto 20px;
-    }
-
-    .result-grid {
+    .credit-summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 22px;
+      gap: 12px;
+      margin-bottom: 42px;
     }
 
-    .result-metric {
-      padding: 16px;
-      border: 1px solid rgba(59, 130, 246, 0.1);
-      border-radius: 12px;
-      background: #f8fbff;
+    .credit-summary-card {
+      padding: 18px;
+      border: 1px solid rgba(37, 99, 235, 0.12);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ffffff, #f8fbff);
     }
 
-    .result-metric strong {
+    .credit-summary-card span {
       display: block;
-      margin-bottom: 6px;
-      color: var(--blue-neon);
-      font-family: var(--font-display);
-      font-size: 24px;
-      line-height: 1.05;
-    }
-
-    .result-metric span {
-      color: var(--text-muted);
+      margin-bottom: 8px;
+      color: #64748b;
       font-size: 12px;
-      font-weight: 700;
-    }
-
-    .income-note {
-      margin-bottom: 22px;
-      padding: 16px;
-      border: 1px solid rgba(5, 150, 105, 0.16);
-      border-radius: 12px;
-      background: rgba(5, 150, 105, 0.06);
-      color: var(--text-secondary);
-      line-height: 1.55;
-    }
-
-    .income-note strong {
-      color: #059669;
-    }
-
-    .schedule-bars {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      align-items: end;
-      min-height: 150px;
-      margin-bottom: 22px;
-      padding: 18px 14px 12px;
-      border: 1px solid rgba(59, 130, 246, 0.1);
-      border-radius: 12px;
-      background: linear-gradient(180deg, #f8fbff, #fff);
-    }
-
-    .schedule-bar {
-      display: grid;
-      gap: 8px;
-      align-items: end;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .schedule-bar-fill {
-      min-height: 18px;
-      border-radius: 8px 8px 4px 4px;
-      background: var(--grad-primary);
-    }
-
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .schedule-table th,
-    .schedule-table td {
-      padding: 11px 8px;
-      border-bottom: 1px solid rgba(59, 130, 246, 0.08);
-      text-align: right;
-    }
-
-    .schedule-table th:first-child,
-    .schedule-table td:first-child {
-      text-align: left;
-    }
-
-    .schedule-table th {
-      color: var(--text-muted);
-      font-size: 11px;
+      font-weight: 800;
       text-transform: uppercase;
     }
 
-    .bank-rate-strip {
-      margin-top: 18px;
-      padding: 22px;
-    }
-
-    .bank-rate-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-
-    .bank-rate-head h2 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 22px;
-    }
-
-    .bank-rate-head p {
-      max-width: 520px;
-      color: var(--text-secondary);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .bank-rate-list {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-
-    .bank-rate-chip {
-      min-width: 130px;
-      padding: 12px;
-      border: 1px solid rgba(59, 130, 246, 0.14);
-      border-radius: 12px;
-      background: #fff;
-      color: var(--text-primary);
-      cursor: pointer;
-      font: inherit;
-      text-align: left;
-    }
-
-    .bank-rate-chip.active {
-      border-color: var(--blue-neon);
-      background: rgba(37, 99, 235, 0.07);
-    }
-
-    .bank-rate-chip strong {
+    .credit-summary-card strong {
       display: block;
-      margin-bottom: 4px;
-      color: var(--blue-neon);
-      font-size: 15px;
-    }
-
-    .bank-rate-chip span {
-      color: var(--text-muted);
-      font-size: 12px;
-    }
-
-    .calculator-help {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-      padding: 24px;
-    }
-
-    .calculator-help h2 {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      color: #111827;
       font-family: var(--font-display);
-      font-size: 20px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
     }
 
-    .calculator-help p {
-      color: var(--text-secondary);
-      font-size: 14px;
+    .credit-summary-card p {
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .credit-offers-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .credit-offers-head h2 {
+      color: #111827;
+      font-family: var(--font-display);
+      font-size: 30px;
+      letter-spacing: -0.03em;
+    }
+
+    .credit-sort {
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      color: #059669;
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .credit-offer-header,
+    .credit-offer-card {
+      display: grid;
+      grid-template-columns: minmax(280px, 1.5fr) 0.9fr 0.75fr 0.85fr minmax(170px, 0.95fr);
+      gap: 18px;
+      align-items: center;
+    }
+
+    .credit-offer-header {
+      margin-bottom: 14px;
+      padding: 18px 24px;
+      border-radius: 12px;
+      background: #eef2f7;
+      color: #172554;
+      font-weight: 800;
+    }
+
+    .credit-offers-root {
+      display: grid;
+      gap: 12px;
+    }
+
+    .credit-offer-card {
+      position: relative;
+      padding: 22px 24px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);
+    }
+
+    .credit-offer-card:hover {
+      border-color: rgba(37, 99, 235, 0.28);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+    }
+
+    .credit-offer-bank {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      gap: 18px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .credit-offer-bank-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .credit-bank-logo {
+      width: 82px;
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      background: #fff !important;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .credit-bank-logo img {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .credit-bank-logo > span {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+      background: var(--blue-neon);
+      color: #fff;
+    }
+
+    .credit-offer-bank h3 {
+      margin-bottom: 7px;
+      overflow: hidden;
+      color: #16a34a;
+      font-size: 20px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .credit-offer-bank p {
+      color: #172554;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .credit-offer-cell span {
+      display: none;
+      margin-bottom: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .credit-offer-cell strong {
+      display: block;
+      color: #172554;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .credit-offer-amount small {
+      display: block;
+      margin-top: 7px;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .credit-offer-footer {
+      grid-column: 2 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: -6px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .credit-channel-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #172554;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .credit-details-button {
+      display: inline-flex;
+      min-width: 154px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      background: #22a73f;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .credit-note {
+      margin-top: 26px;
+      padding: 18px 20px;
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      border-radius: 14px;
+      background: #f8fbff;
+      color: #475569;
+      font-size: 13px;
       line-height: 1.65;
     }
 
-    @media(max-width:980px) {
-      .calculator-shell {
-        padding-inline: 24px;
+    @media (max-width: 1040px) {
+      .credit-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .calculator-layout,
-      .calculator-help {
-        grid-template-columns: 1fr;
+      .credit-search-button {
+        grid-column: 1 / -1;
+      }
+
+      .credit-offer-header {
+        display: none;
+      }
+
+      .credit-offer-card {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .credit-offer-bank,
+      .credit-offer-footer {
+        grid-column: 1 / -1;
+      }
+
+      .credit-offer-cell span {
+        display: block;
       }
     }
 
-    @media(max-width:620px) {
-      .calculator-shell {
-        width: 100%;
-        max-width: 100vw;
-        padding-inline: 18px;
+    @media (max-width: 720px) {
+      .credit-shell {
+        padding: 96px 20px 64px;
       }
 
-      .calculator-panel,
-      .calculator-results,
-      .calculator-help,
-      .bank-rate-strip {
-        width: 100%;
-        min-width: 0;
+      .credit-type-tabs {
+        justify-content: flex-start;
+        gap: 14px;
+        overflow-x: auto;
+        margin-bottom: 28px;
+        padding-bottom: 6px;
       }
 
-      .calculator-panel,
-      .calculator-results {
-        padding: 20px;
+      .credit-type-tab {
+        flex: 0 0 auto;
       }
 
-      .calculator-tabs,
-      .result-grid,
-      .term-row,
-      .method-row {
+      .credit-filter-grid,
+      .credit-summary,
+      .credit-offer-card {
         grid-template-columns: 1fr;
       }
 
-      .bank-rate-head {
-        display: block;
+      .credit-offers-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .credit-offer-bank {
+        grid-template-columns: 68px minmax(0, 1fr);
+      }
+
+      .credit-bank-logo {
+        width: 68px;
+        height: 68px;
+      }
+
+      .credit-offer-footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .credit-details-button {
+        width: 100%;
       }
     }
   </style>
@@ -431,121 +470,95 @@
     </div>
   </nav>
 
-  <header class="page-hero">
-    <div class="page-hero-label" data-uz="Kredit vositasi" data-ru="Кредитный инструмент">Kredit vositasi</div>
-    <h1 class="page-hero-title" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</h1>
-    <p class="page-hero-desc"
-      data-uz="Bank yoki MFI kreditini hisoblang: oylik to'lov, jami to'lov, ortiqcha to'lov va daromad bo'yicha tavsiya."
-      data-ru="Рассчитайте банковский или MFI-кредит: ежемесячный платёж, общую сумму, переплату и рекомендуемый доход.">
-      Bank yoki MFI kreditini hisoblang: oylik to'lov, jami to'lov, ortiqcha to'lov va daromad bo'yicha tavsiya.
-    </p>
-  </header>
-
-  <main class="calculator-shell">
-    <div class="calculator-tabs" role="tablist" aria-label="Kredit turi">
-      <button type="button" class="calculator-tab active" data-loan-kind="bank" data-uz="Bank kalkulyator"
-        data-ru="Банковский калькулятор">Bank kalkulyator</button>
-      <button type="button" class="calculator-tab" data-loan-kind="mfi" data-uz="MFI kalkulyator"
-        data-ru="MFI калькулятор">MFI kalkulyator</button>
+  <main class="credit-shell">
+    <div class="credit-breadcrumbs" aria-label="Breadcrumb">
+      <a href="landing.html">B1Pay</a><span>/</span><span data-uz="Kreditlar" data-ru="Кредиты">Kreditlar</span>
     </div>
 
-    <section class="calculator-layout">
-      <form id="loanCalculatorForm" class="calculator-panel">
-        <div class="calculator-field">
-          <label class="calculator-label" for="loanBank">
-            <span data-uz="Bank" data-ru="Банк">Bank</span>
-            <span>*</span>
-          </label>
-          <select id="loanBank" class="calculator-select"></select>
-        </div>
-
-        <div class="calculator-field">
-          <label class="calculator-label" for="loanAmount">
-            <span data-uz="Kredit summasi (UZS)" data-ru="Сумма кредита (UZS)">Kredit summasi (UZS)</span>
-            <span>*</span>
-          </label>
-          <input id="loanAmount" class="calculator-input" inputmode="numeric" value="10000000" autocomplete="off">
-        </div>
-
-        <div class="calculator-field">
-          <label class="calculator-label" for="loanRate">
-            <span data-uz="Yillik foiz stavkasi" data-ru="Годовая ставка">Yillik foiz stavkasi</span>
-            <span>*</span>
-          </label>
-          <input id="loanRate" class="calculator-input" type="number" min="0" step="0.1" value="24">
-        </div>
-
-        <div class="calculator-field">
-          <label class="calculator-label" for="loanTerm">
-            <span data-uz="Muddat" data-ru="Срок">Muddat</span>
-            <span>*</span>
-          </label>
-          <div class="term-row">
-            <input id="loanTerm" class="calculator-input" type="number" min="1" value="12">
-            <button type="button" class="choice-button active" data-term-unit="months" data-uz="oy" data-ru="месяцев">oy</button>
-            <button type="button" class="choice-button" data-term-unit="years" data-uz="yil" data-ru="лет">yil</button>
-          </div>
-        </div>
-
-        <div class="calculator-field">
-          <label class="calculator-label">
-            <span data-uz="Hisoblash usuli" data-ru="Метод расчёта">Hisoblash usuli</span>
-            <span>*</span>
-          </label>
-          <div class="method-row">
-            <button type="button" class="choice-button active" data-method="annuity" data-uz="Annuitet" data-ru="Аннуитетный">Annuitet</button>
-            <button type="button" class="choice-button" data-method="differentiated" data-uz="Differensial" data-ru="Дифференцированный">Differensial</button>
-          </div>
-        </div>
-
-        <button type="submit" class="calculator-submit">
-          <span aria-hidden="true">▦</span>
-          <span data-uz="Hisoblash" data-ru="Рассчитать">Hisoblash</span>
-        </button>
-      </form>
-
-      <section id="calculatorResults" class="calculator-results" aria-live="polite">
-        <div class="result-empty">
-          <div>
-            <div class="result-empty-icon">▦</div>
-            <h2 data-uz="Hisoblashga tayyor" data-ru="Готовы к расчёту">Hisoblashga tayyor</h2>
-            <p data-uz="Parametrlarni kiriting va natijani ko'ring."
-              data-ru="Введите параметры и посмотрите результат.">Parametrlarni kiriting va natijani ko'ring.</p>
-          </div>
-        </div>
-      </section>
+    <section class="credit-heading">
+      <h1 data-uz="Kreditlar" data-ru="Кредиты">Kreditlar</h1>
+      <p data-uz="Yengil kalkulyator: summani, muddatni va talablarni tanlang — B1 sizga bank takliflarini qulay ro‘yxatda ko‘rsatadi."
+        data-ru="Лёгкий калькулятор: выберите сумму, срок и требования — B1 покажет предложения банков удобным списком.">
+        Yengil kalkulyator: summani, muddatni va talablarni tanlang — B1 sizga bank takliflarini qulay ro‘yxatda ko‘rsatadi.
+      </p>
     </section>
 
-    <section class="bank-rate-strip">
-      <div class="bank-rate-head">
-        <div>
-          <h2 data-uz="10 bank bo'yicha tez tanlov" data-ru="Быстрый выбор по 10 банкам">10 bank bo'yicha tez tanlov</h2>
-          <p data-uz="Bu stavkalar demo hisoblash uchun taxminiy preset. Rasmiy shartni bank saytida tekshiring."
-            data-ru="Это примерные пресеты для демо-расчёта. Официальные условия проверяйте на сайте банка.">
-            Bu stavkalar demo hisoblash uchun taxminiy preset. Rasmiy shartni bank saytida tekshiring.
-          </p>
+    <div id="creditTypeTabs" class="credit-type-tabs" role="tablist" aria-label="Credit categories"></div>
+
+    <form id="creditSearchForm" class="credit-filter-card">
+      <div class="credit-filter-grid">
+        <div class="credit-field">
+          <label for="creditAmount" data-uz="Summasi" data-ru="Сумма">Summasi</label>
+          <select id="creditAmount">
+            <option value="1000000">1 000 000</option>
+            <option value="5000000">5 000 000</option>
+            <option value="10000000">10 000 000</option>
+            <option value="25000000">25 000 000</option>
+            <option value="50000000">50 000 000</option>
+            <option value="100000000">100 000 000</option>
+            <option value="300000000">300 000 000</option>
+          </select>
         </div>
-        <a href="banks.html" class="news-card-link" data-uz="Bank katalogi" data-ru="Каталог банков">Bank katalogi →</a>
+        <div class="credit-field">
+          <label for="creditTerm" data-uz="Muddat" data-ru="Срок">Muddat</label>
+          <select id="creditTerm">
+            <option value="6">6 oy</option>
+            <option value="12">1 yil</option>
+            <option value="24">2 yil</option>
+            <option value="36">3 yil</option>
+            <option value="60">5 yil</option>
+            <option value="84">7 yil</option>
+          </select>
+        </div>
+        <div class="credit-field">
+          <label for="creditDownPayment" data-uz="Dastlabki to‘lov (%)" data-ru="Первый взнос (%)">Dastlabki to‘lov (%)</label>
+          <select id="creditDownPayment">
+            <option value="0">0%</option>
+            <option value="10">10%</option>
+            <option value="20">20%</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+          </select>
+        </div>
+        <div class="credit-field">
+          <label for="creditIncome" data-uz="Rasmiy daromad" data-ru="Официальный доход">Rasmiy daromad</label>
+          <select id="creditIncome">
+            <option value="any" data-uz="Tanlang" data-ru="Выберите">Tanlang</option>
+            <option value="official" data-uz="Bor" data-ru="Есть">Bor</option>
+            <option value="no" data-uz="Yo‘q / onlayn" data-ru="Нет / онлайн">Yo‘q / onlayn</option>
+          </select>
+        </div>
+        <button type="submit" class="credit-search-button" data-uz="Izlash" data-ru="Найти">Izlash</button>
       </div>
-      <div id="bankRateList" class="bank-rate-list" aria-label="Bank rate presets"></div>
+    </form>
+
+    <section id="creditSummary" class="credit-summary" aria-live="polite"></section>
+
+    <section class="credit-offers">
+      <div class="credit-offers-head">
+        <h2><span data-uz="Takliflar" data-ru="Предложения">Takliflar</span> <span id="creditOffersCount">0</span></h2>
+        <select id="creditSort" class="credit-sort" aria-label="Sort offers">
+          <option value="popular" data-uz="Ommaboplik pasayishi sayin" data-ru="По популярности">Ommaboplik pasayishi sayin</option>
+          <option value="rate" data-uz="Foiz stavkasi pastdan" data-ru="Ставка по возрастанию">Foiz stavkasi pastdan</option>
+          <option value="payment" data-uz="Oylik to‘lov pastdan" data-ru="Платёж по возрастанию">Oylik to‘lov pastdan</option>
+          <option value="amount" data-uz="Limit kattadan" data-ru="Лимит по убыванию">Limit kattadan</option>
+        </select>
+      </div>
+
+      <div class="credit-offer-header" aria-hidden="true">
+        <span data-uz="Kredit nomi, bank" data-ru="Название кредита, банк">Kredit nomi, bank</span>
+        <span data-uz="Foiz stavkasi" data-ru="Ставка">Foiz stavkasi</span>
+        <span data-uz="Muddat" data-ru="Срок">Muddat</span>
+        <span data-uz="Dastlabki to‘lov" data-ru="Первый взнос">Dastlabki to‘lov</span>
+        <span data-uz="Summa" data-ru="Сумма">Summa</span>
+      </div>
+      <div id="creditOffersRoot" class="credit-offers-root"></div>
     </section>
 
-    <section class="calculator-help">
-      <div>
-        <h2 data-uz="Kredit tarixi bilan bog'lang" data-ru="Свяжите с кредитной историей">Kredit tarixi bilan bog'lang</h2>
-        <p data-uz="Kredit yuki va to'lov intizomini ko'rish uchun B1 kredit tarixi sahifasini oching. Hozircha bu demo ko'rinish, real ma'lumot uchun rasmiy integratsiya va rozilik kerak."
-          data-ru="Откройте страницу кредитной истории, чтобы увидеть нагрузку и дисциплину платежей. Сейчас это демо, для реальных данных нужна официальная интеграция и согласие.">
-          Kredit yuki va to'lov intizomini ko'rish uchun B1 kredit tarixi sahifasini oching. Hozircha bu demo ko'rinish, real ma'lumot uchun rasmiy integratsiya va rozilik kerak.
-        </p>
-      </div>
-      <div>
-        <h2 data-uz="Bank qarori alohida" data-ru="Решение принимает банк">Bank qarori alohida</h2>
-        <p data-uz="Kalkulyator sizga taxminiy jadval beradi. Kreditni tasdiqlash, limit, hujjatlar va komissiyalar bank yoki MFI tomonida belgilanadi."
-          data-ru="Калькулятор даёт ориентировочный график. Одобрение, лимит, документы и комиссии определяет банк или MFI.">
-          Kalkulyator sizga taxminiy jadval beradi. Kreditni tasdiqlash, limit, hujjatlar va komissiyalar bank yoki MFI tomonida belgilanadi.
-        </p>
-      </div>
-    </section>
+    <p class="credit-note" data-uz="B1Pay bank emas va kredit bermaydi: biz takliflarni solishtirish va foydalanuvchini bankning rasmiy sahifasiga yo‘naltirish uchun axborot servisimiz. Yakuniy stavka, limit, komissiya va tasdiqlash bank tomonidan belgilanadi."
+      data-ru="B1Pay не является банком и не выдаёт кредиты: мы информационный сервис для сравнения предложений и перехода на официальную страницу банка. Финальная ставка, лимит, комиссия и одобрение определяются банком.">
+      B1Pay bank emas va kredit bermaydi: biz takliflarni solishtirish va foydalanuvchini bankning rasmiy sahifasiga yo‘naltirish uchun axborot servisimiz. Yakuniy stavka, limit, komissiya va tasdiqlash bank tomonidan belgilanadi.
+    </p>
   </main>
 
   <footer>
@@ -555,12 +568,11 @@
           <img src="logo.svg" style="width:70px;height:70px;object-fit:contain;" alt="B1">
           <span class="footer-logo-text">Doim birinchi bo'ling</span>
         </div>
-        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma"
-          data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
+        <p class="footer-tagline" data-uz="O'zbekistondagi eng qulay moliyaviy platforma" data-ru="Самая удобная финансовая платформа в Узбекистане">O'zbekistondagi eng qulay moliyaviy platforma</p>
       </div>
       <div class="footer-col">
         <div class="footer-col-title" data-uz="XIZMATLAR" data-ru="УСЛУГИ">XIZMATLAR</div>
-        <a href="calculator.html" class="footer-link" data-uz="Kredit kalkulyator" data-ru="Кредитный калькулятор">Kredit kalkulyator</a>
+        <a href="calculator.html" class="footer-link" data-uz="Kreditlar" data-ru="Кредиты">Kreditlar</a>
         <a href="credit-history.html" class="footer-link" data-uz="Kredit tarixi" data-ru="Кредитная история">Kredit tarixi</a>
         <a href="banks.html" class="footer-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
         <a href="cards.html" class="footer-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>

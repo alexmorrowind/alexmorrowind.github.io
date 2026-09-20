@@ -1,29 +1,52 @@
 (function () {
-  const bankRates = {
-    nbu: 23,
-    agrobank: 24,
-    sqb: 22,
-    asakabank: 23.5,
-    'xalq-bank': 24,
-    kapitalbank: 25,
-    'ipoteka-bank': 21,
-    hamkorbank: 24.5,
-    'tbc-bank': 26,
-    anorbank: 27,
-  };
-
-  const mfiPresets = [
-    { id: 'mfi-standard', name: 'MFI Standard', abbr: 'MFI', rate: 42 },
-    { id: 'mfi-fast', name: 'Tez mikroqarz', abbr: 'FAST', rate: 48 },
-    { id: 'mfi-soft', name: 'Pastroq stavka', abbr: 'SOFT', rate: 36 },
-  ];
-
+  const params = new URLSearchParams(window.location.search);
   const state = {
-    kind: 'bank',
-    method: 'annuity',
-    termUnit: 'months',
-    selectedBank: null,
+    type: params.get('type') || 'auto',
+    amount: Number(params.get('amount') || 25000000),
+    term: Number(params.get('term') || 36),
+    downPayment: Number(params.get('down') || 0),
+    income: params.get('income') || 'any',
+    sort: 'popular',
   };
+
+  if (!['auto', 'micro', 'education', 'overdraft', 'consumer'].includes(state.type)) {
+    state.type = 'consumer';
+  }
+
+  const typeLabels = {
+    auto: { uz: 'Avtokredit', ru: 'Автокредит' },
+    micro: { uz: 'Mikroqarz', ru: 'Микрозайм' },
+    education: { uz: "Ta'lim krediti", ru: 'Кредит на образование' },
+    overdraft: { uz: 'Overdraft', ru: 'Овердрафт' },
+    consumer: { uz: "Iste'mol krediti", ru: 'Потребительский кредит' },
+  };
+
+  const offers = [
+    { id: 'ipak-auto-premium', bank: 'ipak-yuli', type: 'auto', uz: 'Birlamchi bozor avtokrediti', ru: 'Автокредит на новый автомобиль', rate: 20.9, termMin: 12, termMax: 60, amountMin: 1000000, amountMax: 800000000, downPayment: 25, income: true, channel: 'bank', popularity: 98 },
+    { id: 'hamkor-auto-kia', bank: 'hamkorbank', type: 'auto', uz: 'Auto KIA Sonet', ru: 'Авто KIA Sonet', rate: 18, rateTo: 22, termMin: 36, termMax: 60, amountMin: 20000000, amountMax: 350000000, downPayment: 20, income: true, channel: 'bank', popularity: 94 },
+    { id: 'asaka-auto', bank: 'asakabank', type: 'auto', uz: 'Avtomobil uchun kredit', ru: 'Кредит на автомобиль', rate: 21.5, termMin: 12, termMax: 60, amountMin: 10000000, amountMax: 450000000, downPayment: 25, income: true, channel: 'bank', popularity: 90 },
+    { id: 'sqb-auto', bank: 'sqb', type: 'auto', uz: 'SQB avtokredit', ru: 'Автокредит SQB', rate: 23, termMin: 12, termMax: 60, amountMin: 15000000, amountMax: 500000000, downPayment: 20, income: true, channel: 'bank', popularity: 86 },
+
+    { id: 'uzum-micro-card', bank: 'uzum-bank', type: 'micro', uz: 'Uzum kartaga mikroqarz', ru: 'Микрозайм на карту Uzum', rate: 28, termMin: 3, termMax: 12, amountMin: 500000, amountMax: 25000000, downPayment: 0, income: false, channel: 'online', popularity: 97 },
+    { id: 'anor-micro', bank: 'anorbank', type: 'micro', uz: 'Onlayn mikroqarz', ru: 'Онлайн-микрозайм', rate: 32, termMin: 3, termMax: 24, amountMin: 500000, amountMax: 50000000, downPayment: 0, income: false, channel: 'online', popularity: 91 },
+    { id: 'open-micro', bank: 'openbank', type: 'micro', uz: 'Tezkor mikroqarz', ru: 'Быстрый микрозайм', rate: 30, termMin: 3, termMax: 18, amountMin: 500000, amountMax: 30000000, downPayment: 0, income: false, channel: 'online', popularity: 88 },
+    { id: 'tbc-micro', bank: 'tbc-bank', type: 'micro', uz: 'Masofaviy mikroqarz', ru: 'Дистанционный микрозайм', rate: 31, termMin: 3, termMax: 24, amountMin: 1000000, amountMax: 50000000, downPayment: 0, income: false, channel: 'online', popularity: 87 },
+
+    { id: 'xalq-education', bank: 'xalq-bank', type: 'education', uz: "Ta'lim uchun kredit", ru: 'Кредит на обучение', rate: 14, termMin: 12, termMax: 84, amountMin: 1000000, amountMax: 100000000, downPayment: 0, income: true, channel: 'bank', popularity: 85 },
+    { id: 'nbu-education', bank: 'nbu', type: 'education', uz: 'Talabalar uchun ta’lim krediti', ru: 'Образовательный кредит студентам', rate: 15, termMin: 12, termMax: 84, amountMin: 1000000, amountMax: 120000000, downPayment: 0, income: true, channel: 'bank', popularity: 84 },
+    { id: 'agro-education', bank: 'agrobank', type: 'education', uz: "O'qish xarajatlari uchun kredit", ru: 'Кредит на расходы обучения', rate: 16, termMin: 12, termMax: 60, amountMin: 1000000, amountMax: 80000000, downPayment: 0, income: true, channel: 'bank', popularity: 78 },
+
+    { id: 'kapital-overdraft', bank: 'kapitalbank', type: 'overdraft', uz: 'Kartaga overdraft limiti', ru: 'Овердрафтный лимит на карту', rate: 27, termMin: 1, termMax: 12, amountMin: 500000, amountMax: 50000000, downPayment: 0, income: true, channel: 'bank', popularity: 86 },
+    { id: 'octo-overdraft', bank: 'octobank', type: 'overdraft', uz: 'Raqamli overdraft', ru: 'Цифровой овердрафт', rate: 29, termMin: 1, termMax: 12, amountMin: 500000, amountMax: 30000000, downPayment: 0, income: false, channel: 'online', popularity: 82 },
+    { id: 'trust-overdraft', bank: 'trustbank', type: 'overdraft', uz: 'Oylik tushumga overdraft', ru: 'Овердрафт под ежемесячный оборот', rate: 26, termMin: 1, termMax: 12, amountMin: 1000000, amountMax: 60000000, downPayment: 0, income: true, channel: 'bank', popularity: 76 },
+
+    { id: 'nbu-consumer', bank: 'nbu', type: 'consumer', uz: "Iste'mol krediti", ru: 'Потребительский кредит', rate: 23, termMin: 6, termMax: 60, amountMin: 1000000, amountMax: 150000000, downPayment: 0, income: true, channel: 'bank', popularity: 92 },
+    { id: 'universal-consumer', bank: 'universalbank', type: 'consumer', uz: "Universal iste'mol krediti", ru: 'Универсальный потребительский кредит', rate: 24, termMin: 6, termMax: 48, amountMin: 1000000, amountMax: 100000000, downPayment: 0, income: true, channel: 'bank', popularity: 81 },
+    { id: 'apex-consumer', bank: 'apexbank', type: 'consumer', uz: 'Shaxsiy ehtiyojlar uchun kredit', ru: 'Кредит на личные нужды', rate: 25, termMin: 6, termMax: 48, amountMin: 1000000, amountMax: 90000000, downPayment: 0, income: true, channel: 'bank', popularity: 79 },
+    { id: 'hayot-consumer', bank: 'hayot-bank', type: 'consumer', uz: 'Hayot iste’mol krediti', ru: 'Потребительский кредит Hayot', rate: 24.5, termMin: 6, termMax: 48, amountMin: 1000000, amountMax: 80000000, downPayment: 0, income: true, channel: 'bank', popularity: 77 },
+    { id: 'tenge-consumer', bank: 'tenge-bank', type: 'consumer', uz: 'Tenge shaxsiy kredit', ru: 'Персональный кредит Tenge', rate: 25.5, termMin: 6, termMax: 60, amountMin: 1000000, amountMax: 120000000, downPayment: 0, income: true, channel: 'bank', popularity: 75 },
+    { id: 'kdb-consumer', bank: 'kdb-bank', type: 'consumer', uz: 'KDB chakana kredit', ru: 'Розничный кредит KDB', rate: 24.9, termMin: 6, termMax: 48, amountMin: 1000000, amountMax: 100000000, downPayment: 0, income: true, channel: 'bank', popularity: 72 },
+  ];
 
   function language() {
     return localStorage.getItem('bpay_lang') || localStorage.getItem('selectedLanguage') || 'uz';
@@ -33,279 +56,325 @@
     return language() === 'ru' ? ru : uz;
   }
 
-  function parseMoney(value) {
-    const parsed = Number(String(value || '').replace(/[^\d.]/g, ''));
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function formatMoney(value, compact) {
-    return new Intl.NumberFormat(language() === 'ru' ? 'ru-RU' : 'uz-UZ', {
-      notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: 0,
-    }).format(Math.max(0, Math.round(value))) + ' UZS';
-  }
-
-  function formatPercent(value) {
-    return new Intl.NumberFormat(language() === 'ru' ? 'ru-RU' : 'uz-UZ', {
-      maximumFractionDigits: 1,
-    }).format(value) + '%';
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function banks() {
     return Array.isArray(window.B1_PUBLIC_BANKS) ? window.B1_PUBLIC_BANKS : [];
   }
 
-  function optionsForKind() {
-    if (state.kind === 'mfi') return mfiPresets;
-    return banks().map(bank => ({
-      id: bank.slug || bank.id,
-      name: bank.name_uz || bank.name,
-      abbr: bank.abbr || bank.name_uz || bank.name,
-      rate: bankRates[bank.slug || bank.id] || 24,
-    }));
+  function bankBySlug(slug) {
+    return banks().find(bank => bank.slug === slug || bank.id === slug || bank.abbr === slug) || {};
   }
 
-  function getFormNodes() {
-    return {
-      form: document.getElementById('loanCalculatorForm'),
-      bank: document.getElementById('loanBank'),
-      amount: document.getElementById('loanAmount'),
-      rate: document.getElementById('loanRate'),
-      term: document.getElementById('loanTerm'),
-      results: document.getElementById('calculatorResults'),
-      rateList: document.getElementById('bankRateList'),
-    };
-  }
-
-  function populateSelect() {
-    const { bank, rate } = getFormNodes();
-    if (!bank) return;
-    const options = optionsForKind();
-    bank.innerHTML = options.map(item =>
-      `<option value="${item.id}">${item.name} — ${formatPercent(item.rate)}</option>`
-    ).join('');
-    const requested = new URLSearchParams(window.location.search).get('bank');
-    const selected = options.find(item => item.id === requested) || options[0];
-    if (selected) {
-      bank.value = selected.id;
-      state.selectedBank = selected.id;
-      if (rate) rate.value = selected.rate;
+  function safeUrl(value) {
+    try {
+      const url = new URL(value);
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (error) {
+      return '';
     }
   }
 
-  function populateRateChips() {
-    const { rateList } = getFormNodes();
-    if (!rateList) return;
-    const options = optionsForKind();
-    rateList.innerHTML = options.map(item => `
-      <button type="button" class="bank-rate-chip${item.id === state.selectedBank ? ' active' : ''}" data-rate-bank="${item.id}">
-        <strong>${item.abbr}</strong>
-        <span>${item.name}</span><br>
-        <span>${formatPercent(item.rate)}</span>
+  function hostFromUrl(value) {
+    try {
+      return new URL(value).hostname.replace(/^www\./, '');
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function logoSources(bank) {
+    const website = safeUrl(bank.website_url);
+    const host = hostFromUrl(website);
+    return [
+      bank.logo_url,
+      bank.logoUrl,
+      host ? `https://${host}/favicon.ico` : '',
+      host ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128` : '',
+    ].map(safeUrl).filter((value, index, list) => value && list.indexOf(value) === index);
+  }
+
+  function bindLogoFallbacks(root) {
+    root.querySelectorAll('img[data-logo-sources]').forEach(img => {
+      img.addEventListener('error', () => {
+        let sources = [];
+        try { sources = JSON.parse(img.dataset.logoSources || '[]'); } catch (error) { sources = []; }
+        const nextIndex = Number(img.dataset.logoIndex || 0) + 1;
+        if (sources[nextIndex]) {
+          img.dataset.logoIndex = String(nextIndex);
+          img.src = sources[nextIndex];
+          return;
+        }
+        img.style.display = 'none';
+        const fallback = img.nextElementSibling;
+        if (fallback) fallback.style.display = 'grid';
+      });
+    });
+  }
+
+  function bankLogo(bank) {
+    const sources = logoSources(bank);
+    const source = sources[0] || '';
+    const fallback = escapeHtml(bank.abbr || bank.name_uz || 'B1');
+    const color = escapeHtml(bank.color || '#2563eb');
+    return `${source ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(bank.name || fallback)} logo" loading="lazy" data-logo-index="0" data-logo-sources="${escapeHtml(JSON.stringify(sources))}">` : ''}<span style="display:${source ? 'none' : 'grid'};background:${color}">${fallback}</span>`;
+  }
+
+  function formatMoney(value, compact = false) {
+    const number = Math.max(0, Number(value) || 0);
+    return `${new Intl.NumberFormat(language() === 'ru' ? 'ru-RU' : 'uz-UZ', {
+      notation: compact ? 'compact' : 'standard',
+      maximumFractionDigits: 0,
+    }).format(Math.round(number))} ${text('so‘m', 'сум')}`;
+  }
+
+  function formatPercent(value) {
+    return new Intl.NumberFormat(language() === 'ru' ? 'ru-RU' : 'uz-UZ', {
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  function amountRange(offer) {
+    if (offer.amountMin && offer.amountMax) return `${formatMoney(offer.amountMin, true)} – ${formatMoney(offer.amountMax, true)}`;
+    return offer.amountMax ? `${formatMoney(offer.amountMax, true)}${text('gacha', 'до')}` : '—';
+  }
+
+  function termRange(offer) {
+    if (offer.termMin === offer.termMax) return `${offer.termMax} ${text('oy', 'мес')}`;
+    return `${offer.termMin}–${offer.termMax} ${text('oy', 'мес')}`;
+  }
+
+  function rateLabel(offer) {
+    if (offer.rateTo) return `${formatPercent(offer.rate)}%–${formatPercent(offer.rateTo)}%`;
+    return `${formatPercent(offer.rate)}% ${text('dan', 'от')}`;
+  }
+
+  function annuityPayment(amount, annualRate, months) {
+    const principal = Math.max(0, Number(amount) || 0);
+    const term = Math.max(1, Number(months) || 1);
+    const monthlyRate = (Number(annualRate) || 0) / 100 / 12;
+    if (!monthlyRate) return principal / term;
+    return principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -term));
+  }
+
+  function offerPayment(offer) {
+    const requestedAmount = state.amount || offer.amountMax || offer.amountMin;
+    const amount = Math.min(Math.max(requestedAmount, offer.amountMin || 0), offer.amountMax || requestedAmount);
+    const requestedTerm = state.term || offer.termMax;
+    const term = Math.min(Math.max(requestedTerm, offer.termMin), offer.termMax);
+    const financed = Math.max(0, amount * (1 - Math.max(state.downPayment, offer.downPayment || 0) / 100));
+    return annuityPayment(financed, offer.rate, term);
+  }
+
+  function matchesOffer(offer) {
+    if (offer.type !== state.type) return false;
+    const amountOk = !state.amount || (state.amount >= offer.amountMin && state.amount <= offer.amountMax);
+    const termOk = !state.term || (state.term >= offer.termMin && state.term <= offer.termMax);
+    const downOk = state.downPayment === 0 || (offer.downPayment || 0) <= state.downPayment;
+    const incomeOk = state.income === 'any' || (state.income === 'official' ? offer.income : true);
+    return amountOk && termOk && downOk && incomeOk;
+  }
+
+  function filteredOffers() {
+    const matched = offers.filter(matchesOffer);
+    const fallback = offers.filter(offer => offer.type === state.type);
+    const list = matched.length ? matched : fallback;
+    return [...list].sort((a, b) => {
+      if (state.sort === 'rate') return a.rate - b.rate;
+      if (state.sort === 'amount') return b.amountMax - a.amountMax;
+      if (state.sort === 'payment') return offerPayment(a) - offerPayment(b);
+      return b.popularity - a.popularity;
+    });
+  }
+
+  function currentTypeName() {
+    const label = typeLabels[state.type] || typeLabels.auto;
+    return text(label.uz, label.ru);
+  }
+
+  function offerName(offer) {
+    return text(offer.uz, offer.ru);
+  }
+
+  function channelLabel(offer) {
+    return offer.channel === 'online' ? text('Onlayn', 'Онлайн') : text('Bank', 'Банк');
+  }
+
+  function detailsUrl(offer, bank, monthly) {
+    const query = new URLSearchParams({
+      id: bank.id || offer.bank,
+      slug: bank.slug || offer.bank,
+      service: 'credits',
+      credit: offer.id,
+      credit_name: offerName(offer),
+      credit_type: currentTypeName(),
+      rate: String(offer.rate),
+      term: termRange(offer),
+      down: offer.downPayment ? `${offer.downPayment}%` : text('Talab qilinmaydi', 'Не требуется'),
+      amount: amountRange(offer),
+      channel: channelLabel(offer),
+      monthly: formatMoney(monthly, true),
+    });
+    return `bank.html?${query.toString()}`;
+  }
+
+  function renderTabs() {
+    const tabs = document.getElementById('creditTypeTabs');
+    if (!tabs) return;
+    tabs.innerHTML = Object.entries(typeLabels).map(([type, label]) => `
+      <button type="button" class="credit-type-tab${type === state.type ? ' active' : ''}" data-credit-type="${type}" aria-pressed="${type === state.type ? 'true' : 'false'}">
+        ${escapeHtml(text(label.uz, label.ru))}
       </button>
     `).join('');
   }
 
-  function calculateSchedule(principal, annualRate, months, method) {
-    const monthlyRate = annualRate / 100 / 12;
-    const rows = [];
-    let balance = principal;
-    let total = 0;
-    const annuityPayment = monthlyRate === 0
-      ? principal / months
-      : principal * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
-    const fixedPrincipal = principal / months;
-
-    for (let month = 1; month <= months; month += 1) {
-      const interest = balance * monthlyRate;
-      let principalPart;
-      let payment;
-
-      if (method === 'differentiated') {
-        principalPart = Math.min(fixedPrincipal, balance);
-        payment = principalPart + interest;
-      } else {
-        payment = month === months ? balance + interest : annuityPayment;
-        principalPart = payment - interest;
-      }
-
-      balance = Math.max(0, balance - principalPart);
-      total += payment;
-      rows.push({ month, payment, principal: principalPart, interest, balance });
-    }
-
-    return {
-      rows,
-      monthlyPayment: method === 'differentiated' ? rows[0].payment : annuityPayment,
-      total,
-      overpayment: Math.max(0, total - principal),
-    };
+  function updateControls() {
+    const amount = document.getElementById('creditAmount');
+    const term = document.getElementById('creditTerm');
+    const down = document.getElementById('creditDownPayment');
+    const income = document.getElementById('creditIncome');
+    const sort = document.getElementById('creditSort');
+    if (amount) amount.value = String(state.amount);
+    if (term) term.value = String(state.term);
+    if (down) down.value = String(state.downPayment);
+    if (income) income.value = state.income;
+    if (sort) sort.value = state.sort;
   }
 
-  function readInput() {
-    const { amount, rate, term } = getFormNodes();
-    const principal = parseMoney(amount.value);
-    const annualRate = Number(rate.value || 0);
-    const rawTerm = Math.max(1, Number(term.value || 1));
-    const months = state.termUnit === 'years' ? rawTerm * 12 : rawTerm;
-    return { principal, annualRate, months };
-  }
-
-  function renderResults() {
-    const { results } = getFormNodes();
-    if (!results) return;
-    const { principal, annualRate, months } = readInput();
-
-    if (principal <= 0 || annualRate < 0 || months <= 0) {
-      results.innerHTML = `
-        <div class="result-empty">
-          <div>
-            <div class="result-empty-icon">!</div>
-            <h2>${text("Ma'lumotlarni tekshiring", 'Проверьте данные')}</h2>
-            <p>${text('Kredit summasi, stavka va muddat to‘g‘ri kiritilishi kerak.', 'Сумма, ставка и срок должны быть заполнены корректно.')}</p>
-          </div>
-        </div>
-      `;
+  function renderSummary(list) {
+    const root = document.getElementById('creditSummary');
+    if (!root) return;
+    const best = list[0];
+    if (!best) {
+      root.innerHTML = '';
       return;
     }
-
-    const result = calculateSchedule(principal, annualRate, months, state.method);
-    const recommendedIncome = result.monthlyPayment / (state.kind === 'mfi' ? 0.35 : 0.45);
-    const maxPayment = Math.max(...result.rows.slice(0, 6).map(row => row.payment), 1);
-    const selectedName = optionsForKind().find(item => item.id === state.selectedBank)?.name || text('Tanlangan bank', 'Выбранный банк');
-
-    results.innerHTML = `
-      <div class="result-grid">
-        <div class="result-metric">
-          <strong>${formatMoney(result.monthlyPayment, true)}</strong>
-          <span>${state.method === 'differentiated' ? text('Birinchi to‘lov', 'Первый платёж') : text('Oylik to‘lov', 'Ежемесячный платёж')}</span>
-        </div>
-        <div class="result-metric">
-          <strong>${formatMoney(result.total, true)}</strong>
-          <span>${text('Jami to‘lov', 'Всего к оплате')}</span>
-        </div>
-        <div class="result-metric">
-          <strong>${formatMoney(result.overpayment, true)}</strong>
-          <span>${text('Ortiqcha to‘lov', 'Переплата')}</span>
-        </div>
+    const monthly = offerPayment(best);
+    root.innerHTML = `
+      <div class="credit-summary-card">
+        <span>${escapeHtml(currentTypeName())}</span>
+        <strong>${formatMoney(monthly, true)}</strong>
+        <p>${text('eng mos taklif bo‘yicha taxminiy oylik to‘lov', 'примерный ежемесячный платёж по лучшему предложению')}</p>
       </div>
-      <div class="income-note">
-        <strong>${selectedName}</strong> ${text('uchun taxminiy hisob.', 'ориентировочный расчёт.')}
-        ${text('Qulay yuklama uchun oyiga kamida', 'Для комфортной нагрузки желательно иметь доход от')}
-        <strong>${formatMoney(recommendedIncome, false)}</strong>.
+      <div class="credit-summary-card">
+        <span>${text('Topildi', 'Найдено')}</span>
+        <strong>${list.length}</strong>
+        <p>${text('bank taklifi va onlayn ariza yo‘nalishlari', 'банковских предложений и онлайн-направлений')}</p>
       </div>
-      <div class="schedule-bars">
-        ${result.rows.slice(0, 6).map(row => `
-          <div class="schedule-bar">
-            <div class="schedule-bar-fill" style="height:${Math.max(18, row.payment / maxPayment * 118)}px"></div>
-            <span>${row.month}</span>
-          </div>
-        `).join('')}
+      <div class="credit-summary-card">
+        <span>${text('Limit', 'Лимит')}</span>
+        <strong>${amountRange(best)}</strong>
+        <p>${text('yakuniy limit bank qaroriga bog‘liq', 'финальный лимит зависит от решения банка')}</p>
       </div>
-      <table class="schedule-table">
-        <thead>
-          <tr>
-            <th>${text('Oy', 'Месяц')}</th>
-            <th>${text('To‘lov', 'Платёж')}</th>
-            <th>${text('Foiz', 'Процент')}</th>
-            <th>${text('Qoldiq', 'Остаток')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${result.rows.slice(0, 8).map(row => `
-            <tr>
-              <td>${row.month}</td>
-              <td>${formatMoney(row.payment, false)}</td>
-              <td>${formatMoney(row.interest, false)}</td>
-              <td>${formatMoney(row.balance, false)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
     `;
   }
 
-  function setKind(kind) {
-    state.kind = kind;
-    document.querySelectorAll('[data-loan-kind]').forEach(button => {
-      button.classList.toggle('active', button.dataset.loanKind === kind);
-    });
-    const { amount, term } = getFormNodes();
-    if (kind === 'mfi') {
-      if (amount) amount.value = '3000000';
-      if (term) term.value = '6';
-      state.termUnit = 'months';
-    } else {
-      if (amount) amount.value = '10000000';
-      if (term) term.value = '12';
-    }
-    document.querySelectorAll('[data-term-unit]').forEach(button => {
-      button.classList.toggle('active', button.dataset.termUnit === state.termUnit);
-    });
-    populateSelect();
-    populateRateChips();
-    renderResults();
+  function renderOffers() {
+    const root = document.getElementById('creditOffersRoot');
+    const count = document.getElementById('creditOffersCount');
+    if (!root) return;
+    const list = filteredOffers();
+    if (count) count.textContent = String(list.length);
+    renderSummary(list);
+
+    root.innerHTML = list.map(offer => {
+      const bank = bankBySlug(offer.bank);
+      const monthly = offerPayment(offer);
+      return `
+        <article class="credit-offer-card">
+          <a class="credit-offer-bank credit-offer-bank-link" href="${escapeHtml(detailsUrl(offer, bank, monthly))}">
+            <div class="credit-bank-logo" style="background:${escapeHtml(bank.color || '#2563eb')}">${bankLogo(bank)}</div>
+            <div>
+              <h3>${escapeHtml(bank.name_uz || bank.name || offer.bank)}</h3>
+              <p>${escapeHtml(offerName(offer))}</p>
+            </div>
+          </a>
+          <div class="credit-offer-cell">
+            <span>${text('Foiz stavkasi', 'Ставка')}</span>
+            <strong>${rateLabel(offer)}</strong>
+          </div>
+          <div class="credit-offer-cell">
+            <span>${text('Muddat', 'Срок')}</span>
+            <strong>${termRange(offer)}</strong>
+          </div>
+          <div class="credit-offer-cell">
+            <span>${text('Boshlang‘ich', 'Первый взнос')}</span>
+            <strong>${offer.downPayment ? `${offer.downPayment}%` : '0%'}</strong>
+          </div>
+          <div class="credit-offer-cell credit-offer-amount">
+            <span>${text('Summa', 'Сумма')}</span>
+            <strong>${amountRange(offer)}</strong>
+            <small>${text('oyiga', 'в месяц')} ≈ ${formatMoney(monthly, true)}</small>
+          </div>
+          <div class="credit-offer-footer">
+            <span class="credit-channel-badge">${channelLabel(offer)}</span>
+            <a class="credit-details-button" href="${escapeHtml(detailsUrl(offer, bank, monthly))}">${text('Batafsil', 'Подробнее')}</a>
+          </div>
+        </article>
+      `;
+    }).join('');
+    bindLogoFallbacks(root);
+  }
+
+  function syncUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('type', state.type);
+    url.searchParams.set('amount', String(state.amount));
+    url.searchParams.set('term', String(state.term));
+    if (state.downPayment) url.searchParams.set('down', String(state.downPayment));
+    else url.searchParams.delete('down');
+    if (state.income !== 'any') url.searchParams.set('income', state.income);
+    else url.searchParams.delete('income');
+    window.history.replaceState({}, '', url);
+  }
+
+  function render() {
+    renderTabs();
+    updateControls();
+    renderOffers();
+    syncUrl();
   }
 
   function mount() {
-    const nodes = getFormNodes();
-    if (!nodes.form) return;
-    const initialParams = new URLSearchParams(window.location.search);
-    if (initialParams.get('type') === 'mfi') {
-      state.kind = 'mfi';
-      if (nodes.amount) nodes.amount.value = '3000000';
-      if (nodes.term) nodes.term.value = '6';
-    }
-    document.querySelectorAll('[data-loan-kind]').forEach(button => {
-      button.classList.toggle('active', button.dataset.loanKind === state.kind);
+    render();
+    document.getElementById('creditTypeTabs')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-credit-type]');
+      if (!button) return;
+      state.type = button.dataset.creditType;
+      render();
     });
-    populateSelect();
-    populateRateChips();
-
-    document.querySelectorAll('[data-loan-kind]').forEach(button => {
-      button.addEventListener('click', () => setKind(button.dataset.loanKind));
-    });
-    document.querySelectorAll('[data-term-unit]').forEach(button => {
-      button.addEventListener('click', () => {
-        state.termUnit = button.dataset.termUnit;
-        document.querySelectorAll('[data-term-unit]').forEach(item => item.classList.toggle('active', item === button));
-        renderResults();
-      });
-    });
-    document.querySelectorAll('[data-method]').forEach(button => {
-      button.addEventListener('click', () => {
-        state.method = button.dataset.method;
-        document.querySelectorAll('[data-method]').forEach(item => item.classList.toggle('active', item === button));
-        renderResults();
-      });
-    });
-    nodes.bank.addEventListener('change', () => {
-      const selected = optionsForKind().find(item => item.id === nodes.bank.value);
-      state.selectedBank = nodes.bank.value;
-      if (selected) nodes.rate.value = selected.rate;
-      populateRateChips();
-      renderResults();
-    });
-    nodes.rateList.addEventListener('click', event => {
-      const chip = event.target.closest('[data-rate-bank]');
-      if (!chip) return;
-      nodes.bank.value = chip.dataset.rateBank;
-      nodes.bank.dispatchEvent(new Event('change'));
-    });
-    ['input', 'change'].forEach(eventName => {
-      [nodes.amount, nodes.rate, nodes.term].forEach(node => node.addEventListener(eventName, renderResults));
-    });
-    nodes.form.addEventListener('submit', event => {
+    document.getElementById('creditSearchForm')?.addEventListener('submit', event => {
       event.preventDefault();
-      renderResults();
+      state.amount = Number(document.getElementById('creditAmount')?.value || state.amount);
+      state.term = Number(document.getElementById('creditTerm')?.value || state.term);
+      state.downPayment = Number(document.getElementById('creditDownPayment')?.value || 0);
+      state.income = document.getElementById('creditIncome')?.value || 'any';
+      renderOffers();
+      syncUrl();
     });
-    renderResults();
+    ['creditAmount', 'creditTerm', 'creditDownPayment', 'creditIncome'].forEach(id => {
+      document.getElementById(id)?.addEventListener('change', () => {
+        state.amount = Number(document.getElementById('creditAmount')?.value || state.amount);
+        state.term = Number(document.getElementById('creditTerm')?.value || state.term);
+        state.downPayment = Number(document.getElementById('creditDownPayment')?.value || 0);
+        state.income = document.getElementById('creditIncome')?.value || 'any';
+        renderOffers();
+        syncUrl();
+      });
+    });
+    document.getElementById('creditSort')?.addEventListener('change', event => {
+      state.sort = event.target.value;
+      renderOffers();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', mount);
-  window.addEventListener('b1:languagechange', () => {
-    populateSelect();
-    populateRateChips();
-    renderResults();
-  });
+  window.addEventListener('b1:languagechange', render);
 })();

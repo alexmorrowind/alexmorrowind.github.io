@@ -238,6 +238,103 @@
     },
   ];
 
+  // Additional banks shown in the public comparison catalogue. The official
+  // websites are used for logo fallbacks and the final hand-off from an offer.
+  const additionalBanks = [
+    {
+      id: 'ipak-yuli', name: 'Ipak Yuli Bank', name_uz: 'Ipak Yuli Bank', abbr: 'IYB', slug: 'ipak-yuli', color: '#0f7a31',
+      ownership_type: 'private', type: 'traditional', isRecommended: true, website_url: 'https://www.ipakyulibank.com/',
+      address: 'Toshkent, Shayxontohur tumani', dataAsOf: '2026-09-20',
+      description: 'Private bank offering retail, cards, deposits and business services.',
+      description_uz: 'Chakana xizmatlar, kartalar, omonatlar va biznes mahsulotlarini taklif qiluvchi xususiy bank.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar', 'Mikroqarz'], services: ['Mobil banking', 'Pul o‘tkazmalari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.ipakyulibank.com/'],
+    },
+    {
+      id: 'trustbank', name: 'Trustbank', name_uz: 'Trustbank', abbr: 'TRB', slug: 'trustbank', color: '#0f766e',
+      ownership_type: 'private', type: 'traditional', website_url: 'https://www.trustbank.uz/',
+      address: 'Toshkent, Mirzo Ulug‘bek tumani', dataAsOf: '2026-09-20',
+      description: 'Commercial bank with retail, SME and payment services.',
+      description_uz: 'Chakana, kichik biznes va to‘lov xizmatlariga ega tijorat banki.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Mobil banking', 'Pul o‘tkazmalari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.trustbank.uz/'],
+    },
+    {
+      id: 'universalbank', name: 'Universalbank', name_uz: 'Universalbank', abbr: 'UNB', slug: 'universalbank', color: '#1d4ed8',
+      ownership_type: 'private', type: 'traditional', website_url: 'https://www.universalbank.uz/',
+      address: 'Toshkent, Yunusobod tumani', dataAsOf: '2026-09-20',
+      description: 'Universal bank for personal, card and business finance.',
+      description_uz: 'Jismoniy shaxslar, karta va biznes moliyasi uchun universal bank.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Onlayn ariza', 'Biznes xizmatlari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.universalbank.uz/'],
+    },
+    {
+      id: 'octobank', name: 'Octobank', name_uz: 'Octobank', abbr: 'OCTO', slug: 'octobank', color: '#0f766e',
+      ownership_type: 'private', type: 'digital', website_url: 'https://octobank.uz/',
+      address: 'Toshkent, Mirobod tumani', dataAsOf: '2026-09-20',
+      description: 'Digital-first bank with cards, payments and remote services.',
+      description_uz: 'Kartalar, to‘lovlar va masofaviy xizmatlarga ega raqamli bank.',
+      products: ['Kreditlar', 'Kartalar', 'Depozitlar'], services: ['Mobil banking', 'Onlayn ariza'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://octobank.uz/'],
+    },
+    {
+      id: 'uzum-bank', name: 'Uzum Bank', name_uz: 'Uzum Bank', abbr: 'UZUM', slug: 'uzum-bank', color: '#6d28d9',
+      ownership_type: 'private', type: 'digital', website_url: 'https://www.uzumbank.uz/',
+      address: 'Toshkent, Yunusobod tumani', dataAsOf: '2026-09-20',
+      description: 'Digital bank connected to everyday payments and marketplace services.',
+      description_uz: 'Kundalik to‘lovlar va marketplace xizmatlari bilan bog‘langan raqamli bank.',
+      products: ['Mikroqarz', 'Kartalar', 'Muddatli to‘lov'], services: ['Mobil banking', 'Onlayn ariza'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.uzumbank.uz/'],
+    },
+    {
+      id: 'openbank', name: 'Openbank', name_uz: 'Openbank', abbr: 'OPEN', slug: 'openbank', color: '#2563eb',
+      ownership_type: 'private', type: 'digital', website_url: 'https://www.openbank.uz/',
+      address: 'Toshkent, Mirobod tumani', dataAsOf: '2026-09-20',
+      description: 'Digital retail bank with card, instalment and payment products.',
+      description_uz: 'Karta, muddatli to‘lov va to‘lov mahsulotlariga ega raqamli chakana bank.',
+      products: ['Kreditlar', 'Kartalar', 'Muddatli to‘lov'], services: ['Mobil banking', 'Onlayn ariza'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.openbank.uz/'],
+    },
+    {
+      id: 'apexbank', name: 'Apex Bank', name_uz: 'Apex Bank', abbr: 'APEX', slug: 'apexbank', color: '#1d4ed8',
+      ownership_type: 'private', type: 'traditional', website_url: 'https://apexbank.uz/',
+      address: 'Toshkent, Shayxontohur tumani', dataAsOf: '2026-09-20',
+      description: 'Commercial bank with lending, deposits and business products.',
+      description_uz: 'Kredit, omonat va biznes mahsulotlariga ega tijorat banki.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Biznes xizmatlari', 'Pul o‘tkazmalari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://apexbank.uz/'],
+    },
+    {
+      id: 'hayot-bank', name: 'Hayot Bank', name_uz: 'Hayot Bank', abbr: 'HAYOT', slug: 'hayot-bank', color: '#059669',
+      ownership_type: 'private', type: 'traditional', website_url: 'https://hayotbank.uz/',
+      address: 'Toshkent, Yakkasaroy tumani', dataAsOf: '2026-09-20',
+      description: 'Retail and business bank with credit and deposit products.',
+      description_uz: 'Kredit va omonat mahsulotlariga ega chakana va biznes banki.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Mobil banking', 'Biznes xizmatlari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://hayotbank.uz/'],
+    },
+    {
+      id: 'tenge-bank', name: 'Tenge Bank', name_uz: 'Tenge Bank', abbr: 'TENGE', slug: 'tenge-bank', color: '#0f766e',
+      ownership_type: 'foreign', type: 'international', website_url: 'https://tengebank.uz/',
+      address: 'Toshkent, Mirzo Ulug‘bek tumani', dataAsOf: '2026-09-20',
+      description: 'International bank with retail, card and business finance products.',
+      description_uz: 'Chakana, karta va biznes moliyasi mahsulotlariga ega xalqaro bank.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Mobil banking', 'Pul o‘tkazmalari'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://tengebank.uz/'],
+    },
+    {
+      id: 'kdb-bank', name: 'KDB Bank Uzbekistan', name_uz: 'KDB Bank Uzbekistan', abbr: 'KDB', slug: 'kdb-bank', color: '#1e3a8a',
+      ownership_type: 'foreign', type: 'international', website_url: 'https://www.kdb.uz/',
+      address: 'Toshkent, Yunusobod tumani', dataAsOf: '2026-09-20',
+      description: 'International bank serving corporate, SME and retail customers.',
+      description_uz: 'Korporativ, kichik biznes va chakana mijozlarga xizmat ko‘rsatuvchi xalqaro bank.',
+      products: ['Kreditlar', 'Depozitlar', 'Kartalar'], services: ['Korporativ banking', 'Xalqaro hisob-kitoblar'],
+      source_urls: ['https://cbu.uz/en/credit-organizations/banks/head-offices/', 'https://www.kdb.uz/'],
+    },
+  ];
+
+  banks.push(...additionalBanks);
+
   const news = [
     {
       id: 'b1-news-credit-market',

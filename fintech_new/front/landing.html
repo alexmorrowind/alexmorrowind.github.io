@@ -50,13 +50,13 @@
   </script>
   <style>
     .hero {
-      min-height: 100vh;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 100px 24px 60px;
+      padding: 104px 24px 48px;
       position: relative;
       z-index: 1;
     }
@@ -116,6 +116,18 @@
       gap: 8px;
       font-size: 13px;
       color: var(--text-muted);
+    }
+
+    .public-disclaimer {
+      max-width: 820px;
+      margin: 22px auto 0;
+      padding: 12px 16px;
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      border-radius: 12px;
+      background: rgba(248, 250, 252, 0.82);
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.55;
     }
 
     .hero-badge {
@@ -362,6 +374,268 @@
       color: var(--text-secondary);
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    /* MARKET DESK */
+    .market-desk {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 48px 76px;
+    }
+
+    .market-desk-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    .market-desk-head .section-desc {
+      margin-bottom: 0;
+      max-width: 670px;
+    }
+
+    .capability-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .capability-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 132px;
+      padding: 16px;
+      border: 1px solid rgba(37, 99, 235, 0.12);
+      border-radius: 16px;
+      background: #fff;
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+
+    .capability-card:hover {
+      border-color: rgba(37, 99, 235, 0.38);
+      box-shadow: 0 10px 28px rgba(37, 99, 235, 0.11);
+      transform: translateY(-2px);
+    }
+
+    .capability-icon {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 10px;
+      color: #2563eb;
+      background: #eef4ff;
+    }
+
+    .capability-card strong {
+      font-family: var(--font-display);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .capability-card span {
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .market-desk-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .market-desk-panel {
+      min-width: 0;
+      padding: 24px;
+      border: 1px solid rgba(37, 99, 235, 0.12);
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .market-desk-panel.dark {
+      color: #fff;
+      border-color: rgba(148, 163, 184, 0.18);
+      background: radial-gradient(circle at 86% 12%, rgba(59, 130, 246, .24), transparent 32%), linear-gradient(135deg, #0f172a, #172554 72%, #1e3a8a);
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+    }
+
+    .desk-panel-kicker {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .dark .desk-panel-kicker { color: #bfdbfe; }
+
+    .desk-panel-title {
+      margin: 7px 0 6px;
+      font-family: var(--font-display);
+      font-size: 22px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+
+    .desk-panel-copy {
+      max-width: 540px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .dark .desk-panel-copy { color: #cbd5e1; }
+
+    .rate-board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    .rate-tile {
+      padding: 13px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .rate-tile small { display: block; color: #bfdbfe; font-size: 11px; }
+    .rate-tile strong { display: block; margin: 7px 0 4px; font-size: 18px; }
+    .rate-tile span { color: #86efac; font-size: 10px; }
+
+    .rate-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      color: #bfdbfe;
+      font-size: 11px;
+    }
+
+    .selection-steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .selection-step {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .selection-step:last-child { border-bottom: 0; }
+
+    .selection-number {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: #eef4ff;
+      color: #2563eb;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .selection-step strong { font-size: 13px; }
+    .selection-step span { display: block; color: var(--text-secondary); font-size: 11px; line-height: 1.45; margin-top: 3px; }
+    .selection-step a { color: #2563eb; font-size: 11px; font-weight: 800; text-decoration: none; }
+
+    .desk-section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 26px 0 14px;
+    }
+
+    .desk-section-title h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: -.02em;
+    }
+
+    .desk-section-title a { color: #2563eb; font-size: 12px; font-weight: 800; text-decoration: none; }
+
+    .popular-bank-grid,
+    .popular-product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .popular-bank-card,
+    .popular-product-card {
+      display: block;
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid rgba(37, 99, 235, 0.11);
+      border-radius: 16px;
+      background: #fff;
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.035);
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .popular-bank-card:hover,
+    .popular-product-card:hover { border-color: rgba(37, 99, 235, .35); box-shadow: 0 10px 26px rgba(37, 99, 235, .09); }
+
+    .popular-bank-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .popular-bank-logo { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: #fff; font-size: 10px; font-weight: 800; }
+    .popular-bank-name { font-size: 13px; font-weight: 800; line-height: 1.25; }
+    .popular-bank-type { color: #64748b; font-size: 10px; margin-top: 3px; }
+    .popular-bank-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .popular-bank-tags span { padding: 4px 7px; border-radius: 999px; color: #1d4ed8; background: #eef4ff; font-size: 10px; }
+
+    .popular-product-card { min-height: 132px; }
+    .popular-product-icon { width: 34px; height: 34px; display: grid; place-items: center; margin-bottom: 12px; border-radius: 10px; color: #2563eb; background: #eef4ff; }
+    .popular-product-card strong { display: block; font-size: 14px; }
+    .popular-product-card p { min-height: 36px; margin: 6px 0 12px; color: var(--text-secondary); font-size: 11px; line-height: 1.45; }
+    .popular-product-card span { color: #2563eb; font-size: 11px; font-weight: 800; }
+
+    .analytics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .analytics-item { padding: 16px; border-radius: 14px; background: #f8fbff; border: 1px solid #e4ecf8; }
+    .analytics-item strong { display: block; color: #1d4ed8; font-family: var(--font-display); font-size: 22px; }
+    .analytics-item span { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 11px; line-height: 1.4; }
+
+    @media(max-width:900px) {
+      .market-desk { padding-inline: 24px; }
+      .capability-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .market-desk-grid { grid-template-columns: 1fr; }
+      .popular-bank-grid, .popular-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .analytics-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media(max-width:560px) {
+      .market-desk-head { display: block; }
+      .capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .rate-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .popular-bank-grid, .popular-product-grid, .analytics-strip { grid-template-columns: 1fr; }
+      .market-desk-panel { padding: 18px; }
     }
 
     /* APP SECTION */
@@ -716,12 +990,13 @@
       <a href="banks.html" class="nav-link" data-uz="Banklar" data-ru="Банки">Banklar</a>
       <a href="cards.html" class="nav-link" data-uz="Kartalar" data-ru="Карты">Kartalar</a>
       <a href="startups.html" class="nav-link" data-uz="Startap" data-ru="Стартап">Startap</a>
+      <a href="#market-desk" class="nav-link" data-uz="Analitika" data-ru="Аналитика">Analitika</a>
       <a href="help.html" class="nav-link" data-uz="Yordam" data-ru="Помощь">Yordam</a>
       <div class="lang-switcher">
         <button class="lang-btn active" onclick="setLang('uz')">UZ</button>
         <button class="lang-btn" onclick="setLang('ru')">RU</button>
       </div>
-      <a href="login.html" class="nav-cta" data-uz="Boshlash" data-ru="Начать">Boshlash</a>
+      <a href="#app" class="nav-cta" data-uz="Ilovani ochish" data-ru="Открыть приложение">Ilovani ochish</a>
     </div>
   </nav>
 
@@ -741,10 +1016,9 @@
       <span data-uz="bir joyda" data-ru="в одном месте">bir joyda</span>
     </h1>
     <p class="hero-desc"
-      data-uz="B1 orqali banklar, kreditlar, kartalar, mikroqarzlar, sug'urta va investitsiya imkoniyatlarini solishtiring. P2P o'tkazmalar — hamkorlik va ruxsatlar tayyorlanayotganidan so'ng ishga tushadi."
-      data-ru="В B1 сравнивайте банки, кредиты, карты, микрозаймы, страхование и инвестиционные возможности. P2P-переводы появятся после согласования партнёрской и разрешительной модели.">
-      B1 orqali banklar, kreditlar, kartalar, mikroqarzlar, sug'urta va investitsiya imkoniyatlarini solishtiring.
-      P2P o'tkazmalar — hamkorlik va ruxsatlar tayyorlanayotganidan so'ng ishga tushadi.
+      data-uz="B1 — banklar, kreditlar, kartalar, sug'urta, depozitlar va startaplarni tushunarli formatda taqqoslash uchun ochiq axborot platformasi."
+      data-ru="B1 — открытая информационная платформа, где можно сравнить банки, кредиты, карты, страхование, депозиты и стартапы.">
+      B1 — banklar, kreditlar, kartalar, sug'urta, depozitlar va startaplarni tushunarli formatda taqqoslash uchun ochiq axborot platformasi.
     </p>
     <p class="brand-alias"
       data-uz="B1Pay — BPay yoki Б1Пей deb ham izlanadi; barcha nomlar bitta moliyaviy platformaga olib keladi."
@@ -752,14 +1026,14 @@
       B1Pay также ищут как BPay, Б1Пей, Бпей, B1 и Б1 — все эти варианты относятся к одной финансовой платформе.
     </p>
     <div class="hero-actions">
-      <a href="login.html" class="btn-hero btn-hero-primary">
+      <a href="banks.html" class="btn-hero btn-hero-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
         </svg>
-        <span data-uz="Startapni boshlash" data-ru="Запустить стартап">Startapni boshlash</span>
+        <span data-uz="Takliflarni ko'rish" data-ru="Смотреть предложения">Takliflarni ko'rish</span>
       </a>
-      <a href="#integrations" class="btn-hero btn-hero-ghost">
-        <span data-uz="Integratsiyalarni ko'rish" data-ru="Посмотреть интеграции">Integratsiyalarni ko'rish</span>
+      <a href="#how-it-works" class="btn-hero btn-hero-ghost">
+        <span data-uz="Qanday ishlashini ko'rish" data-ru="Как это работает">Qanday ishlashini ko'rish</span>
       </a>
     </div>
     <div class="hero-signal-grid">
@@ -838,7 +1112,87 @@
         </svg><span data-uz="Bank va to'lovlar bir joyda" data-ru="Банки и платежи в одном месте">Bank va to'lovlar bir joyda</span>
       </div>
     </div>
+    <p class="public-disclaimer" data-uz="B1Pay faqat axborot va taqqoslash platformasi: kreditni bermaydi, qarorni qabul qilmaydi va yakuniy shartlarni faqat litsenziyalangan hamkor tasdiqlaydi."
+      data-ru="B1Pay — только информационная и сравнительная платформа: мы не выдаём кредиты и не принимаем решения, а окончательные условия подтверждает лицензированный партнёр.">
+      B1Pay — только информационная и сравнительная платформа: мы не выдаём кредиты и не принимаем решения, а окончательные условия подтверждает лицензированный партнёр.
+    </p>
   </div>
+
+  <!-- MARKET DESK -->
+  <section class="market-desk" id="market-desk">
+    <div class="market-desk-head">
+      <div>
+        <div class="section-label" data-uz="Bozor markazi" data-ru="Рынок в одном экране">Bozor markazi</div>
+        <h2 class="section-title" data-uz="Moliya bozorini tushunib tanlang" data-ru="Разберитесь в рынке и выберите уверенно">Moliya bozorini tushunib tanlang</h2>
+        <p class="section-desc" data-uz="B1Pay banklar, mahsulotlar, kurslar va ko‘rsatkichlarni bitta sahifada jamlaydi. Har bir taklifning rasmiy manbasi bor."
+          data-ru="B1Pay собирает банки, продукты, курсы и показатели на одной странице. У каждого предложения есть официальный источник.">
+          B1Pay banklar, mahsulotlar, kurslar va ko‘rsatkichlarni bitta sahifada jamlaydi. Har bir taklifning rasmiy manbasi bor.
+        </p>
+      </div>
+      <a href="banks.html" class="btn-hero btn-hero-primary" data-uz="Bankni tanlash" data-ru="Подобрать банк">Bankni tanlash →</a>
+    </div>
+
+    <div class="capability-grid" aria-label="B1Pay capabilities">
+      <a class="capability-card" href="banks.html"><span class="capability-icon" aria-hidden="true">⌂</span><strong data-uz="Banklar katalogi" data-ru="Каталог банков">Banklar katalogi</strong><span data-uz="Banklar, filiallar va rasmiy manbalar" data-ru="Банки, филиалы и официальные источники">Banklar, filiallar va rasmiy manbalar</span></a>
+      <a class="capability-card" href="services.html#kredit"><span class="capability-icon" aria-hidden="true">↗</span><strong data-uz="Kreditlar" data-ru="Кредиты">Kreditlar</strong><span data-uz="Foiz, muddat va talablarni taqqoslang" data-ru="Сравнивайте ставки, сроки и требования">Foiz, muddat va talablarni taqqoslang</span></a>
+      <a class="capability-card" href="cards.html"><span class="capability-icon" aria-hidden="true">▣</span><strong data-uz="Kartalar" data-ru="Карты">Kartalar</strong><span data-uz="Cashback, limit va tariflar" data-ru="Кэшбэк, лимиты и тарифы">Cashback, limit va tariflar</span></a>
+      <a class="capability-card" href="calculator.html"><span class="capability-icon" aria-hidden="true">＋</span><strong data-uz="Kalkulyatorlar" data-ru="Калькуляторы">Kalkulyatorlar</strong><span data-uz="Oylik to‘lov va umumiy qiymat" data-ru="Ежемесячный платёж и полная стоимость">Oylik to‘lov va umumiy qiymat</span></a>
+      <a class="capability-card" href="startups.html"><span class="capability-icon" aria-hidden="true">↗</span><strong data-uz="Startaplar" data-ru="Стартапы">Startaplar</strong><span data-uz="Loyihalar va bozor tahlili" data-ru="Проекты и анализ рынка">Loyihalar va bozor tahlili</span></a>
+      <a class="capability-card" href="blog.html"><span class="capability-icon" aria-hidden="true">≡</span><strong data-uz="Yangiliklar" data-ru="Новости">Yangiliklar</strong><span data-uz="Moliyaviy tahlil va qo‘llanmalar" data-ru="Финансовая аналитика и гайды">Moliyaviy tahlil va qo‘llanmalar</span></a>
+    </div>
+
+    <div class="market-desk-grid">
+      <article class="market-desk-panel dark">
+        <div class="desk-panel-kicker" data-uz="Markaziy bank ma’lumotlari" data-ru="Данные Центрального банка">Markaziy bank ma’lumotlari</div>
+        <h3 class="desk-panel-title" data-uz="Kurslar va bozor signallari" data-ru="Курсы и сигналы рынка">Kurslar va bozor signallari</h3>
+        <p class="desk-panel-copy" data-uz="Dollar, yevro, rubl va funt bo‘yicha joriy kurslarni ko‘ring. Qiymatlar mavjud bo‘lsa, CBU manbasidan yangilanadi."
+          data-ru="Смотрите текущие курсы доллара, евро, рубля и фунта. Когда данные доступны, значения обновляются из источника ЦБ.">
+          Dollar, yevro, rubl va funt bo‘yicha joriy kurslarni ko‘ring. Qiymatlar mavjud bo‘lsa, CBU manbasidan yangilanadi.
+        </p>
+        <div class="rate-board">
+          <div class="rate-tile"><small>USD</small><strong id="rateUSD">—</strong><span id="rateUSDDelta">CBU</span></div>
+          <div class="rate-tile"><small>EUR</small><strong id="rateEUR">—</strong><span id="rateEURDelta">CBU</span></div>
+          <div class="rate-tile"><small>RUB</small><strong id="rateRUB">—</strong><span id="rateRUBDelta">CBU</span></div>
+          <div class="rate-tile"><small>GBP</small><strong id="rateGBP">—</strong><span id="rateGBPDelta">CBU</span></div>
+        </div>
+        <div class="rate-footer"><span data-uz="Manba: O‘zbekiston Markaziy banki" data-ru="Источник: Центральный банк Узбекистана">Manba: O‘zbekiston Markaziy banki</span><a href="calculator.html" style="color:#fff;font-weight:800;text-decoration:none" data-uz="Hisoblash →" data-ru="Рассчитать →">Hisoblash →</a></div>
+      </article>
+
+      <article class="market-desk-panel">
+        <div class="desk-panel-kicker" data-uz="Aqlli tanlov" data-ru="Умный выбор">Aqlli tanlov</div>
+        <h3 class="desk-panel-title" data-uz="Bankni 3 qadamda toping" data-ru="Найдите банк за 3 шага">Bankni 3 qadamda toping</h3>
+        <p class="desk-panel-copy" data-uz="Avval maqsadni tanlang, keyin shartlarni solishtiring va yakuniy arizani bankning rasmiy saytida davom ettiring."
+          data-ru="Выберите цель, сравните условия и продолжите заявку только на официальном сайте банка.">
+          Avval maqsadni tanlang, keyin shartlarni solishtiring va yakuniy arizani bankning rasmiy saytida davom ettiring.
+        </p>
+        <div class="selection-steps">
+          <div class="selection-step"><div class="selection-number">1</div><div><strong data-uz="Maqsad" data-ru="Цель">Maqsad</strong><span data-uz="Kredit, karta, depozit yoki ipoteka" data-ru="Кредит, карта, депозит или ипотека">Kredit, karta, depozit yoki ipoteka</span></div><a href="services.html" data-uz="Tanlash" data-ru="Выбрать">Tanlash →</a></div>
+          <div class="selection-step"><div class="selection-number">2</div><div><strong data-uz="Shartlar" data-ru="Условия">Shartlar</strong><span data-uz="Foiz, muddat, komissiya va talablar" data-ru="Ставка, срок, комиссия и требования">Foiz, muddat, komissiya va talablar</span></div><a href="calculator.html" data-uz="Hisoblash" data-ru="Рассчитать">Hisoblash →</a></div>
+          <div class="selection-step"><div class="selection-number">3</div><div><strong data-uz="Rasmiy kanal" data-ru="Официальный канал">Rasmiy kanal</strong><span data-uz="Arizani hamkor bank saytida yakunlang" data-ru="Завершите заявку на сайте банка-партнёра">Arizani hamkor bank saytida yakunlang</span></div><a href="banks.html" data-uz="Banklar" data-ru="Банки">Banklar →</a></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="desk-section-title"><h3 data-uz="Mashhur banklar" data-ru="Популярные банки">Mashhur banklar</h3><a href="banks.html" data-uz="Barcha banklar →" data-ru="Все банки →">Barcha banklar →</a></div>
+    <div class="popular-bank-grid" id="popularBankGrid" aria-live="polite">
+      <a class="popular-bank-card" href="banks.html"><div class="popular-bank-head"><span class="popular-bank-logo" style="background:#2563eb">B1</span><div><div class="popular-bank-name">Banklar katalogi</div><div class="popular-bank-type">Ma’lumot yuklanmoqda</div></div></div><div class="popular-bank-tags"><span>Credits</span><span>Cards</span></div></a>
+    </div>
+
+    <div class="desk-section-title"><h3 data-uz="Ommabop mahsulotlar" data-ru="Популярные продукты">Ommabop mahsulotlar</h3><a href="services.html" data-uz="Barcha xizmatlar →" data-ru="Все услуги →">Barcha xizmatlar →</a></div>
+    <div class="popular-product-grid">
+      <a class="popular-product-card" href="calculator.html"><span class="popular-product-icon">↗</span><strong data-uz="Iste’mol krediti" data-ru="Потребительский кредит">Iste’mol krediti</strong><p data-uz="Oylik to‘lov va umumiy xarajatni hisoblang." data-ru="Рассчитайте платёж и полную стоимость.">Oylik to‘lov va umumiy xarajatni hisoblang.</p><span data-uz="Kalkulyatorni ochish →" data-ru="Открыть калькулятор →">Kalkulyatorni ochish →</span></a>
+      <a class="popular-product-card" href="cards.html"><span class="popular-product-icon">▣</span><strong data-uz="Cashback kartalari" data-ru="Карты с кэшбэком">Cashback kartalari</strong><p data-uz="Limit, cashback va xizmat tariflarini solishtiring." data-ru="Сравните лимиты, кэшбэк и тарифы.">Limit, cashback va xizmat tariflarini solishtiring.</p><span data-uz="Kartalarni ko‘rish →" data-ru="Смотреть карты →">Kartalarni ko‘rish →</span></a>
+      <a class="popular-product-card" href="banks.html?service=deposits"><span class="popular-product-icon">◌</span><strong data-uz="Depozitlar" data-ru="Депозиты">Depozitlar</strong><p data-uz="Jamg‘arma uchun banklar va shartlarni ko‘ring." data-ru="Смотрите банки и условия для накоплений.">Jamg‘arma uchun banklar va shartlarni ko‘ring.</p><span data-uz="Depozitlarni ko‘rish →" data-ru="Смотреть депозиты →">Depozitlarni ko‘rish →</span></a>
+      <a class="popular-product-card" href="startups.html"><span class="popular-product-icon">↗</span><strong data-uz="Startap tahlili" data-ru="Анализ стартапов">Startap tahlili</strong><p data-uz="Loyihalar, bozor yo‘nalishi va roadmapni o‘rganing." data-ru="Изучайте проекты, рынок и roadmap.">Loyihalar, bozor yo‘nalishi va roadmapni o‘rganing.</p><span data-uz="Startaplarni ko‘rish →" data-ru="Смотреть стартапы →">Startaplarni ko‘rish →</span></a>
+    </div>
+
+    <div class="analytics-strip">
+      <div class="analytics-item"><strong id="analysisBankCount">—</strong><span data-uz="katalogdagi bank" data-ru="банков в каталоге">katalogdagi bank</span></div>
+      <div class="analytics-item"><strong id="analysisProductCount">—</strong><span data-uz="mahsulot va xizmat" data-ru="продуктов и услуг">mahsulot va xizmat</span></div>
+      <div class="analytics-item"><strong id="analysisMappedCount">—</strong><span data-uz="xaritadagi bank" data-ru="банков на карте">xaritadagi bank</span></div>
+      <div class="analytics-item"><strong id="analysisNewsCount">—</strong><span data-uz="yangilik va tahlil" data-ru="новостей и аналитических материалов">yangilik va tahlil</span></div>
+    </div>
+  </section>
 
   <!-- LIVE PRIORITIES -->
   <section class="live-priority-section" id="integrations">
@@ -966,7 +1320,7 @@
   </section>
 
   <!-- APP DOWNLOAD -->
-  <section style="padding: 0 48px 60px; max-width: 1200px; margin: 0 auto;">
+  <section id="app" style="padding: 0 48px 60px; max-width: 1200px; margin: 0 auto;">
     <div class="app-section">
       <div class="app-section-text">
         <h2 data-uz="Ilovamizni yuklab oling" data-ru="Скачайте наше приложение">Ilovamizni yuklab oling</h2>
@@ -1146,16 +1500,15 @@
   <div class="divider-line"></div>
 
   <!-- HOW IT WORKS -->
-  <section style="padding:80px 48px; max-width:1200px; margin:0 auto;">
+  <section id="how-it-works" style="padding:80px 48px; max-width:1200px; margin:0 auto;">
     <div class="section-label" data-uz="Qanday ishlaydi" data-ru="Как работает">Qanday ishlaydi</div>
     <h2 class="section-title" data-uz="To'rt qadamda boshlang" data-ru="Начните за четыре шага">To'rt qadamda boshlang
     </h2>
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num">1</div>
-        <div class="step-title" data-uz="Ro'yxatdan o'ting" data-ru="Зарегистрируйтесь">Ro'yxatdan o'ting</div>
-        <div class="step-text" data-uz="Bepul va bir daqiqadan kam." data-ru="Бесплатно, меньше минуты.">Bepul va bir
-          daqiqadan kam.</div>
+        <div class="step-title" data-uz="Yo'nalishni tanlang" data-ru="Выберите направление">Yo'nalishni tanlang</div>
+        <div class="step-text" data-uz="Bank, karta, kredit yoki startap katalogini oching." data-ru="Откройте каталог банков, карт, кредитов или стартапов.">Bank, karta, kredit yoki startap katalogini oching.</div>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
@@ -1171,9 +1524,8 @@
       </div>
       <div class="step-card">
         <div class="step-num">4</div>
-        <div class="step-title" data-uz="Ariza topshiring" data-ru="Подайте заявку">Ariza topshiring</div>
-        <div class="step-text" data-uz="Onlayn ariza to'ldiring." data-ru="Заполните онлайн-заявку.">Onlayn ariza
-          to'ldiring.</div>
+        <div class="step-title" data-uz="Rasmiy saytga o'ting" data-ru="Перейдите на официальный сайт">Rasmiy saytga o'ting</div>
+        <div class="step-text" data-uz="Tanlangan mahsulot tugmasi sizni bankning rasmiy sahifasiga olib boradi." data-ru="Кнопка выбранного продукта ведёт на официальную страницу банка.">Tanlangan mahsulot tugmasi sizni bankning rasmiy sahifasiga olib boradi.</div>
       </div>
     </div>
   </section>
@@ -1184,11 +1536,10 @@
       <h2 class="cta-title"><span data-uz="Moliyangizni" data-ru="Начните управлять">Moliyangizni</span><br><span
           style="background:var(--grad-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"
           data-uz="bugun boshlang" data-ru="финансами сегодня">bugun boshlang</span></h2>
-      <p class="cta-desc" data-uz="B1'da ro'yxatdan o'ting va eng yaxshi takliflarni toping. Hamma narsa bepul."
-        data-ru="Зарегистрируйтесь и найдите лучшие предложения. Всё бесплатно.">B1'da ro'yxatdan o'ting va eng yaxshi
-        takliflarni toping. Hamma narsa bepul.</p>
-      <a href="login.html" class="btn-hero btn-hero-primary"><span data-uz="Hoziroq Boshlash"
-          data-ru="Начать сейчас">Hoziroq Boshlash</span></a>
+      <p class="cta-desc" data-uz="Saytda ro'yxatdan o'tish shart emas: taklifni tanlang, shartlarni o'qing va bankning rasmiy saytiga o'ting."
+        data-ru="На сайте не нужно регистрироваться: выберите предложение, изучите условия и перейдите на официальный сайт банка.">Saytda ro'yxatdan o'tish shart emas: taklifni tanlang, shartlarni o'qing va bankning rasmiy saytiga o'ting.</p>
+      <a href="banks.html" class="btn-hero btn-hero-primary"><span data-uz="Katalogni ochish"
+          data-ru="Открыть каталог">Katalogni ochish</span></a>
     </div>
   </div>
 

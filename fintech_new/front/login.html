@@ -179,6 +179,111 @@
       display: grid;
       place-items: center;
       padding: 32px 24px;
+      gap: 18px;
+      align-content: center;
+    }
+
+    .web-auth-card {
+      width: min(100%, 400px);
+      padding: 28px;
+      background: var(--panel);
+      border: 1px solid rgba(37, 99, 235, 0.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      margin: 18px 0;
+      border-radius: 10px;
+      background: #eef4ff;
+    }
+
+    .auth-tab {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 8px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .auth-tab.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 11px;
+    }
+
+    .auth-form[hidden] { display: none; }
+
+    .auth-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .auth-form input,
+    .auth-form select {
+      width: 100%;
+      height: 46px;
+      padding: 0 12px;
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      border-radius: 9px;
+      background: #f8faff;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    .auth-form input:focus,
+    .auth-form select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .consent {
+      display: flex !important;
+      grid-template-columns: auto 1fr;
+      grid-template-columns: none;
+      align-items: flex-start;
+      gap: 8px !important;
+      font-size: 11px !important;
+      line-height: 1.45;
+      font-weight: 500 !important;
+    }
+
+    .consent input { width: 16px; height: 16px; margin-top: 1px; }
+
+    .myid-button {
+      width: 100%;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
+    }
+
+    .web-auth-status {
+      min-height: 20px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .privacy-link {
+      color: var(--accent);
+      text-decoration: none;
     }
 
     .qr-card {
@@ -328,9 +433,57 @@
     </section>
 
     <section class="panel">
+      <div class="web-auth-card">
+        <h2 class="card-title" data-uz="MyID orqali kirish" data-ru="Вход через MyID">MyID orqali kirish</h2>
+        <p class="card-subtitle" data-uz="Saytda parol saqlanmaydi: ma'lumotlarni kiriting va tasdiqlash uchun rasmiy MyID oynasiga o'ting." data-ru="На сайте пароль не проверяется самостоятельно: заполните данные и подтвердите личность в официальном окне MyID.">Saytda parol saqlanmaydi: ma'lumotlarni kiriting va tasdiqlash uchun rasmiy MyID oynasiga o'ting.</p>
+
+        <div class="auth-tabs" role="tablist">
+          <button id="loginTab" class="auth-tab active" type="button" data-flow="login" data-uz="Kirish" data-ru="Войти">Kirish</button>
+          <button id="registerTab" class="auth-tab" type="button" data-flow="register" data-uz="Ro'yxatdan o'tish" data-ru="Регистрация">Ro'yxatdan o'tish</button>
+        </div>
+
+        <form id="myIdLoginForm" class="auth-form">
+          <label>
+            <span data-uz="Telefon yoki email" data-ru="Телефон или email">Telefon yoki email</span>
+            <input id="loginIdentifier" name="identifier" autocomplete="username" placeholder="+998 90 123 45 67 yoki email" required>
+          </label>
+          <button class="button myid-button" type="submit" data-uz="MyID orqali kirish" data-ru="Войти через MyID">MyID orqali kirish</button>
+        </form>
+
+        <form id="myIdRegisterForm" class="auth-form" hidden>
+          <label>
+            <span data-uz="Ism" data-ru="Имя">Ism</span>
+            <input id="registerFirstName" name="first_name" autocomplete="given-name" required>
+          </label>
+          <label>
+            <span data-uz="Familiya" data-ru="Фамилия">Familiya</span>
+            <input id="registerLastName" name="last_name" autocomplete="family-name" required>
+          </label>
+          <label>
+            <span data-uz="Email" data-ru="Email">Email</span>
+            <input id="registerEmail" name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>
+            <span data-uz="Telefon" data-ru="Телефон">Telefon</span>
+            <input id="registerPhone" name="phone" type="tel" autocomplete="tel" placeholder="+998 90 123 45 67" required>
+          </label>
+          <label>
+            <span data-uz="Parol" data-ru="Пароль">Parol</span>
+            <input id="registerPassword" name="password" type="password" minlength="6" autocomplete="new-password" required>
+          </label>
+          <label class="consent">
+            <input id="registerConsent" type="checkbox" required>
+            <span data-uz="Men shaxsiy ma'lumotlarimni qayta ishlashga roziman va maxfiylik siyosatini qabul qilaman." data-ru="Я согласен(на) на обработку персональных данных и принимаю политику конфиденциальности.">Men shaxsiy ma'lumotlarimni qayta ishlashga roziman va maxfiylik siyosatini qabul qilaman.</span>
+          </label>
+          <a class="privacy-link" href="privacy.html" target="_blank" rel="noopener" data-uz="Maxfiylik siyosatini o'qish" data-ru="Открыть политику конфиденциальности">Maxfiylik siyosatini o'qish</a>
+          <button class="button myid-button" type="submit" data-uz="MyID orqali ro'yxatdan o'tish" data-ru="Зарегистрироваться через MyID">MyID orqali ro'yxatdan o'tish</button>
+        </form>
+        <div id="webAuthStatus" class="web-auth-status" aria-live="polite"></div>
+      </div>
+
       <div class="qr-card">
         <div>
-          <h2 class="card-title" id="cardTitle" data-uz="QR orqali kirish" data-ru="Вход по QR">QR orqali kirish</h2>
+          <h2 class="card-title" id="cardTitle" data-uz="Yoki QR orqali kirish" data-ru="Или вход по QR">Yoki QR orqali kirish</h2>
           <p class="card-subtitle" id="cardSubtitle" data-uz="B1 ilovasida MyID ni tugating va shu kodni skanerlang" data-ru="Завершите MyID в приложении B1 и отсканируйте этот код">B1 ilovasida MyID ni tugating va shu kodni skanerlang</p>
         </div>
 
