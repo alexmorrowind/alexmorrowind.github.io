@@ -18,6 +18,9 @@ CONFIG_DEFAULTS = {
     'PAYME_ACCOUNT_KEY': 'Bpay',
     'OCTO_API_BASE_URL': 'https://secure.octo.uz',
     'OCTO_P2P_ENABLED': 'false',
+    # MyID's hosted redirect screen is configurable because MyID issues
+    # separate credentials/URLs for SDK, redirect and Web SDK integrations.
+    'MYID_AUTHORIZATION_URL': 'https://signin.myid.uz/login/',
 }
 
 
@@ -141,28 +144,196 @@ def myid_is_configured():
 def myid_sdk_is_configured():
     """Return whether the mobile SDK can be started safely.
 
-    The embedded SDK receives a short-lived session plus the client hash
-    values.  It does not require the server-side MyID username/password used
-    by the legacy backend API, so keep this check separate from
-    ``myid_is_configured``.
+    SDK v2 flow requires client_id, client_secret (backend obtains access_token
+    and creates sessions via /api/v2/sdk/sessions), plus hash values for the
+    mobile SDK itself.
     """
     return all([
+        get_config('MYID_BASE_URL'),
         get_config('MYID_CLIENT_ID'),
+        get_config('MYID_CLIENT_SECRET'),
         get_config('MYID_CLIENT_HASH'),
         get_config('MYID_CLIENT_HASH_ID'),
     ])
 
 
+def myid_redirect_is_configured():
+    """Return whether the server can complete the OAuth redirect flow.
+
+    The client secret is deliberately required here and is never returned to
+    the browser or mobile application.  MyID's redirect flow exchanges the
+    one-time authorization code from the hosted screen on the client backend.
+    """
+    return all([
+        get_config('MYID_BASE_URL'),
+        get_config('MYID_CLIENT_ID'),
+        get_config('MYID_CLIENT_SECRET'),
+    ])
+
+
+def myid_authorization_url(*, redirect_uri, state, scope='common_data,contacts', method='strong'):
+    """Build the hosted MyID authorization URL for a browser redirect."""
+    configured_url = (
+        get_config('MYID_AUTHORIZATION_URL')
+        or get_config('MYID_HOSTED_URL')
+        or CONFIG_DEFAULTS['MYID_AUTHORIZATION_URL']
+    )
+    parsed = parse.urlsplit(str(configured_url))
+    if not parsed.scheme:
+        parsed = parse.urlsplit(f'https://{configured_url}')
+    query = dict(parse.parse_qsl(parsed.query, keep_blank_values=True))
+    query.update({
+        'client_id': get_config('MYID_CLIENT_ID', ''),
+        'response_type': 'code',
+        'redirect_uri': redirect_uri,
+        'scope': scope,
+        'method': method,
+        'state': state,
+    })
+    return parse.urlunsplit((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path or '/',
+        parse.urlencode(query),
+        parsed.fragment,
+    ))
+
+
+def exchange_myid_authorization_code(code):
+    """Exchange a one-time hosted-flow code on the server side."""
+    base_url = (get_config('MYID_BASE_URL') or '').rstrip('/')
+    payload = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': get_config('MYID_CLIENT_ID'),
+        'client_secret': get_config('MYID_CLIENT_SECRET'),
+    }
+    return _post_form(f'{base_url}/api/v1/oauth2/access-token', payload, timeout=20)
+
+
+def get_myid_user_profile(access_token):
+    """Fetch the user profile returned for a successfully exchanged code."""
+    base_url = (get_config('MYID_BASE_URL') or '').rstrip('/')
+    req = request.Request(
+        f'{base_url}/api/v1/users/me',
+        method='GET',
+        headers={
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {access_token}',
+        },
+    )
+    with request.urlopen(req, timeout=30) as response:
+        return json.loads(response.read().decode('utf-8') or '{}')
+
+
 def get_myid_access_token():
+    """Obtain access_token from MyID API (SDK v2 flow).
+
+    Returns (access_token_string, full_response_dict).
+    Requires MYID_CLIENT_ID and MYID_CLIENT_SECRET from MyID provider credentials.
+    """
     base_url = get_config('MYID_BASE_URL').rstrip('/')
     payload = {
-        'grant_type': 'password',
-        'username': get_config('MYID_USERNAME'),
-        'password': get_config('MYID_PASSWORD'),
         'client_id': get_config('MYID_CLIENT_ID'),
+        'client_secret': get_config('MYID_CLIENT_SECRET'),
     }
-    response = _post_form(f'{base_url}/api/v1/oauth2/access-token', payload, timeout=5)
+    response = _post_json(
+        f'{base_url}/api/v1/auth/clients/access-token',
+        payload,
+        timeout=10,
+    )
     return response['access_token'], response
+
+
+def create_myid_sdk_session(phone, pinfl=None, birth_date=None):
+    """Create a new MyID SDK session (v2 /api/v2/sdk/sessions).
+
+    Returns {'session_id': 'uuid4', 'client_hash': '...', 'client_hash_id': '...'}.
+    The session_id is passed to MyIdClient.start() in the mobile app.
+    """
+    # Test mode: return demo session immediately without API calls
+    test_mode = raw_env_bool('MYID_TEST_MODE', default=False)
+    if test_mode or not myid_sdk_is_configured():
+        return {
+            'demo': True,
+            'session_id': f"myid-demo-{uuid.uuid4().hex}",
+            'client_hash': '',
+            'client_hash_id': '',
+        }
+
+    access_token, _ = get_myid_access_token()
+    base_url = get_config('MYID_BASE_URL').rstrip('/')
+
+    # Normalize phone: MyID expects no '+', exactly 12 digits
+    normalized = (phone or '').strip().replace('+', '').replace(' ', '')
+
+    request_body = {}
+    if normalized:
+        request_body['phone_number'] = normalized
+    if pinfl:
+        request_body['pinfl'] = pinfl
+    if birth_date:
+        request_body['birth_date'] = birth_date
+    # Leave empty body for "empty session" flow (user enters passport manually)
+
+    response = _post_json(
+        f'{base_url}/api/v2/sdk/sessions',
+        request_body,
+        headers={'Authorization': f'Bearer {access_token}'},
+        timeout=10,
+    )
+
+    print(f"[MyID SDK] Response from {base_url}/api/v2/sdk/sessions:")
+    print(f"  session_id: {response.get('session_id', 'MISSING')}")
+    print(f"  client_hash: {response.get('client_hash', 'MISSING')}")
+    print(f"  client_hash_id: {response.get('client_hash_id', 'MISSING')}")
+
+    # devmyid.uz does not return client_hash/client_hash_id in response.
+    # Use credentials from .env as fallback for SDK initialization.
+    client_hash = response.get('client_hash') or get_config('MYID_CLIENT_HASH', '')
+    client_hash_id = response.get('client_hash_id') or get_config('MYID_CLIENT_HASH_ID', '')
+
+    return {
+        'demo': False,
+        'session_id': response['session_id'],
+        'client_hash': client_hash,
+        'client_hash_id': client_hash_id,
+    }
+
+
+def exchange_myid_sdk_code(code):
+    """Exchange the one-time code from SDK into user profile.
+
+    GET /api/v1/sdk/data?code=<code>
+    Returns the full data dict including profile, comparison_value, reuid.
+    """
+    test_mode = raw_env_bool('MYID_TEST_MODE', default=False)
+    if test_mode or not myid_sdk_is_configured():
+        return {
+            'demo': True,
+            'comparison_value': 0.99,
+            'pass_data': 'AA1234567',
+            'profile': {
+                'common_data': {
+                    'first_name': 'Test',
+                    'last_name': 'User',
+                    'pinfl': '00000000000000',
+                },
+            },
+        }
+
+    access_token, _ = get_myid_access_token()
+    base_url = get_config('MYID_BASE_URL').rstrip('/')
+
+    query = parse.urlencode({'code': code})
+    req = request.Request(
+        f'{base_url}/api/v1/sdk/data?{query}',
+        headers={'Authorization': f'Bearer {access_token}'},
+        method='GET',
+    )
+    with request.urlopen(req, timeout=20) as response:
+        data = json.loads(response.read().decode('utf-8') or '{}')
+    return data.get('data', data)
 
 
 def start_myid_authentication(payload):

@@ -120,16 +120,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 def database_config_from_url(database_url):
     parsed = urlparse(database_url)
-    if parsed.scheme not in ['postgres', 'postgresql']:
-        raise ValueError('Only postgres:// DATABASE_URL is supported for production.')
-    return {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': parsed.path.lstrip('/'),
+    scheme = parsed.scheme.lower()
+    common = {
+        'NAME': unquote(parsed.path.lstrip('/')),
         'USER': unquote(parsed.username or ''),
         'PASSWORD': unquote(parsed.password or ''),
         'HOST': parsed.hostname or '',
-        'PORT': parsed.port or '',
+        'PORT': str(parsed.port or ''),
     }
+    if scheme in ['postgres', 'postgresql']:
+        return {'ENGINE': 'django.db.backends.postgresql', **common}
+    if scheme in ['mysql', 'mariadb']:
+        return {
+            'ENGINE': 'django.db.backends.mysql',
+            'OPTIONS': {'charset': 'utf8mb4'},
+            **common,
+        }
+    raise ValueError('DATABASE_URL must use postgres://, mysql://, or mariadb://.')
 
 
 DATABASE_URL = os.environ.get('DATABASE_URL')

@@ -76,6 +76,12 @@ class ClearsOctoEnvMixin:
 
 
 class BankApiTests(TestCase):
+    def test_health_endpoint(self):
+        response = APIClient().get('/api/health/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, {'status': 'ok'})
+
     def test_bank_list_seeds_defaults_when_database_is_empty(self):
         client = APIClient()
 

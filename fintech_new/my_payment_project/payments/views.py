@@ -5,28 +5,37 @@ import time
 import uuid
 from datetime import date, timedelta
 from decimal import Decimal
-from urllib.parse import quote_plus, urlsplit, urlunsplit
+from urllib.parse import quote_plus, urlencode, urlsplit, urlunsplit
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.http import HttpResponseRedirect
 from django.utils import timezone
 from django.db.models import Q
+from django.urls import reverse
 import qrcode
 from .integrations import (
+    create_myid_sdk_session,
     effective_config_value,
+    exchange_myid_sdk_code,
     generate_sms_code,
+    get_config,
     get_myid_status,
+    get_myid_user_profile,
     mask_phone,
     myid_is_configured,
+    myid_redirect_is_configured,
     myid_sdk_is_configured,
+    myid_authorization_url,
+    exchange_myid_authorization_code,
     payme_subscribe_rpc,
     send_registration_sms,
     start_myid_authentication,
     octo_p2p_status,
     submit_octo_p2p_transfer,
-    get_config,
 )
 from .models import APIConfiguration, AuthSession, Bank, Card, Investment, KYCVerification, LegalEntityProfile, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, UserProfile
 
@@ -97,6 +106,7 @@ SECRET_CONFIG_KEYS = {
     'PAYME_PREVIOUS_MERCHANT_KEY',
     'PAYME_SUBSCRIBE_KEY',
     'MYID_PASSWORD',
+    'MYID_CLIENT_SECRET',
     'SMS_PROVIDER_TOKEN',
     'DJANGO_SECRET_KEY',
     'OCTO_SECRET_KEY',
@@ -123,6 +133,8 @@ PAYME_MIN_ORDER_AMOUNT_UZS = Decimal('1000')
 PAYME_MAX_ORDER_AMOUNT_UZS = Decimal('10000000')
 WEB_LOGIN_SESSION_TTL_SECONDS = 10 * 60
 MYID_LOGIN_SESSION_TTL_SECONDS = 15 * 60
+MYID_WEB_SESSION_TTL_SECONDS = 15 * 60
+MYID_WEB_SCOPE = 'common_data,contacts'
 
 
 def _session_qr_payload(session_id):
@@ -176,19 +188,30 @@ def _user_identity_lookup(phone='', email=''):
     return None
 
 
-def _get_or_create_myid_user(*, phone='', email='', first_name='', last_name=''):
+def _get_or_create_myid_user(
+    *,
+    phone='',
+    email='',
+    first_name='',
+    last_name='',
+    password_hash='',
+):
     user = _user_identity_lookup(phone=phone, email=email)
     if user is None:
         username = email or phone or f'myid_{uuid.uuid4().hex[:12]}'
-        user = User.objects.create_user(
+        user = User(
             username=username,
             email=email or username,
-            password='',
             first_name=first_name or '',
             last_name=last_name or '',
         )
-        user.set_unusable_password()
-        user.save(update_fields=['password'])
+        # Registration stores only a Django password hash in the short-lived
+        # auth session.  The raw password never reaches MyID or is persisted.
+        if password_hash:
+            user.password = password_hash
+        else:
+            user.set_unusable_password()
+        user.save()
     else:
         changed = False
         if email and user.email != email:
@@ -200,8 +223,11 @@ def _get_or_create_myid_user(*, phone='', email='', first_name='', last_name='')
         if last_name and user.last_name != last_name:
             user.last_name = last_name
             changed = True
+        if password_hash and not user.has_usable_password():
+            user.password = password_hash
+            changed = True
         if changed:
-            user.save(update_fields=['email', 'first_name', 'last_name'])
+            user.save(update_fields=['email', 'first_name', 'last_name', 'password'])
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
     if phone and profile.phone != phone:
@@ -265,6 +291,60 @@ def _ensure_auth_session_active(session):
             session.status = 'expired'
             session.save(update_fields=['status', 'updated_at'])
     return session
+
+
+def _frontend_login_url():
+    """Resolve the public login page without exposing backend credentials."""
+    configured = os.environ.get('FRONTEND_PUBLIC_URL', 'https://b1pay.uz/index.html').strip()
+    if not configured:
+        configured = 'https://b1pay.uz/index.html'
+    parts = urlsplit(configured)
+    path = parts.path or '/'
+    if path.endswith('/'):
+        path = f'{path}login.html'
+    elif path.rsplit('/', 1)[-1].lower() in {'index.html', 'landing.html'}:
+        path = f'{path.rsplit("/", 1)[0]}/login.html'
+    else:
+        path = f'{path.rstrip("/")}/login.html'
+    return urlunsplit((parts.scheme or 'https', parts.netloc, path, '', ''))
+
+
+def _myid_redirect_uri(request):
+    configured = (get_config('MYID_REDIRECT_URI') or '').strip()
+    if configured:
+        return configured
+    return request.build_absolute_uri(reverse('auth_myid_redirect_callback'))
+
+
+def _redirect_result_url(*, session_id='', status_value='failed', reason_code='', message=''):
+    params = {'myid_status': status_value}
+    if session_id:
+        params['myid_session'] = session_id
+    if reason_code:
+        params['reason_code'] = str(reason_code)
+    if message:
+        params['message'] = message
+    return f'{_frontend_login_url()}?{urlencode(params)}'
+
+
+def _myid_profile_values(profile_payload):
+    """Extract only the fields needed to create/update a B1 profile."""
+    profile = profile_payload.get('profile') if isinstance(profile_payload, dict) else {}
+    profile = profile if isinstance(profile, dict) else {}
+    common = profile.get('common_data') if isinstance(profile.get('common_data'), dict) else {}
+    contacts = profile.get('contacts') if isinstance(profile.get('contacts'), dict) else {}
+    documents = profile.get('doc_data') if isinstance(profile.get('doc_data'), dict) else {}
+    return {
+        'first_name': str(common.get('first_name') or '').strip(),
+        'last_name': str(common.get('last_name') or '').strip(),
+        'middle_name': str(common.get('middle_name') or '').strip(),
+        'pinfl': str(common.get('pinfl') or '').strip(),
+        'birth_date': str(common.get('birth_date') or '').strip(),
+        'phone': str(contacts.get('phone') or '').strip(),
+        'email': str(contacts.get('email') or '').strip().lower(),
+        'passport': str(documents.get('pass_data') or '').strip().upper(),
+        'authentication_method': str(profile.get('authentication_method') or '').strip(),
+    }
 
 CBU_BANKS_SOURCE = 'https://cbu.uz/en/credit-organizations/banks/head-offices/'
 CATALOG_DATA_DATE = date(2026, 8, 24)
@@ -1100,13 +1180,26 @@ class IntegrationStatusView(APIView):
                 **config_group_status([
                     'MYID_BASE_URL',
                     'MYID_CLIENT_ID',
+                    'MYID_CLIENT_SECRET',
                     'MYID_CLIENT_HASH',
                     'MYID_CLIENT_HASH_ID',
                     'MYID_USERNAME',
                     'MYID_PASSWORD',
                     'MYID_HOSTED_URL',
+                    'MYID_AUTHORIZATION_URL',
+                    'MYID_REDIRECT_URI',
                 ]),
-                'used_for_registration': False,
+                'web_redirect': {
+                    **config_group_status([
+                        'MYID_BASE_URL',
+                        'MYID_CLIENT_ID',
+                        'MYID_CLIENT_SECRET',
+                        'MYID_AUTHORIZATION_URL',
+                        'MYID_REDIRECT_URI',
+                    ]),
+                    'callback_path': reverse('auth_myid_redirect_callback'),
+                },
+                'used_for_registration': True,
             },
             'notes': [
                 'Secrets are masked and never returned fully.',
@@ -1114,6 +1207,15 @@ class IntegrationStatusView(APIView):
                 'Registration is standard email/password by default; Payme checkout is opt-in with payme_connect=true.',
             ],
         })
+
+
+class HealthView(APIView):
+    """Small unauthenticated liveness endpoint for hosting checks."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({'status': 'ok'})
 
 
 class BankListView(APIView):
@@ -1239,6 +1341,251 @@ class AuthQrStatusView(APIView):
         return Response(payload)
 
 
+class MyIDWebRedirectStartView(APIView):
+    """Prepare a browser OAuth redirect to the hosted MyID screen."""
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        flow = str(request.data.get('flow') or 'login').strip().lower()
+        if flow not in {'login', 'register'}:
+            return Response({'detail': 'flow must be login or register'}, status=status.HTTP_400_BAD_REQUEST)
+
+        first_name = str(request.data.get('first_name') or '').strip()
+        last_name = str(request.data.get('last_name') or '').strip()
+        email = str(request.data.get('email') or '').strip().lower()
+        phone = str(request.data.get('phone') or '').strip()
+        password = str(request.data.get('password') or '')
+        account_type = _normalize_account_type(request.data.get('account_type', 'physical'))
+        agreed_value = request.data.get('agreed_on_terms')
+        agreed = agreed_value is True or str(agreed_value).lower() in ['1', 'true', 'yes', 'on']
+
+        if flow == 'register':
+            if not first_name or not last_name:
+                return Response({'first_name': 'First name and last name are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if '@' not in email or '.' not in email.rsplit('@', 1)[-1]:
+                return Response({'email': 'Enter a valid email address.'}, status=status.HTTP_400_BAD_REQUEST)
+            if len(password) < 6:
+                return Response({'password': 'Password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not agreed:
+                return Response({'agreed_on_terms': 'Consent is required before MyID verification.'}, status=status.HTTP_400_BAD_REQUEST)
+        elif not email and not phone:
+            return Response({'detail': 'email or phone is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not myid_redirect_is_configured():
+            return Response({
+                'detail': 'MyID web redirect is not configured. Add the server-side MYID_CLIENT_SECRET and register the callback URL in MyID.',
+                'required_config': ['MYID_BASE_URL', 'MYID_CLIENT_ID', 'MYID_CLIENT_SECRET'],
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        session = _create_auth_session(
+            kind='myid_web',
+            phone=phone,
+            email=email,
+            account_type=account_type,
+            expires_in_seconds=MYID_WEB_SESSION_TTL_SECONDS,
+        )
+        session.myid_payload = {
+            'source': 'myid_web_redirect',
+            'flow': flow,
+            'first_name': first_name,
+            'last_name': last_name,
+            # Only a one-way hash is kept while the hosted flow is pending.
+            'password_hash': make_password(password) if flow == 'register' else '',
+            'agreed_on_terms': agreed,
+            'state': session.session_id,
+        }
+        session.save(update_fields=['myid_payload', 'updated_at'])
+
+        redirect_uri = _myid_redirect_uri(request)
+        redirect_url = myid_authorization_url(
+            redirect_uri=redirect_uri,
+            state=session.session_id,
+            scope=str(get_config('MYID_SCOPE', MYID_WEB_SCOPE) or MYID_WEB_SCOPE),
+            method='strong',
+        )
+        return Response({
+            'session_id': session.session_id,
+            'flow': flow,
+            'status': session.status,
+            'expires_at': session.expires_at.isoformat(),
+            'redirect_uri': redirect_uri,
+            'redirect_url': redirect_url,
+        }, status=status.HTTP_201_CREATED)
+
+
+class MyIDWebRedirectCallbackView(APIView):
+    """Receive MyID's one-time code and finish verification server-side."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        state = str(request.query_params.get('state') or '').strip()
+        code = str(request.query_params.get('auth_code') or request.query_params.get('code') or '').strip()
+        reason_code = str(request.query_params.get('reason_code') or '').strip()
+        session = AuthSession.objects.filter(session_id=state, kind='myid_web').first()
+
+        if not session:
+            return HttpResponseRedirect(_redirect_result_url(
+                status_value='failed',
+                reason_code=reason_code or 'invalid_state',
+                message='MyID session was not found.',
+            ))
+
+        session = _ensure_auth_session_active(session)
+        if session.status == 'expired':
+            return HttpResponseRedirect(_redirect_result_url(
+                session_id=session.session_id,
+                status_value='expired',
+                reason_code=reason_code,
+                message='MyID session expired. Start again.',
+            ))
+
+        if not code:
+            session.status = 'failed'
+            session.last_error = reason_code or 'MyID did not return an authorization code.'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return HttpResponseRedirect(_redirect_result_url(
+                session_id=session.session_id,
+                status_value='failed',
+                reason_code=reason_code,
+                message='MyID verification was not completed.',
+            ))
+
+        try:
+            token_payload = exchange_myid_authorization_code(code)
+            access_token = str(token_payload.get('access_token') or '').strip()
+            if not access_token:
+                raise ValueError('MyID did not return an access token.')
+            provider_profile = _myid_profile_values(get_myid_user_profile(access_token))
+        except Exception:
+            # Never send provider responses or credentials back to the browser.
+            session.status = 'failed'
+            session.last_error = 'MyID authorization code exchange failed.'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return HttpResponseRedirect(_redirect_result_url(
+                session_id=session.session_id,
+                status_value='failed',
+                reason_code='provider_error',
+                message='MyID verification could not be completed. Try again.',
+            ))
+
+        requested = session.myid_payload if isinstance(session.myid_payload, dict) else {}
+        flow = str(requested.get('flow') or 'login')
+        phone = provider_profile['phone'] or session.phone
+        email = provider_profile['email'] or session.email
+        if not phone and not email:
+            session.status = 'failed'
+            session.last_error = 'MyID did not return a phone or email to match the B1 account.'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return HttpResponseRedirect(_redirect_result_url(
+                session_id=session.session_id,
+                status_value='failed',
+                reason_code='identity_contact_missing',
+                message='MyID не вернул телефон или email для привязки аккаунта.',
+            ))
+        first_name = provider_profile['first_name'] or str(requested.get('first_name') or '')
+        last_name = provider_profile['last_name'] or str(requested.get('last_name') or '')
+        if flow == 'login':
+            user = _user_identity_lookup(phone=phone, email=email)
+            if user is None:
+                session.status = 'failed'
+                session.last_error = 'No B1 account matches the verified MyID identity. Register first.'
+                session.save(update_fields=['status', 'last_error', 'updated_at'])
+                return HttpResponseRedirect(_redirect_result_url(
+                    session_id=session.session_id,
+                    status_value='failed',
+                    reason_code='account_not_found',
+                    message='Аккаунт не найден. Сначала зарегистрируйтесь через MyID.',
+                ))
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+        else:
+            user, profile = _get_or_create_myid_user(
+                phone=phone,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password_hash=str(requested.get('password_hash') or ''),
+            )
+        if provider_profile['passport']:
+            profile.passport = provider_profile['passport']
+        if provider_profile['birth_date']:
+            try:
+                profile.birth_date = date.fromisoformat(provider_profile['birth_date'][:10])
+            except (TypeError, ValueError):
+                pass
+        profile.myid_status = 'verified'
+        profile.myid_session_id = session.session_id
+        profile.myid_payload = {
+            'source': 'myid_web_redirect',
+            'authentication_method': provider_profile['authentication_method'],
+            'result_code': '1',
+        }
+        profile.save()
+
+        session.user = user
+        session.status = 'verified'
+        session.verified_at = timezone.now()
+        session.phone = phone or session.phone
+        session.email = email or session.email
+        session.last_error = ''
+        session.myid_payload = {
+            'source': 'myid_web_redirect',
+            'flow': flow,
+            'result_code': '1',
+            'authentication_method': provider_profile['authentication_method'],
+            'handoff_consumed_at': '',
+        }
+        session.save(update_fields=[
+            'user', 'status', 'verified_at', 'phone', 'email', 'last_error',
+            'myid_payload', 'updated_at',
+        ])
+        return HttpResponseRedirect(_redirect_result_url(
+            session_id=session.session_id,
+            status_value='verified',
+        ))
+
+
+class MyIDWebRedirectCompleteView(APIView):
+    """Exchange the short-lived browser handoff for B1 JWT tokens."""
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = str(request.data.get('session_id') or '').strip()
+        session = AuthSession.objects.filter(session_id=session_id, kind='myid_web').select_related('user').first()
+        if not session:
+            return Response({'detail': 'MyID web session not found.'}, status=status.HTTP_404_NOT_FOUND)
+        session = _ensure_auth_session_active(session)
+        if session.status != 'verified' or not session.user:
+            return Response({
+                'session_id': session.session_id,
+                'status': session.status,
+                'error': session.last_error or 'MyID verification is not complete.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+        payload = session.myid_payload if isinstance(session.myid_payload, dict) else {}
+        if payload.get('handoff_consumed_at'):
+            return Response({'detail': 'This MyID handoff has already been used.'}, status=status.HTTP_410_GONE)
+
+        payload['handoff_consumed_at'] = timezone.now().isoformat()
+        session.myid_payload = payload
+        session.save(update_fields=['myid_payload', 'updated_at'])
+        profile, _ = UserProfile.objects.get_or_create(user=session.user)
+        return Response({
+            'session_id': session.session_id,
+            'status': 'verified',
+            'tokens': _issue_tokens(session.user),
+            'profile': {
+                'id': session.user.id,
+                'email': session.user.email,
+                'first_name': session.user.first_name,
+                'last_name': session.user.last_name,
+                'phone': profile.phone or session.phone,
+                'myid_status': profile.myid_status,
+            },
+        })
+
+
 class MobileMyIDStartView(APIView):
     permission_classes = [AllowAny]
 
@@ -1249,6 +1596,27 @@ class MobileMyIDStartView(APIView):
 
         email = str(request.data.get('email', '')).strip().lower()
         account_type = _normalize_account_type(request.data.get('account_type', 'physical'))
+        flow = str(request.data.get('flow') or 'login').strip().lower()
+        if flow not in {'login', 'register'}:
+            return Response({'detail': 'flow must be login or register'}, status=status.HTTP_400_BAD_REQUEST)
+        first_name = str(request.data.get('first_name') or '').strip()
+        last_name = str(request.data.get('last_name') or '').strip()
+        password = str(request.data.get('password') or '')
+        agreed_value = request.data.get('agreed_on_terms')
+        agreed = agreed_value is True or str(agreed_value).lower() in ['1', 'true', 'yes', 'on']
+        if flow == 'register':
+            if not first_name or not last_name or not email:
+                return Response({'detail': 'first_name, last_name and email are required for registration'}, status=status.HTTP_400_BAD_REQUEST)
+            if len(password) < 6:
+                return Response({'detail': 'password must be at least 6 characters'}, status=status.HTTP_400_BAD_REQUEST)
+            if not agreed:
+                return Response({'detail': 'agreed_on_terms is required for registration'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create session via MyID /api/v2/sdk/sessions
+        pinfl = str(request.data.get('pinfl') or '').strip()
+        birth_date = str(request.data.get('birth_date') or '').strip()
+        myid_result = create_myid_sdk_session(phone=phone, pinfl=pinfl, birth_date=birth_date)
+
         session = _create_auth_session(
             kind='myid_mobile',
             phone=phone,
@@ -1257,27 +1625,40 @@ class MobileMyIDStartView(APIView):
             expires_in_seconds=MYID_LOGIN_SESSION_TTL_SECONDS,
         )
         session.myid_payload = {
-            'source': 'mobile_sdk',
+            'source': 'mobile_sdk_v2',
             'phone': phone,
             'account_type': account_type,
-            'client_id': get_config('MYID_CLIENT_ID', ''),
-            'client_hash_present': bool(get_config('MYID_CLIENT_HASH', '')),
-            'client_hash_id_present': bool(get_config('MYID_CLIENT_HASH_ID', '')),
+            'flow': flow,
+            'first_name': first_name,
+            'last_name': last_name,
+            'agreed_on_terms': agreed,
+            'password_hash': make_password(password) if flow == 'register' else '',
+            'myid_session_id': myid_result.get('session_id', ''),
+            'demo': myid_result.get('demo', False),
         }
         session.save(update_fields=['myid_payload', 'updated_at'])
+
+        # Determine SDK environment: Flutter MyID SDK expects 'demo' or 'production'.
+        # Send 'demo' when backend is in test mode OR using api.devmyid.uz.
+        is_demo = myid_result.get('demo', False)
+        base_url = get_config('MYID_BASE_URL').rstrip('/').lower()
+        is_devmyid = 'devmyid' in base_url
+        sdk_environment = 'demo' if (is_demo or is_devmyid) else 'production'
+
         return Response({
             'session_id': session.session_id,
             'phone': session.phone,
             'email': session.email,
             'account_type': session.account_type,
-            'client_id': get_config('MYID_CLIENT_ID', ''),
-            'client_hash': get_config('MYID_CLIENT_HASH', ''),
-            'client_hash_id': get_config('MYID_CLIENT_HASH_ID', ''),
-            'environment': 'production' if myid_sdk_is_configured() else 'demo',
+            'flow': flow,
+            'myid_session_id': myid_result.get('session_id', ''),
+            'client_hash': myid_result.get('client_hash', ''),
+            'client_hash_id': myid_result.get('client_hash_id', ''),
+            'environment': sdk_environment,
             'entry_type': 'IDENTIFICATION',
             'status': session.status,
             'expires_at': session.expires_at.isoformat(),
-            'demo': not myid_sdk_is_configured(),
+            'demo': myid_result.get('demo', False),
         }, status=status.HTTP_201_CREATED)
 
 
@@ -1295,11 +1676,6 @@ class MobileMyIDCompleteView(APIView):
             return Response({'detail': 'MyID session expired'}, status=status.HTTP_400_BAD_REQUEST)
 
         result_code = str(request.data.get('result_code') or request.data.get('code') or '').strip()
-        # The mobile client must never be able to mark an arbitrary session as
-        # verified by sending ``verified=true``.  MyID's embedded SDK defines
-        # result_code=1 as the successful identification result; every other
-        # result is a failed/cancelled flow.  The client flag is retained only
-        # for backward-compatible request parsing and is not trusted.
         success = result_code == '1'
         if not success:
             session.status = 'failed'
@@ -1311,25 +1687,80 @@ class MobileMyIDCompleteView(APIView):
                 'error': session.last_error,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        phone = str(request.data.get('phone') or session.phone or '').strip()
-        email = str(request.data.get('email') or session.email or '').strip().lower()
-        first_name = str(request.data.get('first_name') or '').strip()
-        last_name = str(request.data.get('last_name') or '').strip()
-        passport = str(request.data.get('passport') or '').strip().upper()
-        birth_date = request.data.get('birth_date') or ''
-        user, profile = _get_or_create_myid_user(
-            phone=phone,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-        )
+        # Exchange SDK code for profile
+        sdk_code = str(request.data.get('sdk_code') or '').strip()
+        if not sdk_code:
+            session.status = 'failed'
+            session.last_error = 'MyID SDK did not return a code to exchange for profile data.'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return Response({
+                'session_id': session.session_id,
+                'status': session.status,
+                'error': session.last_error,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            myid_data = exchange_myid_sdk_code(sdk_code)
+        except Exception as exc:
+            session.status = 'failed'
+            session.last_error = f'Failed to exchange MyID code: {str(exc)[:200]}'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return Response({
+                'session_id': session.session_id,
+                'status': session.status,
+                'error': session.last_error,
+            }, status=status.HTTP_502_BAD_GATEWAY)
+
+        profile_data = _myid_profile_values(myid_data)
+        session_data = session.myid_payload if isinstance(session.myid_payload, dict) else {}
+        flow = str(session_data.get('flow') or 'login').strip().lower()
+
+        phone = profile_data.get('phone') or session.phone or request.data.get('phone') or ''
+        email = profile_data.get('email') or session.email or request.data.get('email') or ''
+        first_name = profile_data.get('first_name') or session_data.get('first_name') or ''
+        last_name = profile_data.get('last_name') or session_data.get('last_name') or ''
+        if not phone and not email:
+            session.status = 'failed'
+            session.last_error = 'MyID did not return a phone or email to match the B1 account.'
+            session.save(update_fields=['status', 'last_error', 'updated_at'])
+            return Response({
+                'session_id': session.session_id,
+                'status': session.status,
+                'error': session.last_error,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        passport = profile_data.get('passport', '').upper()
+        birth_date_str = profile_data.get('birth_date', '')
+
+        if flow == 'login':
+            user = _user_identity_lookup(phone=phone, email=email)
+            if user is None:
+                session.status = 'failed'
+                session.last_error = 'No B1 account matches the verified MyID identity. Register first.'
+                session.save(update_fields=['status', 'last_error', 'updated_at'])
+                return Response({
+                    'session_id': session.session_id,
+                    'status': session.status,
+                    'error': session.last_error,
+                }, status=status.HTTP_404_NOT_FOUND)
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+        else:
+            user, profile = _get_or_create_myid_user(
+                phone=phone,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password_hash=str(session_data.get('password_hash') or ''),
+            )
+
         if passport:
             profile.passport = passport
-        if birth_date:
+        if birth_date_str:
             try:
-                profile.birth_date = date.fromisoformat(str(birth_date))
+                profile.birth_date = date.fromisoformat(str(birth_date_str))
             except Exception:
                 pass
+        profile.pinfl = profile_data.get('pinfl', '')
         profile.myid_status = 'verified'
         profile.save()
 
@@ -1341,8 +1772,10 @@ class MobileMyIDCompleteView(APIView):
             'first_name': first_name,
             'last_name': last_name,
             'passport': passport,
-            'birth_date': str(birth_date) if birth_date else '',
-            'raw': request.data.get('myid_payload') or {},
+            'birth_date': birth_date_str,
+            'pinfl': profile_data.get('pinfl', ''),
+            'comparison_value': myid_data.get('comparison_value', 0.0),
+            'raw': myid_data,
         }
         session.user = user
         session.status = 'verified'
@@ -1366,20 +1799,72 @@ class MobileMyIDCompleteView(APIView):
                 qr_session.save(update_fields=['user', 'status', 'verified_at', 'last_error', 'phone', 'email', 'updated_at'])
 
         tokens = _issue_tokens(user)
+        profile_dict = {
+            'id': str(profile.id),
+            'phone': profile.phone,
+            'email': user.email,
+            'first_name': profile.first_name,
+            'last_name': profile.last_name,
+            'middle_name': profile.middle_name,
+            'passport': profile.passport,
+            'birth_date': str(profile.birth_date) if profile.birth_date else '',
+            'pinfl': profile.pinfl,
+            'myid_status': profile.myid_status,
+            'account_type': profile.account_type,
+        }
         return Response({
             'session_id': session.session_id,
             'status': session.status,
             'tokens': tokens,
-            'profile': {
+            'profile': profile_dict,
+            'qr_session_id': qr_session_id or '',
+        }, status=status.HTTP_200_OK)
+
+
+
+class PhoneLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        phone = request.data.get('phone', '').strip()
+        password = request.data.get('password', '')
+
+        if not phone or not password:
+            return Response({
+                'error': 'Phone and password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find user by phone
+        user = _user_identity_lookup(phone=phone)
+
+        if not user:
+            return Response({
+                'error': 'No active account found with the given credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Check password
+        if not user.check_password(password):
+            return Response({
+                'error': 'No active account found with the given credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate tokens
+        tokens = _issue_tokens(user)
+
+        # Get profile info
+        profile = UserProfile.objects.filter(user=user).first()
+
+        return Response({
+            'access': tokens['access'],
+            'refresh': tokens['refresh'],
+            'user': {
                 'id': user.id,
+                'phone': profile.phone if profile else '',
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'phone': profile.phone or phone,
-                'myid_status': profile.myid_status,
-            },
-            'qr_session_id': qr_session_id,
-        })
+            }
+        }, status=status.HTTP_200_OK)
 
 
 class RegisterView(APIView):

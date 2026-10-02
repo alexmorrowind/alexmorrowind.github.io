@@ -72,6 +72,7 @@ class AuthSession(models.Model):
     KIND_CHOICES = [
         ('web_qr', 'Web QR login'),
         ('myid_mobile', 'MyID mobile login'),
+        ('myid_web', 'MyID web redirect login'),
     ]
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -394,11 +395,14 @@ class APIConfiguration(models.Model):
         # MyID
         ('MYID_BASE_URL', 'MyID Base URL'),
         ('MYID_CLIENT_ID', 'MyID Client ID'),
+        ('MYID_CLIENT_SECRET', 'MyID OAuth Client Secret'),
         ('MYID_CLIENT_HASH', 'MyID Client Hash'),
         ('MYID_CLIENT_HASH_ID', 'MyID Client Hash ID'),
         ('MYID_USERNAME', 'MyID Username'),
         ('MYID_PASSWORD', 'MyID Password'),
         ('MYID_HOSTED_URL', 'MyID Hosted URL'),
+        ('MYID_AUTHORIZATION_URL', 'MyID Authorization URL'),
+        ('MYID_REDIRECT_URI', 'MyID Redirect URI'),
         # SMS
         ('SMS_DEMO_MODE', 'SMS Demo Mode (true/false)'),
         ('SMS_DEMO_CODE', 'SMS Demo Code'),

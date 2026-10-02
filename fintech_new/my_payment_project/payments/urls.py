@@ -6,12 +6,16 @@ from .views import (
     BankListView,
     CardDetailView,
     CardListView,
+    HealthView,
     IntegrationStatusView,
     InvestmentListCreateView,
     LegalEntityProfileView,
     LegalEntitySubmitView,
     AuthQrStartView,
     AuthQrStatusView,
+    MyIDWebRedirectStartView,
+    MyIDWebRedirectCallbackView,
+    MyIDWebRedirectCompleteView,
     MobileMyIDStartView,
     MobileMyIDCompleteView,
     MyIDCompleteView,
@@ -26,6 +30,7 @@ from .views import (
     PaymeSubscribeCardVerifyView,
     PaymeSubscribeReceiptView,
     PaymeWebhookView,
+    PhoneLoginView,
     ProfileView,
     RegistrationPhoneCodeView,
     RegistrationPhoneVerifyView,
@@ -39,6 +44,7 @@ from .views import (
 
 
 urlpatterns = [
+    path('api/health/', HealthView.as_view(), name='health'),
     path('api/integrations/status/', IntegrationStatusView.as_view(), name='integration_status'),
     path('api/banks/', BankListView.as_view(), name='bank_list'),
     path('api/banks/<int:pk>/', BankDetailView.as_view(), name='bank_detail'),
@@ -59,12 +65,15 @@ urlpatterns = [
     path('api/auth/myid/status/', RegistrationMyIDStatusView.as_view(), name='auth_myid_status'),
     path('api/auth/qr/start/', AuthQrStartView.as_view(), name='auth_qr_start'),
     path('api/auth/qr/status/', AuthQrStatusView.as_view(), name='auth_qr_status'),
+    path('api/auth/myid/redirect/start/', MyIDWebRedirectStartView.as_view(), name='auth_myid_redirect_start'),
+    path('api/auth/myid/redirect/callback/', MyIDWebRedirectCallbackView.as_view(), name='auth_myid_redirect_callback'),
+    path('api/auth/myid/redirect/complete/', MyIDWebRedirectCompleteView.as_view(), name='auth_myid_redirect_complete'),
     path('api/auth/myid/mobile/start/', MobileMyIDStartView.as_view(), name='auth_myid_mobile_start'),
     path('api/auth/myid/mobile/complete/', MobileMyIDCompleteView.as_view(), name='auth_myid_mobile_complete'),
     path('api/auth/phone-code/', RegistrationPhoneCodeView.as_view(), name='auth_phone_code'),
     path('api/auth/phone-verify/', RegistrationPhoneVerifyView.as_view(), name='auth_phone_verify'),
     path('api/auth/register/', RegisterView.as_view(), name='auth_register'),
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='auth_login'), # Выдаст access и refresh токены
+    path('api/auth/login/', PhoneLoginView.as_view(), name='auth_login'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Личный кабинет
