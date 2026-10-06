@@ -1189,6 +1189,14 @@ class IntegrationStatusView(APIView):
                     'MYID_AUTHORIZATION_URL',
                     'MYID_REDIRECT_URI',
                 ]),
+                'mobile_sdk': {
+                    'configured': myid_sdk_is_configured(),
+                    'environment': (
+                        'demo'
+                        if 'devmyid' in str(get_config('MYID_BASE_URL', '')).lower()
+                        else 'production'
+                    ),
+                },
                 'web_redirect': {
                     **config_group_status([
                         'MYID_BASE_URL',
@@ -1616,6 +1624,12 @@ class MobileMyIDStartView(APIView):
         pinfl = str(request.data.get('pinfl') or '').strip()
         birth_date = str(request.data.get('birth_date') or '').strip()
         myid_result = create_myid_sdk_session(phone=phone, pinfl=pinfl, birth_date=birth_date)
+        myid_session_id = str(myid_result.get('session_id') or '').strip()
+        if not myid_session_id:
+            return Response(
+                {'detail': 'MyID did not return a session_id. Please try again later.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         session = _create_auth_session(
             kind='myid_mobile',
@@ -1633,7 +1647,7 @@ class MobileMyIDStartView(APIView):
             'last_name': last_name,
             'agreed_on_terms': agreed,
             'password_hash': make_password(password) if flow == 'register' else '',
-            'myid_session_id': myid_result.get('session_id', ''),
+            'myid_session_id': myid_session_id,
             'demo': myid_result.get('demo', False),
         }
         session.save(update_fields=['myid_payload', 'updated_at'])
@@ -1651,7 +1665,9 @@ class MobileMyIDStartView(APIView):
             'email': session.email,
             'account_type': session.account_type,
             'flow': flow,
-            'myid_session_id': myid_result.get('session_id', ''),
+            'myid_session_id': myid_session_id,
+            # Kept for older clients; the Flutter APK uses myid_session_id.
+            'client_id': get_config('MYID_CLIENT_ID', ''),
             'client_hash': myid_result.get('client_hash', ''),
             'client_hash_id': myid_result.get('client_hash_id', ''),
             'environment': sdk_environment,

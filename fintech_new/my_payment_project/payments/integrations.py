@@ -257,8 +257,8 @@ def create_myid_sdk_session(phone, pinfl=None, birth_date=None):
         return {
             'demo': True,
             'session_id': f"myid-demo-{uuid.uuid4().hex}",
-            'client_hash': '',
-            'client_hash_id': '',
+            'client_hash': get_config('MYID_CLIENT_HASH', ''),
+            'client_hash_id': get_config('MYID_CLIENT_HASH_ID', ''),
         }
 
     access_token, _ = get_myid_access_token()
@@ -283,22 +283,19 @@ def create_myid_sdk_session(phone, pinfl=None, birth_date=None):
         timeout=10,
     )
 
-    print(f"[MyID SDK] Response from {base_url}/api/v2/sdk/sessions:")
-    print(f"  session_id: {response.get('session_id', 'MISSING')}")
-    print(f"  client_hash: {response.get('client_hash', 'MISSING')}")
-    print(f"  client_hash_id: {response.get('client_hash_id', 'MISSING')}")
-
     # devmyid.uz does not return client_hash/client_hash_id in response.
     # Use credentials from .env as fallback for SDK initialization.
     client_hash = response.get('client_hash') or get_config('MYID_CLIENT_HASH', '')
     client_hash_id = response.get('client_hash_id') or get_config('MYID_CLIENT_HASH_ID', '')
 
-    return {
+    result = {
         'demo': False,
         'session_id': response['session_id'],
         'client_hash': client_hash,
         'client_hash_id': client_hash_id,
     }
+
+    return result
 
 
 def exchange_myid_sdk_code(code):
