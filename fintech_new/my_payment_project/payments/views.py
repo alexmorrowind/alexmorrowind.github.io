@@ -1189,6 +1189,7 @@ class IntegrationStatusView(APIView):
                     'MYID_AUTHORIZATION_URL',
                     'MYID_REDIRECT_URI',
                 ]),
+                'configured': myid_sdk_is_configured() or myid_redirect_is_configured(),
                 'mobile_sdk': {
                     'configured': myid_sdk_is_configured(),
                     'environment': (
