@@ -101,6 +101,35 @@ class AuthSession(models.Model):
         return f"{self.kind} {self.session_id} ({self.status})"
 
 
+class RequestLog(models.Model):
+    """Redacted HTTP request/response audit entry for the admin console."""
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    request_id = models.CharField(max_length=40, blank=True, default='', db_index=True)
+    method = models.CharField(max_length=12)
+    path = models.CharField(max_length=500)
+    status_code = models.PositiveSmallIntegerField(null=True, blank=True, db_index=True)
+    duration_ms = models.PositiveIntegerField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='request_logs')
+    username = models.CharField(max_length=150, blank=True, default='')
+    user_agent = models.CharField(max_length=500, blank=True, default='')
+    query_params = models.JSONField(default=dict, blank=True)
+    request_body = models.JSONField(default=dict, blank=True)
+    response_summary = models.CharField(max_length=300, blank=True, default='')
+    error = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=('created_at', 'status_code')),
+            models.Index(fields=('path', 'created_at')),
+        ]
+
+    def __str__(self):
+        return f"{self.method} {self.path} → {self.status_code or 'error'}"
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Ожидает оплаты'),

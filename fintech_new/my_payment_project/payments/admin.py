@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User
 from django.utils.html import format_html, format_html_join
-from .models import APIConfiguration, Bank, UserProfile, Card, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, Investment, KYCVerification
+from .models import APIConfiguration, Bank, UserProfile, Card, NewsArticle, Order, P2PTransfer, PaymeTransaction, Startup, Investment, KYCVerification, RequestLog
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 TEMP_PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
@@ -193,6 +193,24 @@ class PaymeTransactionAdmin(admin.ModelAdmin):
     list_display = ('payme_id', 'order', 'amount', 'state', 'perform_time')
     search_fields = ('payme_id', 'order__id')
     list_filter = ('state',)
+
+
+@admin.register(RequestLog)
+class RequestLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at', 'method', 'path', 'status_code', 'duration_ms',
+        'username', 'ip_address', 'request_id',
+    )
+    list_filter = ('method', 'status_code', 'created_at')
+    search_fields = ('path', 'request_id', 'username', 'ip_address', 'user_agent', 'error')
+    date_hierarchy = 'created_at'
+    readonly_fields = (
+        'created_at', 'request_id', 'method', 'path', 'status_code',
+        'duration_ms', 'ip_address', 'user', 'username', 'user_agent',
+        'query_params', 'request_body', 'response_summary', 'error',
+    )
+    ordering = ('-created_at',)
+    list_per_page = 50
 
 
 @admin.register(P2PTransfer)
