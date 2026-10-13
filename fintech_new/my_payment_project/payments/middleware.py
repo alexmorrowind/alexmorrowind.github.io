@@ -62,7 +62,7 @@ class RequestLogMiddleware(MiddlewareMixin):
 
     def _write_log(self, request, response=None, error=None):
         path = request.path or '/'
-        if path.startswith('/static/') or path in {'/favicon.ico', '/api/health/'}:
+        if path.startswith('/static/') or path == '/favicon.ico':
             return
 
         started = getattr(request, '_b1_request_started_at', time.monotonic())
