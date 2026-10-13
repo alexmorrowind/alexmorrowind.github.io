@@ -264,12 +264,19 @@ def create_myid_sdk_session(phone, pinfl=None, birth_date=None):
     access_token, _ = get_myid_access_token()
     base_url = get_config('MYID_BASE_URL').rstrip('/')
 
-    # Normalize phone: MyID expects no '+', exactly 12 digits
-    normalized = (phone or '').strip().replace('+', '').replace(' ', '')
+    # Normalize phone: MyID expects digits without a leading '+'.  Keeping the
+    # normalization in one place prevents parentheses/hyphens from producing
+    # a session that the provider cannot continue.
+    normalized = normalize_phone(phone)
 
     request_body = {}
     if normalized:
         request_body['phone_number'] = normalized
+    # These fields are optional in SDK-new, but explicitly sending the default
+    # residency and a recommended matching threshold makes the request
+    # deterministic across provider environments.
+    request_body['is_resident'] = True
+    request_body['threshold'] = 0.85
     if pinfl:
         request_body['pinfl'] = pinfl
     if birth_date:
@@ -296,6 +303,41 @@ def create_myid_sdk_session(phone, pinfl=None, birth_date=None):
     }
 
     return result
+
+
+def get_myid_sdk_session_status(provider_session_id):
+    """Read the provider-side SDK session state for diagnostics/recovery.
+
+    SDK-new documents this endpoint for the case where the mobile SDK result
+    code is lost.  It is also useful when a device remains on the camera
+    screen: ``in_progress`` confirms the backend session is valid while
+    ``closed``/``expired`` shows that the provider completed or timed it out.
+    The access token and client secret never leave the backend.
+    """
+    provider_session_id = str(provider_session_id or '').strip()
+    if not provider_session_id:
+        raise ValueError('provider_session_id is required')
+
+    test_mode = raw_env_bool('MYID_TEST_MODE', default=False)
+    if test_mode or not myid_sdk_is_configured():
+        return {
+            'status': 'in_progress',
+            'attempts': [],
+            'demo': True,
+        }
+
+    access_token, _ = get_myid_access_token()
+    base_url = (get_config('MYID_BASE_URL') or '').rstrip('/')
+    req = request.Request(
+        f'{base_url}/api/v1/sdk/sessions/{parse.quote(provider_session_id, safe="")}',
+        method='GET',
+        headers={
+            'Accept': 'application/json',
+            'Authorization': f'Bearer {access_token}',
+        },
+    )
+    with request.urlopen(req, timeout=15) as response:
+        return json.loads(response.read().decode('utf-8') or '{}')
 
 
 def exchange_myid_sdk_code(code):

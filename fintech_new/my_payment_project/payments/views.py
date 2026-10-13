@@ -24,6 +24,7 @@ from .integrations import (
     generate_sms_code,
     get_config,
     get_myid_status,
+    get_myid_sdk_session_status,
     get_myid_user_profile,
     mask_phone,
     myid_is_configured,
@@ -1651,12 +1652,13 @@ class MobileMyIDStartView(APIView):
             'myid_session_id': myid_session_id,
             'demo': myid_result.get('demo', False),
         }
-        session.save(update_fields=['myid_payload', 'updated_at'])
+        session.myid_session_id = myid_session_id
+        session.save(update_fields=['myid_payload', 'myid_session_id', 'updated_at'])
 
         # Determine SDK environment: Flutter MyID SDK expects 'demo' or 'production'.
         # Send 'demo' when backend is in test mode OR using api.devmyid.uz.
         is_demo = myid_result.get('demo', False)
-        base_url = get_config('MYID_BASE_URL').rstrip('/').lower()
+        base_url = (get_config('MYID_BASE_URL') or '').rstrip('/').lower()
         is_devmyid = 'devmyid' in base_url
         sdk_environment = 'demo' if (is_demo or is_devmyid) else 'production'
 
@@ -1677,6 +1679,66 @@ class MobileMyIDStartView(APIView):
             'expires_at': session.expires_at.isoformat(),
             'demo': myid_result.get('demo', False),
         }, status=status.HTTP_201_CREATED)
+
+
+class MobileMyIDStatusView(APIView):
+    """Return a redacted local/provider status for a mobile SDK session.
+
+    This endpoint is intentionally read-only.  It never returns provider
+    access tokens, client secrets, SDK hashes, passport data, or the one-time
+    authorization code.  It is primarily a support/diagnostic endpoint for a
+    device that is stuck in the MyID camera flow.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        local_session_id = str(request.query_params.get('session_id') or '').strip()
+        if not local_session_id:
+            return Response({'detail': 'session_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = AuthSession.objects.filter(
+            session_id=local_session_id,
+            kind='myid_mobile',
+        ).first()
+        if not session:
+            return Response({'detail': 'MyID mobile session not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        session = _ensure_auth_session_active(session)
+        payload = session.myid_payload if isinstance(session.myid_payload, dict) else {}
+        provider_session_id = session.myid_session_id or payload.get('myid_session_id')
+        response = {
+            'session_id': session.session_id,
+            'status': session.status,
+            'expires_at': session.expires_at.isoformat(),
+            'provider_status': 'unavailable',
+            'provider_attempts': [],
+        }
+        if not provider_session_id:
+            response['provider_status'] = 'missing_session'
+            return Response(response, status=status.HTTP_502_BAD_GATEWAY)
+
+        try:
+            provider_payload = get_myid_sdk_session_status(provider_session_id)
+        except Exception:
+            # Do not leak provider URLs, tokens, or raw error bodies to a
+            # public client.  The full exception remains in server logs.
+            response['provider_status'] = 'unavailable'
+            return Response(response, status=status.HTTP_502_BAD_GATEWAY)
+
+        response['provider_status'] = provider_payload.get('status', 'unknown')
+        attempts = provider_payload.get('attempts')
+        if isinstance(attempts, list):
+            response['provider_attempts'] = [
+                {
+                    'timestamp': item.get('timestamp'),
+                    'reason': item.get('reason'),
+                    'reason_code': item.get('reason_code'),
+                }
+                for item in attempts[-5:]
+                if isinstance(item, dict)
+            ]
+        return Response(response)
 
 
 class MobileMyIDCompleteView(APIView):
