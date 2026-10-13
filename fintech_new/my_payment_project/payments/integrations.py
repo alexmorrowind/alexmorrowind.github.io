@@ -3,7 +3,7 @@ import json
 import os
 import time
 import uuid
-from urllib import parse, request
+from urllib import error, parse, request
 
 PLACEHOLDER_PREFIXES = ('your_', 'paste_', 'change-me', 'сюда_', 'example')
 CONFIG_ALIASES = {
@@ -336,8 +336,19 @@ def get_myid_sdk_session_status(provider_session_id):
             'Authorization': f'Bearer {access_token}',
         },
     )
-    with request.urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode('utf-8') or '{}')
+    try:
+        with request.urlopen(req, timeout=15) as response:
+            return json.loads(response.read().decode('utf-8') or '{}')
+    except error.HTTPError as exc:
+        # The SDK-new docs note that this recovery endpoint is primarily for
+        # later recovery. Fresh sessions can be rejected by the provider before
+        # they are ready to be recovered, so expose a safe provider state
+        # instead of turning diagnostics into a hard backend failure.
+        return {
+            'status': 'not_ready' if exc.code == 400 else 'unavailable',
+            'provider_http_status': exc.code,
+            'attempts': [],
+        }
 
 
 def exchange_myid_sdk_code(code):
