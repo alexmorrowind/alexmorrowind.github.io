@@ -1741,6 +1741,36 @@ class MobileMyIDStatusView(APIView):
         return Response(response)
 
 
+class MobileMyIDEventView(APIView):
+    """Accept non-sensitive SDK lifecycle events for camera diagnostics.
+
+    The request middleware stores the redacted request in Django Admin.  This
+    endpoint intentionally accepts only a local session id and event metadata;
+    it never accepts images, PINFL, tokens, or MyID credentials.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        session_id = str(request.data.get('session_id') or '').strip()
+        event_type = str(request.data.get('type') or '').strip()[:40]
+        event = str(request.data.get('event') or '').strip()[:80]
+        if not session_id or not event_type:
+            return Response(
+                {'detail': 'session_id and type are required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not AuthSession.objects.filter(
+            session_id=session_id,
+            kind='myid_mobile',
+        ).exists():
+            return Response(
+                {'detail': 'MyID mobile session not found'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response({'status': 'accepted', 'event': event}, status=status.HTTP_202_ACCEPTED)
+
+
 class MobileMyIDCompleteView(APIView):
     permission_classes = [AllowAny]
 
