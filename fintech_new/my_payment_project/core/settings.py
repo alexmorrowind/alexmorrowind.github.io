@@ -56,7 +56,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-_^vk2a5y6mo59^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool('DJANGO_DEBUG', default=not env_bool('RENDER', default=False))
 
-ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'api.b1pay.uz,b1pay.uz,127.0.0.1,localhost')
 
 for host in [
     os.environ.get('RENDER_EXTERNAL_HOSTNAME'),

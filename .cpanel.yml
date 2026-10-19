@@ -5,10 +5,14 @@ deployment:
     - export PUBLIC_ROOT=$HOME/public_html
     - export PYTHON_BIN=$HOME/virtualenv/b1pay_backend/3.13/bin/python
     - mkdir -p $APP_ROOT
+    - mkdir -p $APP_ROOT/public
     - mkdir -p $PUBLIC_ROOT
     - rsync -a --delete --exclude='.DS_Store' --exclude='.htaccess' --exclude='.user.ini' --exclude='php.ini' --exclude='.well-known' fintech_new/front/ $PUBLIC_ROOT/
     - rsync -a --delete --exclude='.env' --exclude='.env.*' --exclude='db.sqlite3' --exclude='public' --exclude='staticfiles' --exclude='tmp' --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' fintech_new/my_payment_project/ $APP_ROOT/
-    - cd $APP_ROOT && $PYTHON_BIN -m pip install -r requirements.txt
+    - grep -q 'DJANGO_ALLOWED_HOSTS' $APP_ROOT/.env 2>/dev/null || echo 'DJANGO_ALLOWED_HOSTS=api.b1pay.uz,localhost,127.0.0.1' >> $APP_ROOT/.env
+    - grep -q 'CORS_ALLOWED_ORIGINS' $APP_ROOT/.env 2>/dev/null || echo 'CORS_ALLOWED_ORIGINS=https://b1pay.uz' >> $APP_ROOT/.env
+    - grep -q 'DJANGO_DEBUG' $APP_ROOT/.env 2>/dev/null || echo 'DJANGO_DEBUG=false' >> $APP_ROOT/.env
+    - cd $APP_ROOT && $PYTHON_BIN -m pip install -r requirements.txt --quiet
     - cd $APP_ROOT && $PYTHON_BIN manage.py collectstatic --no-input
     - cd $APP_ROOT && $PYTHON_BIN manage.py migrate --noinput
     - cd $APP_ROOT && $PYTHON_BIN manage.py ensure_superuser
